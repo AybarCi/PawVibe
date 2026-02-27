@@ -9,8 +9,9 @@ interface IAPContextState {
     products: Product[];
     subscriptions: ProductSubscription[];
     isConfigured: boolean;
-    purchasePackage: (productId: string) => Promise<{ success: boolean; error?: string }>;
+    purchasePackage: (productId: string, offerToken?: string) => Promise<{ success: boolean; error?: string }>;
     restorePurchases: () => Promise<{ success: boolean; error?: string }>;
+    lastPurchaseSuccess: number;
 }
 
 const IAPContext = createContext<IAPContextState>({
@@ -19,6 +20,7 @@ const IAPContext = createContext<IAPContextState>({
     isConfigured: false,
     purchasePackage: async () => ({ success: false, error: 'Not initialized' }),
     restorePurchases: async () => ({ success: false, error: 'Not initialized' }),
+    lastPurchaseSuccess: 0,
 });
 
 export const useIAP = () => useContext(IAPContext);
@@ -27,6 +29,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [products, setProducts] = useState<Product[]>([]);
     const [subscriptions, setSubscriptions] = useState<ProductSubscription[]>([]);
     const [isConfigured, setIsConfigured] = useState(false);
+    const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState(0);
 
     useEffect(() => {
         const initIAP = async () => {
@@ -73,7 +76,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             receipt,
                             productId: purchase.productId,
                             platform: Platform.OS,
-                            transactionId: purchase.transactionId
+                            transactionId: purchase.transactionId || purchase.purchaseToken
                         }
                     });
 
@@ -86,6 +89,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             purchase,
                             isConsumable: purchase.productId !== IAP_PRODUCTS.PREMIUM_UNLIMITED
                         });
+                        setLastPurchaseSuccess(Date.now());
                     }
                 } catch (e) {
                     console.error("Purchase processing error", e);
@@ -105,13 +109,16 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
     }, []);
 
-    const purchasePackage = async (productId: string): Promise<{ success: boolean; error?: string }> => {
+    const purchasePackage = async (productId: string, offerToken?: string): Promise<{ success: boolean; error?: string }> => {
         try {
             if (productId === IAP_PRODUCTS.PREMIUM_UNLIMITED) {
                 await RNIap.requestPurchase({
                     request: {
                         apple: { sku: productId },
-                        google: { skus: [productId] },
+                        google: {
+                            skus: [productId],
+                            subscriptionOffers: offerToken ? [{ sku: productId, offerToken }] : undefined
+                        },
                     },
                     type: 'subs'
                 });
@@ -157,6 +164,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             purchase,
                             isConsumable: purchase.productId !== IAP_PRODUCTS.PREMIUM_UNLIMITED
                         });
+                        setLastPurchaseSuccess(Date.now());
                     }
                 }
             }
@@ -168,7 +176,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     return (
-        <IAPContext.Provider value={{ products, subscriptions, isConfigured, purchasePackage, restorePurchases }}>
+        <IAPContext.Provider value={{ products, subscriptions, isConfigured, purchasePackage, restorePurchases, lastPurchaseSuccess }}>
             {children}
         </IAPContext.Provider>
     );

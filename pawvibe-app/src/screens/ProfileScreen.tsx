@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -11,7 +11,7 @@ import { IAP_PRODUCTS } from '../../lib/iap';
 
 export default function ProfileScreen() {
     const { t } = useTranslation();
-    const { products, subscriptions, purchasePackage } = useIAP();
+    const { products, subscriptions, purchasePackage, lastPurchaseSuccess } = useIAP();
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -68,6 +68,12 @@ export default function ProfileScreen() {
         }
     };
 
+    useEffect(() => {
+        if (lastPurchaseSuccess > 0) {
+            fetchProfileData();
+        }
+    }, [lastPurchaseSuccess]);
+
     const handlePurchase = async (productId: string) => {
         const item = [...products, ...subscriptions].find(p => p.id === productId);
         if (!item) {
@@ -76,7 +82,14 @@ export default function ProfileScreen() {
         }
 
         setLoading(true);
-        const { success, error } = await purchasePackage(productId);
+
+        let offerToken;
+        // Extract offerToken for Android subscriptions
+        if (Platform.OS === 'android' && 'subscriptionOffers' in item && item.subscriptionOffers?.length > 0) {
+            offerToken = item.subscriptionOffers[0].offerTokenAndroid || undefined;
+        }
+
+        const { success, error } = await purchasePackage(productId, offerToken);
         setLoading(false);
 
         if (success) {
