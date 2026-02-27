@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Session } from '@supabase/supabase-js';
+import PawVibeLoader from '../components/PawVibeLoader';
 import AstroModal from '../components/AstroModal';
 import MonthlyReportModal from '../components/MonthlyReportModal';
 
@@ -69,7 +70,7 @@ export default function MyScansScreen() {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#FF007F" />
+                <PawVibeLoader size={120} />
             </View>
         );
     }

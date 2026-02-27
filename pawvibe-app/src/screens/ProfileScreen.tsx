@@ -8,6 +8,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIAP } from '../context/IAPContext';
 import { IAP_PRODUCTS } from '../../lib/iap';
+import PawVibeLoader from '../components/PawVibeLoader';
 
 export default function ProfileScreen() {
     const { t } = useTranslation();
@@ -108,7 +109,7 @@ export default function ProfileScreen() {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#FF4B4B" />
+                <PawVibeLoader size={120} />
             </View>
         );
     }
