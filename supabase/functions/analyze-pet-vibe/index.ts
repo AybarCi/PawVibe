@@ -50,35 +50,24 @@ serve(async (req) => {
       throw new Error(`Profile not found or unauthorized for user ${user_id}`);
     }
 
-    // Lazy credit check
-    const now = new Date();
-    if ((now.getTime() - new Date(profile.last_reset_date).getTime()) / (1000 * 60 * 60 * 24) >= 7) {
-      await supabase
-        .from('profiles')
-        .update({ weekly_credits: 5, last_reset_date: now.toISOString() })
-        .eq('id', user_id);
-      
-      profile.weekly_credits = 5;
-    }
+    // Lazy credit check for non-premium users
+    if (!profile.is_premium) {
+      const now = new Date();
+      if ((now.getTime() - new Date(profile.last_reset_date).getTime()) / (1000 * 60 * 60 * 24) >= 7) {
+        await supabase
+          .from('profiles')
+          .update({ weekly_credits: 5, last_reset_date: now.toISOString() })
+          .eq('id', user_id);
+        
+        profile.weekly_credits = 5;
+      }
 
-    if (profile.weekly_credits + profile.purchased_credits <= 0) {
-      return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
-        status: 402,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Deduct credit
-    if (profile.weekly_credits > 0) {
-      await supabase
-        .from('profiles')
-        .update({ weekly_credits: profile.weekly_credits - 1 })
-        .eq('id', user_id);
-    } else {
-      await supabase
-        .from('profiles')
-        .update({ purchased_credits: profile.purchased_credits - 1 })
-        .eq('id', user_id);
+      if (profile.weekly_credits + profile.purchased_credits <= 0) {
+        return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // OpenAI call
@@ -123,29 +112,31 @@ If there are NO pets in the image (e.g., it's a picture of sunglasses, a mug, or
     const moodResult = JSON.parse(openAiData.choices[0].message.content);
 
     // Deduct credit
-    if (profile.weekly_credits > 0) {
-      await supabase
-        .from('profiles')
-        .update({ weekly_credits: profile.weekly_credits - 1 })
-        .eq('id', user_id);
-    } else {
-      await supabase
-        .from('profiles')
-        .update({ purchased_credits: profile.purchased_credits - 1 })
-        .eq('id', user_id);
+    if (!profile.is_premium) {
+      if (profile.weekly_credits > 0) {
+        await supabase
+          .from('profiles')
+          .update({ weekly_credits: profile.weekly_credits - 1 })
+          .eq('id', user_id);
+      } else {
+        await supabase
+          .from('profiles')
+          .update({ purchased_credits: profile.purchased_credits - 1 })
+          .eq('id', user_id);
+      }
     }
 
     // Save scan to database
     const { error: insertError } = await supabase.from('scans').insert([{
       user_id,
-      mood_title: moodResult.mood_title,
-      confidence: moodResult.confidence,
-      chaos_score: moodResult.chaos_score,
-      energy_level: moodResult.energy_level,
-      sweetness_score: moodResult.sweetness_score,
-      judgment_level: moodResult.judgment_level,
-      cuddle_o_meter: moodResult.cuddle_o_meter,
-      derp_factor: moodResult.derp_factor
+      mood_title: moodResult.mood_title || 'Unknown Vibe',
+      confidence: moodResult.confidence ?? 1.0,  // It might be omitted by AI for inanimate objects
+      chaos_score: moodResult.chaos_score ?? 0,
+      energy_level: moodResult.energy_level ?? 0,
+      sweetness_score: moodResult.sweetness_score ?? 0,
+      judgment_level: moodResult.judgment_level ?? 0,
+      cuddle_o_meter: moodResult.cuddle_o_meter ?? 0,
+      derp_factor: moodResult.derp_factor ?? 0
     }]);
 
     if (insertError) {

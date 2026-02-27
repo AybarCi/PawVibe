@@ -15,6 +15,7 @@ export default function CameraScreen({ navigation }: any) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
+    const [isPremium, setIsPremium] = useState(false);
 
     // Custom Alert State
     const [alertVisible, setAlertVisible] = useState(false);
@@ -73,6 +74,15 @@ export default function CameraScreen({ navigation }: any) {
                 setIsAnalyzing(false);
                 return;
             }
+
+            // Check premium status to hide watermark
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_premium')
+                .eq('id', authSession.user.id)
+                .single();
+
+            setIsPremium(profile?.is_premium || false);
 
             // 1. Take Picture
             const photo = await cameraRef.current.takePictureAsync({
@@ -199,7 +209,10 @@ export default function CameraScreen({ navigation }: any) {
                                     </View>
                                 </View>
                             )}
-                            <Text style={styles.watermark}>PawVibe</Text>
+                            {result.is_pet === false && result.explanation && (
+                                <Text style={styles.funnyExplanation}>{result.explanation}</Text>
+                            )}
+                            {!isPremium && <Text style={styles.watermark}>PawVibe</Text>}
                         </View>
                     </ViewShot>
 
@@ -308,6 +321,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start' /* Align left for cleaner columns */
     },
     statText: { color: '#FFD700', fontSize: 13, fontWeight: '700', marginBottom: 5 }, // Yellow stats
+    funnyExplanation: { color: 'white', fontSize: 16, fontStyle: 'italic', textAlign: 'center', marginTop: 10, paddingHorizontal: 15 },
 
     // New Shareable Trading Card Styles
     shareableCard: {

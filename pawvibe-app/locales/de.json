@@ -1,0 +1,5 @@
+{
+    "infoPlist": {
+        "NSCameraUsageDescription": "PawVibe benötigt Zugriff auf deine Kamera, um die Stimmung deines Haustiers zu analysieren."
+    }
+}

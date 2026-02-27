@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "pawvibe-app",
-    "slug": "pawvibe-app",
-    "version": "1.0.0",
+    "name": "PawVibe",
+    "slug": "pawvibe",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -13,14 +13,19 @@
       "backgroundColor": "#0A001A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.setifera.pawvibe",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A001A"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.setifera.pawvibe"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +34,21 @@
       "expo-asset",
       "expo-font",
       "expo-localization"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "87e39027-e709-450d-b729-141d5af17a62"
+      }
+    },
+    "owner": "aybarc",
+    "locales": {
+      "en": "./locales/en.json",
+      "tr": "./locales/tr.json",
+      "es": "./locales/es.json",
+      "ru": "./locales/ru.json",
+      "fr": "./locales/fr.json",
+      "pt": "./locales/pt.json",
+      "de": "./locales/de.json"
+    }
   }
 }

@@ -1,0 +1,5 @@
+{
+    "infoPlist": {
+        "NSCameraUsageDescription": "PawVibe precisa acessar sua câmera para analisar a vibe do seu pet."
+    }
+}
