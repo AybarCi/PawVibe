@@ -62,7 +62,8 @@ serve(async (req) => {
         profile.weekly_credits = 5;
       }
 
-      if (profile.weekly_credits + profile.purchased_credits <= 0) {
+      const totalCredits = (profile.weekly_credits || 0) + (profile.purchased_credits || 0);
+      if (totalCredits <= 0) {
         return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -111,18 +112,52 @@ If there are NO pets in the image (e.g., it's a picture of sunglasses, a mug, or
     // Parse the JSON string from OpenAI
     const moodResult = JSON.parse(openAiData.choices[0].message.content);
 
-    // Deduct credit
+    // Atomic credit deduction — prevents race condition where 2 concurrent requests
+    // both pass the credit check and double-deduct, causing negative credits.
     if (!profile.is_premium) {
       if (profile.weekly_credits > 0) {
-        await supabase
+        // Atomic: decrement only if weekly_credits > 0
+        const { data: updated, error: deductErr } = await supabase
           .from('profiles')
           .update({ weekly_credits: profile.weekly_credits - 1 })
-          .eq('id', user_id);
+          .eq('id', user_id)
+          .gt('weekly_credits', 0)
+          .select('weekly_credits')
+          .maybeSingle();
+
+        if (!updated && !deductErr) {
+          // Race: another request already consumed this credit. Try purchased.
+          const { data: updated2, error: deductErr2 } = await supabase
+            .from('profiles')
+            .update({ purchased_credits: profile.purchased_credits - 1 })
+            .eq('id', user_id)
+            .gt('purchased_credits', 0)
+            .select('purchased_credits')
+            .maybeSingle();
+
+          if (!updated2 && !deductErr2) {
+            return new Response(JSON.stringify({ error: 'Insufficient credits (race)' }), {
+              status: 402,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        }
       } else {
-        await supabase
+        // Atomic: decrement purchased_credits only if > 0
+        const { data: updated, error: deductErr } = await supabase
           .from('profiles')
           .update({ purchased_credits: profile.purchased_credits - 1 })
-          .eq('id', user_id);
+          .eq('id', user_id)
+          .gt('purchased_credits', 0)
+          .select('purchased_credits')
+          .maybeSingle();
+
+        if (!updated && !deductErr) {
+          return new Response(JSON.stringify({ error: 'Insufficient credits (race)' }), {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
     }
 

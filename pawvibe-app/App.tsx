@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Image, Platform, AppState } from 'react-native';
+import { Image, Platform, AppState, View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './lib/supabase';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import * as Haptics from 'expo-haptics';
+import Toast, { BaseToast, ErrorToast, ToastConfigParams } from 'react-native-toast-message';
 
 // Import screens
 import CameraScreen from './src/screens/CameraScreen';
@@ -38,6 +40,65 @@ AppState.addEventListener('change', (state) => {
         supabase.auth.stopAutoRefresh()
     }
 })
+
+/* Custom Toast Configuration - Neon Cyberpunk Theme */
+const toastStyles = StyleSheet.create({
+    toastContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1A0B2E',
+        width: '90%',
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 20,
+        borderWidth: 2,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 10,
+        marginTop: Platform.OS === 'ios' ? 0 : 20,
+    },
+    successContainer: { borderColor: '#00FF00', shadowColor: '#00FF00' },
+    errorContainer: { borderColor: '#FF007F', shadowColor: '#FF007F' },
+    infoContainer: { borderColor: '#FFD700', shadowColor: '#FFD700' },
+    iconContainer: { marginRight: 15, justifyContent: 'center', alignItems: 'center' },
+    iconText: { fontSize: 28 },
+    textContainer: { flex: 1 },
+    titleBase: { fontSize: 16, fontWeight: '900', marginBottom: 2 },
+    titleSuccess: { color: '#00FF00' },
+    titleError: { color: '#FF007F' },
+    titleInfo: { color: '#FFD700' },
+    message: { fontSize: 14, color: '#D3C4E5' },
+});
+
+const toastConfig = {
+    success: ({ text1, text2 }: ToastConfigParams<any>) => (
+        <View style={[toastStyles.toastContainer, toastStyles.successContainer]}>
+            <View style={toastStyles.iconContainer}><Text style={toastStyles.iconText}>✨</Text></View>
+            <View style={toastStyles.textContainer}>
+                <Text style={[toastStyles.titleBase, toastStyles.titleSuccess]}>{text1}</Text>
+                <Text style={toastStyles.message}>{text2}</Text>
+            </View>
+        </View>
+    ),
+    error: ({ text1, text2 }: ToastConfigParams<any>) => (
+        <View style={[toastStyles.toastContainer, toastStyles.errorContainer]}>
+            <View style={toastStyles.iconContainer}><Text style={toastStyles.iconText}>🚫</Text></View>
+            <View style={toastStyles.textContainer}>
+                <Text style={[toastStyles.titleBase, toastStyles.titleError]}>{text1}</Text>
+                <Text style={toastStyles.message}>{text2}</Text>
+            </View>
+        </View>
+    ),
+    info: ({ text1, text2 }: ToastConfigParams<any>) => (
+        <View style={[toastStyles.toastContainer, toastStyles.infoContainer]}>
+            <View style={toastStyles.iconContainer}><Text style={toastStyles.iconText}>🐾</Text></View>
+            <View style={toastStyles.textContainer}>
+                <Text style={[toastStyles.titleBase, toastStyles.titleInfo]}>{text1}</Text>
+                <Text style={toastStyles.message}>{text2}</Text>
+            </View>
+        </View>
+    )
+};
 
 export default function App() {
     const { t } = useTranslation();
@@ -82,7 +143,7 @@ export default function App() {
                                             width: 77, // Increased from 32
                                             height: 77, // Increased from 32
                                             opacity: focused ? 1 : 0.4,
-                                            marginTop: Platform.OS === 'ios' ? 32 : 16 // Push down slightly to center vertically without labels
+                                            marginTop: Platform.OS === 'ios' ? 32 : 20 // Push down slightly to center vertically without labels
                                         }}
                                         resizeMode="contain"
                                     />
@@ -95,9 +156,9 @@ export default function App() {
                                 backgroundColor: '#0A001A', // Deep dark purple background
                                 borderTopColor: '#FF007F', // Neon pink top border
                                 borderTopWidth: 1, // Add defined width for retro glow feel
-                                height: Platform.OS === 'ios' ? 90 : 70, // Keep height for safe area
-                                paddingBottom: Platform.OS === 'ios' ? 30 : 0, // Remove bottom padding on Android since there's no text
-                                paddingTop: Platform.OS === 'ios' ? 0 : 0, // Reset padding top to center vertically
+                                height: Platform.OS === 'ios' ? 90 : 80, // Keep height for safe area
+                                paddingBottom: Platform.OS === 'ios' ? 30 : 10, // Adjust bottom padding on Android
+                                paddingTop: Platform.OS === 'ios' ? 0 : 5, // Add top padding on Android to separate from line
                             },
                             headerStyle: {
                                 backgroundColor: '#0A001A',
@@ -113,20 +174,36 @@ export default function App() {
                             name="Scan"
                             component={CameraScreen}
                             options={{ headerShown: false, tabBarLabel: t('app.tab_scan') }}
+                            listeners={({ navigation, route }) => ({
+                                tabPress: (e) => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                },
+                            })}
                         />
                         <Tab.Screen
                             name="MyScans"
                             component={MyScansScreen}
                             options={{ headerShown: false, tabBarLabel: t('app.tab_scans') }}
+                            listeners={({ navigation, route }) => ({
+                                tabPress: (e) => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                },
+                            })}
                         />
                         <Tab.Screen
                             name="Profile"
                             component={ProfileScreen}
                             options={{ headerShown: false, tabBarLabel: t('app.tab_profile') }}
+                            listeners={({ navigation, route }) => ({
+                                tabPress: (e) => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                },
+                            })}
                         />
                     </Tab.Navigator>
                 </NavigationContainer>
             </IAPProvider>
+            <Toast config={toastConfig} />
         </SafeAreaProvider >
     );
 }

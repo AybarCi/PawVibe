@@ -61,7 +61,13 @@ const resources = {
         "horoscope": "Daily Horoscope",
         "executive_summary": "Executive Summary",
         "behavioral_analysis": "Behavioral Analysis",
-        "doctor_advice": "Doctor's Advice"
+        "doctor_advice": "Doctor's Advice",
+        "analyzing_aura": "Analyzing Aura Layers...",
+        "calculating_chaos": "Calculating Chaos Matrix...",
+        "summoning_energy": "Summoning Cosmic Energy...",
+        "sharing_unavailable": "Sharing Unavailable",
+        "sharing_not_supported": "Sharing is not supported on this device.",
+        "could_not_share": "Could not share image."
       }
     }
   },
@@ -124,6 +130,13 @@ const resources = {
         "horoscope": "Günlük Yorum",
         "executive_summary": "Özet Değerlendirme",
         "behavioral_analysis": "Davranış Analizi",
+        "doctor_advice": "Doktor Tavsiyesi",
+        "analyzing_aura": "Aura Katmanları Analiz Ediliyor...",
+        "calculating_chaos": "Kaos Matrisi Hesaplanıyor...",
+        "summoning_energy": "Kozmik Enerji Toplanıyor...",
+        "sharing_unavailable": "Paylaşım Kullanılamıyor",
+        "sharing_not_supported": "Bu cihazda paylaşım desteklenmiyor.",
+        "could_not_share": "Görsel paylaşılamadı."
       }
     }
   },

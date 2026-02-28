@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../lib/i18n';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { BlurView } from 'expo-blur';
 
 interface AstroModalProps {
     visible: boolean;
@@ -83,12 +84,12 @@ export default function AstroModal({ visible, onClose, scanId, isPremiumUser }: 
 
     return (
         <Modal
-            animationType="slide"
+            animationType="fade"
             transparent={true}
             visible={visible}
             onRequestClose={onClose}
         >
-            <View style={styles.centeredView}>
+            <BlurView intensity={90} tint="dark" style={styles.centeredView}>
                 <View style={[styles.modalView, { width: '90%', maxHeight: '80%' }]}>
 
                     <View style={styles.header}>
@@ -144,7 +145,7 @@ export default function AstroModal({ visible, onClose, scanId, isPremiumUser }: 
                     ) : null}
 
                 </View>
-            </View>
+            </BlurView>
         </Modal>
     );
 }
@@ -154,10 +155,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(10, 0, 26, 0.9)',
     },
     modalView: {
-        backgroundColor: '#1A0B2E',
+        backgroundColor: 'rgba(26, 11, 46, 0.85)',
         borderRadius: 20,
         padding: 20,
         alignItems: 'center',

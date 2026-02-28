@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View, ActivityIndicator, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, ScrollView, RefreshControl, TouchableOpacity, Platform, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +45,7 @@ export default function MyScansScreen() {
                     .from('profiles')
                     .select('is_premium')
                     .eq('id', session.user.id)
-                    .single();
+                    .maybeSingle();
 
                 setIsPremiumUser(profile?.is_premium || false);
             }
@@ -85,95 +86,103 @@ export default function MyScansScreen() {
     }
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={{ padding: 20 }}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF007F" />
-            }
-        >
-            <Text style={styles.headerTitle}>{t('app.tab_scans', 'My Scans')}</Text>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>{t('app.tab_scans', 'My Scans')}</Text>
+            </View>
 
-            {/* Premium Feature Placeholder */}
-            {scans.length > 0 && (
-                <TouchableOpacity
-                    style={styles.monthlyReportBtn}
-                    onPress={() => setMonthlyReportModalVisible(true)}
-                >
-                    <Ionicons name="document-text-outline" size={20} color="white" style={{ marginRight: 6 }} />
-                    <Text style={styles.monthlyReportBtnText}>{t('app.generate_monthly_report', 'Generate Monthly Report')}</Text>
-                </TouchableOpacity>
-            )}
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF007F" />
+                }
+            >
 
-            {/* History Section */}
-            {scans.length === 0 ? (
-                <Text style={styles.emptyText}>{t('app.no_scans')}</Text>
-            ) : (
-                scans.map((scan) => {
-                    const isRealPet = scan.is_pet !== false && !(
-                        scan.chaos_score === 0 &&
-                        scan.energy_level === 0 &&
-                        scan.sweetness_score === 0 &&
-                        scan.judgment_level === 0 &&
-                        scan.cuddle_o_meter === 0 &&
-                        scan.derp_factor === 0
-                    );
+                {/* Premium Feature Placeholder */}
+                {scans.length > 0 && (
+                    <TouchableOpacity
+                        style={styles.monthlyReportBtn}
+                        onPress={() => setMonthlyReportModalVisible(true)}
+                    >
+                        <Image source={require('../../assets/icon-monthly-report.png')} style={{ width: 24, height: 24, marginRight: 8, borderRadius: 5 }} />
+                        <Text style={styles.monthlyReportBtnText}>{t('app.generate_monthly_report', 'Generate Monthly Report')}</Text>
+                    </TouchableOpacity>
+                )}
 
-                    return (
-                        <View key={scan.id} style={styles.scanCard}>
-                            <View style={styles.scanHeader}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.scanMood}>{scan.mood_title}</Text>
-                                    <Text style={styles.scanDate}>{new Date(scan.created_at).toLocaleDateString()}</Text>
+                {/* History Section */}
+                {scans.length === 0 ? (
+                    <Text style={styles.emptyText}>{t('app.no_scans')}</Text>
+                ) : (
+                    scans.map((scan) => {
+                        const isRealPet = scan.is_pet !== false && !(
+                            scan.chaos_score === 0 &&
+                            scan.energy_level === 0 &&
+                            scan.sweetness_score === 0 &&
+                            scan.judgment_level === 0 &&
+                            scan.cuddle_o_meter === 0 &&
+                            scan.derp_factor === 0
+                        );
+
+                        return (
+                            <View key={scan.id} style={styles.scanCard}>
+                                <View style={styles.scanHeader}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.scanMood}>{scan.mood_title}</Text>
+                                        <Text style={styles.scanDate}>{new Date(scan.created_at).toLocaleDateString()}</Text>
+                                    </View>
+                                    {isRealPet && (
+                                        <TouchableOpacity
+                                            style={styles.astroBtn}
+                                            onPress={() => {
+                                                setSelectedAstroScanId(scan.id);
+                                                setAstroModalVisible(true);
+                                            }}
+                                        >
+                                            <Text style={styles.astroBtnText}>✨ {t('app.astro_chart', 'Astro Chart')}</Text>
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
+
                                 {isRealPet && (
-                                    <TouchableOpacity
-                                        style={styles.astroBtn}
-                                        onPress={() => {
-                                            setSelectedAstroScanId(scan.id);
-                                            setAstroModalVisible(true);
-                                        }}
-                                    >
-                                        <Text style={styles.astroBtnText}>✨ {t('app.astro_chart', 'Astro Chart')}</Text>
-                                    </TouchableOpacity>
+                                    <View style={styles.scanStats}>
+                                        <Text style={styles.scanStatText} numberOfLines={1}>{t('app.chaos')}: {scan.chaos_score ?? 0} 🌪️</Text>
+                                        <Text style={styles.scanStatText} numberOfLines={1}>{t('app.energy')}: {scan.energy_level ?? 0} ⚡</Text>
+                                        <Text style={styles.scanStatText} numberOfLines={1}>{t('app.sweetness')}: {scan.sweetness_score ?? 0} 🍬</Text>
+                                        <Text style={styles.scanStatText} numberOfLines={1}>{t('app.judgment')}: {scan.judgment_level ?? 0} 😒</Text>
+                                        <Text style={styles.scanStatText} numberOfLines={1}>{t('app.cuddle')}: {scan.cuddle_o_meter ?? 0} 🤗</Text>
+                                        <Text style={styles.scanStatText} numberOfLines={1}>{t('app.derp')}: {scan.derp_factor ?? 0} 🤪</Text>
+                                    </View>
                                 )}
                             </View>
+                        );
+                    })
+                )}
 
-                            {isRealPet && (
-                                <View style={styles.scanStats}>
-                                    <Text style={styles.scanStatText} numberOfLines={1}>{t('app.chaos')}: {scan.chaos_score ?? 0} 🌪️</Text>
-                                    <Text style={styles.scanStatText} numberOfLines={1}>{t('app.energy')}: {scan.energy_level ?? 0} ⚡</Text>
-                                    <Text style={styles.scanStatText} numberOfLines={1}>{t('app.sweetness')}: {scan.sweetness_score ?? 0} 🍬</Text>
-                                    <Text style={styles.scanStatText} numberOfLines={1}>{t('app.judgment')}: {scan.judgment_level ?? 0} 😒</Text>
-                                    <Text style={styles.scanStatText} numberOfLines={1}>{t('app.cuddle')}: {scan.cuddle_o_meter ?? 0} 🤗</Text>
-                                    <Text style={styles.scanStatText} numberOfLines={1}>{t('app.derp')}: {scan.derp_factor ?? 0} 🤪</Text>
-                                </View>
-                            )}
-                        </View>
-                    );
-                })
-            )}
+                <AstroModal
+                    visible={astroModalVisible}
+                    onClose={() => setAstroModalVisible(false)}
+                    scanId={selectedAstroScanId}
+                    isPremiumUser={isPremiumUser}
+                />
 
-            <AstroModal
-                visible={astroModalVisible}
-                onClose={() => setAstroModalVisible(false)}
-                scanId={selectedAstroScanId}
-                isPremiumUser={isPremiumUser}
-            />
-
-            <MonthlyReportModal
-                visible={monthlyReportModalVisible}
-                onClose={() => setMonthlyReportModalVisible(false)}
-                isPremiumUser={isPremiumUser}
-            />
-        </ScrollView>
+                <MonthlyReportModal
+                    visible={monthlyReportModalVisible}
+                    onClose={() => setMonthlyReportModalVisible(false)}
+                    isPremiumUser={isPremiumUser}
+                />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A001A' },
+    header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 10 : 20 },
+    scrollContent: { padding: 20 },
     centerContainer: { flex: 1, backgroundColor: '#0A001A', justifyContent: 'center', alignItems: 'center' },
-    headerTitle: { color: '#FFD700', fontSize: 32, fontWeight: '900', marginBottom: 20, marginTop: 40, textShadowColor: '#FF007F', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
+    headerTitle: { color: '#FFD700', fontSize: 32, fontWeight: '900', marginBottom: 10, marginTop: 10, textShadowColor: '#FF007F', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
     errorText: { color: 'white', textAlign: 'center', marginTop: 50 },
 
     monthlyReportBtn: { backgroundColor: '#6A4C93', padding: 15, borderRadius: 10, marginBottom: 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', borderWidth: 1, borderColor: '#FF007F' },

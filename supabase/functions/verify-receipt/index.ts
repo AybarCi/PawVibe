@@ -90,7 +90,7 @@ serve(async (req) => {
         if (isSubscription) {
              updates.is_premium = true;
         } else if (productId === 'pawvibe_snack_pack') {
-             updates.purchased_credits = (profile.purchased_credits || 0) + 15;
+             updates.purchased_credits = (profile.purchased_credits || 0) + 10;
         } else if (productId === 'pawvibe_party_pack') {
              updates.purchased_credits = (profile.purchased_credits || 0) + 50;
         }

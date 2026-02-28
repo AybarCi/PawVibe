@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert, Image, ScrollView, Modal } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -7,7 +7,11 @@ import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../lib/i18n'; // Correctly import the i18n instance
 import * as Sharing from 'expo-sharing';
+import { BlurView } from 'expo-blur';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
+import * as Haptics from 'expo-haptics';
+import Toast from 'react-native-toast-message';
 
 export default function CameraScreen({ navigation }: any) {
     const { t } = useTranslation();
@@ -16,22 +20,53 @@ export default function CameraScreen({ navigation }: any) {
     const [result, setResult] = useState<any>(null);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
     const [isPremium, setIsPremium] = useState(false);
-
-    // Custom Alert State
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertTitle, setAlertTitle] = useState('');
-    const [alertMessage, setAlertMessage] = useState('');
-    const [onAlertClose, setOnAlertClose] = useState<(() => void) | null>(null);
+    const [scanningTextIndex, setScanningTextIndex] = useState(0);
 
     const cameraRef = useRef<CameraView>(null);
     const viewShotRef = useRef<any>(null);
 
+    const laserPosition = useSharedValue(0);
+
+    const animatedLaserStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: laserPosition.value * 300 }] // Assuming a 300px target height for scan box
+        };
+    });
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isAnalyzing) {
+            laserPosition.value = withRepeat(
+                withTiming(1, { duration: 1500, easing: Easing.linear }),
+                -1,
+                true // reverse
+            );
+
+            interval = setInterval(() => {
+                setScanningTextIndex((prev) => (prev + 1) % 3);
+            }, 1500);
+        } else {
+            laserPosition.value = 0;
+            setScanningTextIndex(0);
+        }
+        return () => clearInterval(interval);
+    }, [isAnalyzing]);
+
+    const getScanningText = () => {
+        switch (scanningTextIndex) {
+            case 0: return t('app.analyzing_aura', 'Analyzing Aura Katmanları...');
+            case 1: return t('app.calculating_chaos', 'Calculating Chaos Matrix...');
+            default: return t('app.summoning_energy', 'Summoning Cosmic Energy...');
+        }
+    }
+
     const showCustomAlert = (title: string, message: string, onClose?: () => void) => {
-        setAlertTitle(title);
-        setAlertMessage(message);
-        if (onClose) setOnAlertClose(() => onClose);
-        else setOnAlertClose(null);
-        setAlertVisible(true);
+        Toast.show({
+            type: 'error',
+            text1: title,
+            text2: message,
+            onHide: onClose
+        });
     };
 
     // Prompt user for camera permission
@@ -43,7 +78,7 @@ export default function CameraScreen({ navigation }: any) {
         return (
             <SafeAreaView style={styles.container}>
                 <Text style={{ textAlign: 'center', marginBottom: 20, color: 'white' }}>{t('app.camera_permission')}</Text>
-                <TouchableOpacity style={styles.btn} onPress={requestPermission}>
+                <TouchableOpacity style={styles.btn} onPress={() => { Haptics.selectionAsync(); requestPermission(); }}>
                     <Text style={styles.btnText}>{t('app.grant_permission')}</Text>
                 </TouchableOpacity>
             </SafeAreaView>
@@ -51,6 +86,7 @@ export default function CameraScreen({ navigation }: any) {
     }
 
     const takePictureAndAnalyze = async () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         if (!cameraRef.current) return;
 
         setIsAnalyzing(true);
@@ -80,7 +116,7 @@ export default function CameraScreen({ navigation }: any) {
                 .from('profiles')
                 .select('is_premium')
                 .eq('id', authSession.user.id)
-                .single();
+                .maybeSingle();
 
             setIsPremium(profile?.is_premium || false);
 
@@ -134,6 +170,7 @@ export default function CameraScreen({ navigation }: any) {
     };
 
     const captureAndShare = async () => {
+        Haptics.selectionAsync();
         try {
             if (viewShotRef.current) {
                 const uri = await viewShotRef.current.capture();
@@ -141,38 +178,17 @@ export default function CameraScreen({ navigation }: any) {
                 if (isAvailable) {
                     await Sharing.shareAsync(uri);
                 } else {
-                    showCustomAlert('Sharing Unavailable', 'Sharing is not supported on this device.');
+                    showCustomAlert(t('app.sharing_unavailable', 'Sharing Unavailable'), t('app.sharing_not_supported', 'Sharing is not supported on this device.'));
                 }
             }
         } catch (error) {
             console.error(error);
-            showCustomAlert('Error', 'Could not share image.');
+            showCustomAlert(t('app.error', 'Error'), t('app.could_not_share', 'Could not share image.'));
         }
     };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#0A001A' }}>
-            {/* Custom Alert Modal */}
-            <Modal
-                transparent={true}
-                visible={alertVisible}
-                animationType="fade"
-                onRequestClose={() => setAlertVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{alertTitle}</Text>
-                        <Text style={styles.modalMessage}>{alertMessage}</Text>
-                        <TouchableOpacity style={styles.modalCloseBtn} onPress={() => {
-                            setAlertVisible(false);
-                            if (onAlertClose) onAlertClose();
-                        }}>
-                            <Text style={styles.btnText}>OK</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
             {/* Show Result OR Camera */}
             {result && photoUri ? (
                 <ScrollView
@@ -217,7 +233,7 @@ export default function CameraScreen({ navigation }: any) {
                     </ViewShot>
 
                     <View style={styles.actionButtons}>
-                        <TouchableOpacity style={[styles.btn, { flex: 1, marginRight: 10 }]} onPress={() => setResult(null)}>
+                        <TouchableOpacity style={[styles.btn, { flex: 1, marginRight: 10 }]} onPress={() => { Haptics.selectionAsync(); setResult(null); }}>
                             <Text style={styles.btnText}>{t('app.scan_another')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.btn, { flex: 1, backgroundColor: '#6A4C93', borderColor: '#FF007F', borderWidth: 1 }]} onPress={captureAndShare}>
@@ -228,19 +244,34 @@ export default function CameraScreen({ navigation }: any) {
             ) : (
                 <View style={{ flex: 1, width: '100%' }}>
                     <CameraView style={styles.camera} facing="back" ref={cameraRef} />
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity
-                            style={[styles.captureBtn, isAnalyzing && styles.captureBtnDisabled]}
-                            onPress={takePictureAndAnalyze}
-                            disabled={isAnalyzing}
-                        >
-                            {isAnalyzing ? (
-                                <ActivityIndicator color="white" />
-                            ) : (
+
+                    {/* Hologram Scanner Overlay */}
+                    {isAnalyzing && (
+                        <BlurView intensity={80} tint="dark" style={[StyleSheet.absoluteFill, styles.scannerOverlay]}>
+                            <View style={styles.scanBox}>
+                                {photoUri && (
+                                    <Image source={{ uri: photoUri }} style={styles.scanImage} />
+                                )}
+                                <Animated.View style={[styles.laser, animatedLaserStyle]} />
+                                <View style={styles.cornerTL} />
+                                <View style={styles.cornerTR} />
+                                <View style={styles.cornerBL} />
+                                <View style={styles.cornerBR} />
+                            </View>
+                            <Text style={styles.scanText}>{getScanningText()}</Text>
+                        </BlurView>
+                    )}
+
+                    {!isAnalyzing && (
+                        <View style={styles.buttonContainer}>
+                            <TouchableOpacity
+                                style={styles.captureBtn}
+                                onPress={takePictureAndAnalyze}
+                            >
                                 <Text style={styles.btnText}>{t('app.analyze_btn')}</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
             )}
         </SafeAreaView>
@@ -271,7 +302,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.8,
         shadowRadius: 15
     },
-    captureBtnDisabled: { backgroundColor: '#6A4C93', shadowOpacity: 0 },
     btn: {
         backgroundColor: '#FF007F',
         padding: 15,
@@ -339,7 +369,7 @@ const styles = StyleSheet.create({
     },
     imageContainer: {
         width: '100%',
-        height: 300,
+        height: 220,
         backgroundColor: '#333', // Fallback background if image takes time to load
     },
     petImage: {
@@ -402,5 +432,51 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 30,
         borderRadius: 10,
-    }
+    },
+    scannerOverlay: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    scanBox: {
+        width: 300,
+        height: 300,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 0, 127, 0.3)',
+        position: 'relative'
+    },
+    scanImage: {
+        width: '100%',
+        height: '100%',
+        opacity: 0.5
+    },
+    laser: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: 3,
+        backgroundColor: '#00FFFF',
+        shadowColor: '#00FFFF',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    scanText: {
+        color: '#00FFFF',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 30,
+        letterSpacing: 2,
+        textShadowColor: '#00FFFF',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10
+    },
+    cornerTL: { position: 'absolute', top: 0, left: 0, width: 20, height: 20, borderTopWidth: 3, borderLeftWidth: 3, borderColor: '#FF007F', borderTopLeftRadius: 20 },
+    cornerTR: { position: 'absolute', top: 0, right: 0, width: 20, height: 20, borderTopWidth: 3, borderRightWidth: 3, borderColor: '#FF007F', borderTopRightRadius: 20 },
+    cornerBL: { position: 'absolute', bottom: 0, left: 0, width: 20, height: 20, borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#FF007F', borderBottomLeftRadius: 20 },
+    cornerBR: { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderBottomWidth: 3, borderRightWidth: 3, borderColor: '#FF007F', borderBottomRightRadius: 20 },
 });

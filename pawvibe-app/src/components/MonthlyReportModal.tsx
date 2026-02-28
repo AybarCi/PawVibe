@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, ScrollView, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../lib/i18n';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import { BlurView } from 'expo-blur';
 
 interface MonthlyReportModalProps {
     visible: boolean;
@@ -87,16 +88,19 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
 
     return (
         <Modal
-            animationType="slide"
+            animationType="fade"
             transparent={true}
             visible={visible}
             onRequestClose={onClose}
         >
-            <View style={styles.centeredView}>
+            <BlurView intensity={90} tint="dark" style={styles.centeredView}>
                 <View style={[styles.modalView, { width: '90%', maxHeight: '80%' }]}>
 
                     <View style={styles.header}>
-                        <Text style={styles.modalTitle}>📄 {t('app.generate_monthly_report', 'Monthly Report')}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Image source={require('../../assets/icon-monthly-report.png')} style={{ width: 28, height: 28, marginRight: 10, borderRadius: 5 }} />
+                            <Text style={styles.modalTitle}>{t('app.generate_monthly_report', 'Monthly Report')}</Text>
+                        </View>
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                             <Ionicons name="close" size={28} color="white" />
                         </TouchableOpacity>
@@ -115,8 +119,9 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                     ) : reportData ? (
                         <ScrollView style={{ width: '100%', marginTop: 20 }} showsVerticalScrollIndicator={false}>
                             <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 0.9 }} style={{ backgroundColor: '#1A0B2E', padding: 15, borderRadius: 10 }}>
-                                <View style={{ alignItems: 'center', marginBottom: 15 }}>
-                                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#FF007F' }}>📚 PawVibe Monthly Report</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 15 }}>
+                                    <Image source={require('../../assets/icon-monthly-report.png')} style={{ width: 24, height: 24, marginRight: 8, borderRadius: 5 }} />
+                                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#FF007F' }}>PawVibe Monthly Report</Text>
                                 </View>
 
                                 <Text style={styles.reportMainTitle}>{reportData.title}</Text>
@@ -145,7 +150,7 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                     ) : null}
 
                 </View>
-            </View>
+            </BlurView>
         </Modal>
     );
 }
@@ -155,10 +160,9 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(10, 0, 26, 0.9)',
     },
     modalView: {
-        backgroundColor: '#1A0B2E',
+        backgroundColor: 'rgba(26, 11, 46, 0.85)',
         borderRadius: 20,
         padding: 20,
         alignItems: 'center',
