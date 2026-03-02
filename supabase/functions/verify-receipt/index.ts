@@ -67,7 +67,7 @@ serve(async (req) => {
                 .from('iap_transactions')
                 .select('id')
                 .eq('transaction_id', transactionId)
-                .single();
+                .maybeSingle();
                 
              if (existingTx) {
                  return new Response(JSON.stringify({ success: true, message: 'Already processed' }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
