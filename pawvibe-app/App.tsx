@@ -106,10 +106,20 @@ export default function App() {
     useEffect(() => {
         async function prepare() {
             try {
+                // Ensure anonymous session exists before anything else
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    console.log('[App] No session found, signing in anonymously...');
+                    await supabase.auth.signInAnonymously();
+                    console.log('[App] Anonymous session created.');
+                } else {
+                    console.log('[App] Existing session found:', session.user.id);
+                }
+
                 // Minimum wait to show off the splash screen beautifully
                 await new Promise(resolve => setTimeout(resolve, 2500));
             } catch (e) {
-                console.warn(e);
+                console.warn('[App] Startup error:', e);
             } finally {
                 await SplashScreen.hideAsync();
             }

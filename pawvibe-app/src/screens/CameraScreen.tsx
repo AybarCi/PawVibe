@@ -94,12 +94,13 @@ export default function CameraScreen({ navigation }: any) {
         setPhotoUri(null);
 
         try {
-            // First, ensure the user is logged in
+            // Session is created in App.tsx on startup. Just verify it exists.
             const { data: { session } } = await supabase.auth.getSession();
             let authSession = session;
 
             if (!authSession) {
-                console.log("No session found, signing in anonymously...");
+                // Fallback: if session somehow expired, try to recreate
+                console.log("[Camera] No session, attempting anonymous sign-in...");
                 await supabase.auth.signInAnonymously();
                 const sessionRes = await supabase.auth.getSession();
                 authSession = sessionRes.data.session;
