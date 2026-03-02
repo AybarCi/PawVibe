@@ -134,53 +134,49 @@ serve(async (req) => {
 });
 
 /**
- * Very basic Apple Receipt Verification.
- * Note: For production, App Store Server API (v2) signed endpoints are recommended,
- * but verifyReceipt still works.
+ * Apple Receipt Verification — Production-ready.
+ * Always tries PRODUCTION first, then auto-falls back to SANDBOX if Apple
+ * returns status 21007 (sandbox receipt). This handles both App Store and
+ * TestFlight purchases without any manual flag switching.
  */
 async function verifyAppleReceipt(receiptData: string): Promise<boolean> {
-    const isSandbox = true; // Set to false in pure production. Keep true for TestFlight/Dev.
-    const url = isSandbox 
-        ? 'https://sandbox.itunes.apple.com/verifyReceipt' 
-        : 'https://buy.itunes.apple.com/verifyReceipt';
-
     const secret = Deno.env.get("APPLE_APP_SPECIFIC_SHARED_SECRET");
     
     // SECURITY: If no secret is configured, REJECT the receipt.
-    // You MUST set APPLE_APP_SPECIFIC_SHARED_SECRET in Supabase secrets.
     if (!secret) {
         console.error("APPLE_APP_SPECIFIC_SHARED_SECRET not set. Cannot verify receipt — REJECTING.");
         return false; 
     }
 
-    const response = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({
-            'receipt-data': receiptData,
-            'password': secret,
-            'exclude-old-transactions': true
-        })
+    const requestBody = JSON.stringify({
+        'receipt-data': receiptData,
+        'password': secret,
+        'exclude-old-transactions': true
     });
 
-    const data = await response.json();
+    // 1. Try PRODUCTION first
+    const prodRes = await fetch('https://buy.itunes.apple.com/verifyReceipt', {
+        method: 'POST',
+        body: requestBody
+    });
+    const prodData = await prodRes.json();
+
+    // status 0 = valid receipt
+    if (prodData.status === 0) return true;
     
-    // status 0 means the receipt is valid
-    // status 21007 means this is a sandbox receipt sent to the production env
-    if (data.status === 21007) {
-        // Retry with sandbox URL if we initially tried production
+    // status 21007 = sandbox receipt sent to production → retry with sandbox
+    if (prodData.status === 21007) {
+        console.log('[verify-receipt] Sandbox receipt detected, retrying with sandbox endpoint');
         const sandboxRes = await fetch('https://sandbox.itunes.apple.com/verifyReceipt', {
             method: 'POST',
-            body: JSON.stringify({
-                'receipt-data': receiptData,
-                'password': secret,
-                'exclude-old-transactions': true
-            })
+            body: requestBody
         });
         const sandboxData = await sandboxRes.json();
         return sandboxData.status === 0;
     }
 
-    return data.status === 0;
+    console.error('[verify-receipt] Apple returned status:', prodData.status);
+    return false;
 }
 
 /**
