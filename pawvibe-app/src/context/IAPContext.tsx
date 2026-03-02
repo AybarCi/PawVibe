@@ -209,8 +209,25 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 });
 
                 if (error || !data?.success) {
-                    console.error('[IAP] Receipt verification failed:', error || data?.error);
-                    // Don't finish transaction so it can be retried
+                    // Log detailed error info for debugging
+                    let errorDetail = 'Unknown error';
+                    if (error) {
+                        // FunctionsHttpError contains response context
+                        errorDetail = error?.message || error?.context?.statusText || JSON.stringify(error);
+                    } else if (data?.error) {
+                        errorDetail = data.error;
+                    }
+                    console.error('[IAP] Receipt verification failed:', errorDetail);
+
+                    // For stale (non-user-initiated) transactions that fail verification,
+                    // finish them anyway so iOS stops replaying them. The credits weren't
+                    // granted, but leaving them unfinished causes endless replay loops.
+                    if (!wasUserInitiated) {
+                        const isConsumable = !subSkus.includes(purchase.productId);
+                        try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { /* ignore */ }
+                        console.log('[IAP] Finished stale failed tx to stop replay:', txId);
+                    }
+                    // For user-initiated purchases, don't finish — let the user retry
                 } else {
                     // Verification OK — finish transaction so Apple/Google knows we delivered
                     const isConsumable = !subSkus.includes(purchase.productId);
@@ -246,8 +263,12 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // This fires on user cancellation, card declined, etc.
         const purchaseErrorSubscription = RNIap.purchaseErrorListener((error: PurchaseError) => {
             console.warn('[IAP] purchaseErrorListener:', error.code, error.message);
-            setIsPurchasing(false);
-            userInitiatedPurchaseRef.current = false;
+            // Only reset flags for user-initiated purchases — stale tx errors
+            // must not interfere with an active purchase attempt.
+            if (userInitiatedPurchaseRef.current) {
+                setIsPurchasing(false);
+                userInitiatedPurchaseRef.current = false;
+            }
             // User cancellation is silent — no need to show error
         });
 
