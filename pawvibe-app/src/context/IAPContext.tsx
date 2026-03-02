@@ -169,6 +169,10 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(async (purchase: Purchase) => {
             console.log('[IAP] purchaseUpdatedListener fired for:', purchase.productId);
 
+            // Capture at entry — stale replayed transactions will have false,
+            // user-initiated purchases will have true. This prevents race conditions.
+            const wasUserInitiated = userInitiatedPurchaseRef.current;
+
             try {
                 // Validate that we have a real transaction receipt (iOS) or token (Android)
                 const receipt = Platform.OS === 'ios'
@@ -216,21 +220,25 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Persist to prevent future replay processing
                     await persistProcessedTx(txId);
 
-                    // Only show toast/confetti if this was a user-initiated purchase
-                    // (not a replayed transaction from a previous session).
+                    // Show toast/confetti for successful, non-duplicate purchases.
                     // Server returns 'Already processed' for duplicate transactions.
                     const isAlreadyProcessed = data?.message === 'Already processed';
-                    if (userInitiatedPurchaseRef.current && !isAlreadyProcessed) {
+                    if (!isAlreadyProcessed) {
                         setLastPurchaseSuccess({ timestamp: Date.now(), productId: purchase.productId });
                     } else {
-                        console.log('[IAP] Replayed/already-processed tx — no UI feedback:', txId);
+                        console.log('[IAP] Already-processed tx — no UI feedback:', txId);
                     }
                 }
             } catch (e) {
                 console.error("[IAP] Purchase processing error:", e);
             } finally {
-                setIsPurchasing(false);
-                userInitiatedPurchaseRef.current = false;
+                // ONLY reset purchase state for user-initiated purchases.
+                // Stale transactions from previous sessions must NOT touch these flags,
+                // otherwise they race with the user's current purchase attempt.
+                if (wasUserInitiated) {
+                    setIsPurchasing(false);
+                    userInitiatedPurchaseRef.current = false;
+                }
             }
         });
 
