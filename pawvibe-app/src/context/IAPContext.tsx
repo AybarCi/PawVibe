@@ -259,35 +259,44 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         try {
             const purchases = await RNIap.getAvailablePurchases();
 
-            if (purchases && purchases.length > 0) {
-                for (const purchase of purchases) {
-                    // iOS uses transactionReceipt, Android uses purchaseToken
-                    const receipt = Platform.OS === 'ios'
-                        ? (purchase as any).transactionReceipt || purchase.purchaseToken
-                        : purchase.purchaseToken;
-                    if (receipt) {
-                        const { error, data } = await supabase.functions.invoke('verify-receipt', {
-                            body: {
-                                receipt,
-                                productId: purchase.productId,
-                                platform: Platform.OS,
-                                transactionId: purchase.transactionId
-                            }
-                        });
-                        // Only finish transaction if verify succeeded — matches listener pattern
-                        if (!error && data?.success) {
-                            await RNIap.finishTransaction({
-                                purchase,
-                                isConsumable: !subSkus.includes(purchase.productId)
-                            });
-                            setLastPurchaseSuccess({ timestamp: Date.now(), productId: purchase.productId });
-                        } else {
-                            console.warn('[IAP] Restore verify failed for:', purchase.productId, error || data?.error);
+            if (!purchases || purchases.length === 0) {
+                return { success: false, error: 'no_purchases' };
+            }
+
+            let restoredCount = 0;
+            for (const purchase of purchases) {
+                // iOS uses transactionReceipt, Android uses purchaseToken
+                const receipt = Platform.OS === 'ios'
+                    ? (purchase as any).transactionReceipt || purchase.purchaseToken
+                    : purchase.purchaseToken;
+                if (receipt) {
+                    const { error, data } = await supabase.functions.invoke('verify-receipt', {
+                        body: {
+                            receipt,
+                            productId: purchase.productId,
+                            platform: Platform.OS,
+                            transactionId: purchase.transactionId
                         }
+                    });
+                    // Only finish transaction if verify succeeded — matches listener pattern
+                    if (!error && data?.success) {
+                        await RNIap.finishTransaction({
+                            purchase,
+                            isConsumable: !subSkus.includes(purchase.productId)
+                        });
+                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: purchase.productId });
+                        restoredCount++;
+                    } else {
+                        console.warn('[IAP] Restore verify failed for:', purchase.productId, error || data?.error);
                     }
                 }
             }
-            return { success: true };
+
+            if (restoredCount > 0) {
+                return { success: true };
+            } else {
+                return { success: false, error: 'already_restored' };
+            }
         } catch (err: any) {
             console.warn("[IAP] Restore error:", err);
             return { success: false, error: err.message };

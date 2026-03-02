@@ -67,7 +67,13 @@ const resources = {
         "summoning_energy": "Summoning Cosmic Energy...",
         "sharing_unavailable": "Sharing Unavailable",
         "sharing_not_supported": "Sharing is not supported on this device.",
-        "could_not_share": "Could not share image."
+        "could_not_share": "Could not share image.",
+        "restore_purchases": "Restore Purchases",
+        "restore_complete": "Restored! 🎉",
+        "restore_success_msg": "Your previous purchases have been restored.",
+        "no_purchases_found": "No previous purchases found on this account.",
+        "already_restored": "Your purchases are already active on this device.",
+        "restore_failed": "Could not restore purchases. Please try again."
       }
     }
   },
@@ -136,7 +142,13 @@ const resources = {
         "summoning_energy": "Kozmik Enerji Toplanıyor...",
         "sharing_unavailable": "Paylaşım Kullanılamıyor",
         "sharing_not_supported": "Bu cihazda paylaşım desteklenmiyor.",
-        "could_not_share": "Görsel paylaşılamadı."
+        "could_not_share": "Görsel paylaşılamadı.",
+        "restore_purchases": "Satın Alımları Geri Yükle",
+        "restore_complete": "Geri Yüklendi! 🎉",
+        "restore_success_msg": "Önceki satın alımlarınız bu cihaza yüklendi.",
+        "no_purchases_found": "Bu hesapta önceki satın alım bulunamadı.",
+        "already_restored": "Satın alımlarınız zaten bu cihazda aktif.",
+        "restore_failed": "Satın alımlar geri yüklenemedi. Lütfen tekrar deneyin."
       }
     }
   },
@@ -199,7 +211,13 @@ const resources = {
         "horoscope": "Horóscopo diario",
         "executive_summary": "Resumen ejecutivo",
         "behavioral_analysis": "Análisis de comportamiento",
-        "doctor_advice": "Consejo del doctor"
+        "doctor_advice": "Consejo del doctor",
+        "restore_purchases": "Restaurar compras",
+        "restore_complete": "¡Restaurado! 🎉",
+        "restore_success_msg": "Tus compras anteriores han sido restauradas.",
+        "no_purchases_found": "No se encontraron compras anteriores en esta cuenta.",
+        "already_restored": "Tus compras ya están activas en este dispositivo.",
+        "restore_failed": "No se pudieron restaurar las compras. Inténtalo de nuevo."
       }
     }
   },
@@ -262,7 +280,13 @@ const resources = {
         "horoscope": "Ежедневный гороскоп",
         "executive_summary": "Краткое резюме",
         "behavioral_analysis": "Анализ поведения",
-        "doctor_advice": "Совет врача"
+        "doctor_advice": "Совет врача",
+        "restore_purchases": "Восстановить покупки",
+        "restore_complete": "Восстановлено! 🎉",
+        "restore_success_msg": "Ваши предыдущие покупки были восстановлены.",
+        "no_purchases_found": "Предыдущих покупок на этом аккаунте не найдено.",
+        "already_restored": "Ваши покупки уже активны на этом устройстве.",
+        "restore_failed": "Не удалось восстановить покупки. Попробуйте снова."
       }
     }
   },
@@ -325,7 +349,13 @@ const resources = {
         "horoscope": "Horoscope Quotidien",
         "executive_summary": "Résumé Exécutif",
         "behavioral_analysis": "Analyse Comportementale",
-        "doctor_advice": "Avis du Docteur"
+        "doctor_advice": "Avis du Docteur",
+        "restore_purchases": "Restaurer les achats",
+        "restore_complete": "Restauré ! 🎉",
+        "restore_success_msg": "Vos achats précédents ont été restaurés.",
+        "no_purchases_found": "Aucun achat antérieur trouvé sur ce compte.",
+        "already_restored": "Vos achats sont déjà actifs sur cet appareil.",
+        "restore_failed": "Impossible de restaurer les achats. Veuillez réessayer."
       }
     }
   },
@@ -388,7 +418,13 @@ const resources = {
         "horoscope": "Horóscopo Diário",
         "executive_summary": "Resumo Executivo",
         "behavioral_analysis": "Análise Comportamental",
-        "doctor_advice": "Conselho do Doutor"
+        "doctor_advice": "Conselho do Doutor",
+        "restore_purchases": "Restaurar compras",
+        "restore_complete": "Restaurado! 🎉",
+        "restore_success_msg": "Suas compras anteriores foram restauradas.",
+        "no_purchases_found": "Nenhuma compra anterior encontrada nesta conta.",
+        "already_restored": "Suas compras já estão ativas neste dispositivo.",
+        "restore_failed": "Não foi possível restaurar as compras. Tente novamente."
       }
     }
   },
@@ -451,7 +487,13 @@ const resources = {
         "horoscope": "Tageshoroskop",
         "executive_summary": "Zusammenfassung",
         "behavioral_analysis": "Verhaltensanalyse",
-        "doctor_advice": "Tierarzt-Rat"
+        "doctor_advice": "Tierarzt-Rat",
+        "restore_purchases": "Käufe wiederherstellen",
+        "restore_complete": "Wiederhergestellt! 🎉",
+        "restore_success_msg": "Deine vorherigen Käufe wurden wiederhergestellt.",
+        "no_purchases_found": "Keine früheren Käufe auf diesem Konto gefunden.",
+        "already_restored": "Deine Käufe sind bereits auf diesem Gerät aktiv.",
+        "restore_failed": "Käufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut."
       }
     }
   }

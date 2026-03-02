@@ -291,17 +291,38 @@ export default function ProfileScreen() {
 
                 {/* Restore Purchases Button */}
                 <TouchableOpacity
-                    style={{ marginTop: 10, alignItems: 'center', paddingVertical: 14, opacity: isRestoring ? 0.5 : 1 }}
+                    style={{
+                        marginTop: 20,
+                        marginBottom: 10,
+                        alignItems: 'center',
+                        paddingVertical: 14,
+                        paddingHorizontal: 24,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: 'rgba(106, 76, 147, 0.5)',
+                        backgroundColor: 'rgba(26, 11, 46, 0.6)',
+                        opacity: isRestoring ? 0.5 : 1,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: 8,
+                    }}
                     disabled={isRestoring || isPurchasing}
                     onPress={async () => {
+                        Haptics.selectionAsync();
                         setIsRestoring(true);
                         try {
                             const { success, error } = await restorePurchases();
                             if (success) {
-                                Toast.show({ type: 'success', text1: t('app.success', 'Success!'), text2: t('app.restore_success', 'Purchases restored.') });
+                                confettiRef.current?.start();
+                                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                Toast.show({ type: 'success', text1: t('app.restore_complete'), text2: t('app.restore_success_msg') });
                                 fetchProfileData();
+                            } else if (error === 'no_purchases') {
+                                Toast.show({ type: 'info', text1: t('app.restore_purchases'), text2: t('app.no_purchases_found') });
+                            } else if (error === 'already_restored') {
+                                Toast.show({ type: 'info', text1: t('app.restore_purchases'), text2: t('app.already_restored') });
                             } else {
-                                Toast.show({ type: 'error', text1: t('app.error', 'Error'), text2: error || 'Restore failed' });
+                                Toast.show({ type: 'error', text1: t('app.error'), text2: error || t('app.restore_failed') });
                             }
                         } finally {
                             setIsRestoring(false);
@@ -309,11 +330,14 @@ export default function ProfileScreen() {
                     }}
                 >
                     {isRestoring ? (
-                        <ActivityIndicator size="small" color="rgba(255,255,255,0.6)" />
+                        <ActivityIndicator size="small" color="#6A4C93" />
                     ) : (
-                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, textDecorationLine: 'underline' }}>
-                            {t('app.restore_purchases', 'Restore Purchases')}
-                        </Text>
+                        <>
+                            <Ionicons name="refresh-outline" size={18} color="#6A4C93" />
+                            <Text style={{ color: '#6A4C93', fontSize: 14, fontWeight: '600' }}>
+                                {t('app.restore_purchases', 'Restore Purchases')}
+                            </Text>
+                        </>
                     )}
                 </TouchableOpacity>
             </ScrollView>
