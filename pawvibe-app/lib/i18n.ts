@@ -73,7 +73,13 @@ const resources = {
         "restore_success_msg": "Your previous purchases have been restored.",
         "no_purchases_found": "No previous purchases found on this account.",
         "already_restored": "Your purchases are already active on this device.",
-        "restore_failed": "Could not restore purchases. Please try again."
+        "restore_failed": "Could not restore purchases. Please try again.",
+        "success": "Success!",
+        "purchase_success_msg": "Your purchase was successful!",
+        "profile_fetch_error": "Failed to fetch profile data.",
+        "product_not_found": "Product not found. Please try again later.",
+        "privacy_policy": "Privacy Policy",
+        "terms_of_service": "Terms of Service"
       }
     }
   },
@@ -148,7 +154,13 @@ const resources = {
         "restore_success_msg": "Önceki satın alımlarınız bu cihaza yüklendi.",
         "no_purchases_found": "Bu hesapta önceki satın alım bulunamadı.",
         "already_restored": "Satın alımlarınız zaten bu cihazda aktif.",
-        "restore_failed": "Satın alımlar geri yüklenemedi. Lütfen tekrar deneyin."
+        "restore_failed": "Satın alımlar geri yüklenemedi. Lütfen tekrar deneyin.",
+        "success": "Başarılı!",
+        "purchase_success_msg": "Satın alımınız başarıyla tamamlandı!",
+        "profile_fetch_error": "Profil verileri alınamadı.",
+        "product_not_found": "Ürün bulunamadı. Lütfen daha sonra tekrar deneyin.",
+        "privacy_policy": "Gizlilik Politikası",
+        "terms_of_service": "Kullanım Şartları"
       }
     }
   },
@@ -217,7 +229,13 @@ const resources = {
         "restore_success_msg": "Tus compras anteriores han sido restauradas.",
         "no_purchases_found": "No se encontraron compras anteriores en esta cuenta.",
         "already_restored": "Tus compras ya están activas en este dispositivo.",
-        "restore_failed": "No se pudieron restaurar las compras. Inténtalo de nuevo."
+        "restore_failed": "No se pudieron restaurar las compras. Inténtalo de nuevo.",
+        "success": "¡Éxito!",
+        "purchase_success_msg": "¡Tu compra fue exitosa!",
+        "profile_fetch_error": "No se pudieron obtener los datos del perfil.",
+        "product_not_found": "Producto no encontrado. Inténtalo más tarde.",
+        "privacy_policy": "Política de Privacidad",
+        "terms_of_service": "Términos de Servicio"
       }
     }
   },
@@ -286,7 +304,13 @@ const resources = {
         "restore_success_msg": "Ваши предыдущие покупки были восстановлены.",
         "no_purchases_found": "Предыдущих покупок на этом аккаунте не найдено.",
         "already_restored": "Ваши покупки уже активны на этом устройстве.",
-        "restore_failed": "Не удалось восстановить покупки. Попробуйте снова."
+        "restore_failed": "Не удалось восстановить покупки. Попробуйте снова.",
+        "success": "Успешно!",
+        "purchase_success_msg": "Ваша покупка прошла успешно!",
+        "profile_fetch_error": "Не удалось загрузить данные профиля.",
+        "product_not_found": "Продукт не найден. Попробуйте позже.",
+        "privacy_policy": "Политика конфиденциальности",
+        "terms_of_service": "Условия использования"
       }
     }
   },
@@ -355,7 +379,13 @@ const resources = {
         "restore_success_msg": "Vos achats précédents ont été restaurés.",
         "no_purchases_found": "Aucun achat antérieur trouvé sur ce compte.",
         "already_restored": "Vos achats sont déjà actifs sur cet appareil.",
-        "restore_failed": "Impossible de restaurer les achats. Veuillez réessayer."
+        "restore_failed": "Impossible de restaurer les achats. Veuillez réessayer.",
+        "success": "Succès !",
+        "purchase_success_msg": "Votre achat a été effectué avec succès !",
+        "profile_fetch_error": "Impossible de récupérer les données du profil.",
+        "product_not_found": "Produit introuvable. Veuillez réessayer plus tard.",
+        "privacy_policy": "Politique de confidentialité",
+        "terms_of_service": "Conditions d'utilisation"
       }
     }
   },
@@ -424,7 +454,13 @@ const resources = {
         "restore_success_msg": "Suas compras anteriores foram restauradas.",
         "no_purchases_found": "Nenhuma compra anterior encontrada nesta conta.",
         "already_restored": "Suas compras já estão ativas neste dispositivo.",
-        "restore_failed": "Não foi possível restaurar as compras. Tente novamente."
+        "restore_failed": "Não foi possível restaurar as compras. Tente novamente.",
+        "success": "Sucesso!",
+        "purchase_success_msg": "Sua compra foi realizada com sucesso!",
+        "profile_fetch_error": "Não foi possível carregar os dados do perfil.",
+        "product_not_found": "Produto não encontrado. Tente novamente mais tarde.",
+        "privacy_policy": "Política de Privacidade",
+        "terms_of_service": "Termos de Serviço"
       }
     }
   },
@@ -493,7 +529,13 @@ const resources = {
         "restore_success_msg": "Deine vorherigen Käufe wurden wiederhergestellt.",
         "no_purchases_found": "Keine früheren Käufe auf diesem Konto gefunden.",
         "already_restored": "Deine Käufe sind bereits auf diesem Gerät aktiv.",
-        "restore_failed": "Käufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut."
+        "restore_failed": "Käufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut.",
+        "success": "Erfolgreich!",
+        "purchase_success_msg": "Dein Kauf war erfolgreich!",
+        "profile_fetch_error": "Profildaten konnten nicht geladen werden.",
+        "product_not_found": "Produkt nicht gefunden. Bitte versuche es später erneut.",
+        "privacy_policy": "Datenschutzrichtlinie",
+        "terms_of_service": "Nutzungsbedingungen"
       }
     }
   }

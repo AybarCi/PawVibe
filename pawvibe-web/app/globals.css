@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0A001A;
+  --color-surface: #1A0B2E;
+  --color-surface-light: #2A1B3E;
+  --color-neon-pink: #FF007F;
+  --color-neon-gold: #FFD700;
+  --color-neon-cyan: #00FFFF;
+  --color-purple-muted: #6A4C93;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #D3C4E5;
+  --color-text-muted: #8B7BA8;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer utilities {
+  .glow-pink {
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.4), 0 0 60px rgba(255, 0, 127, 0.1);
+  }
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 60px rgba(255, 215, 0, 0.1);
+  }
+  .text-glow-pink {
+    text-shadow: 0 0 10px rgba(255, 0, 127, 0.5), 0 0 40px rgba(255, 0, 127, 0.2);
+  }
+  .text-glow-gold {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.2);
+  }
+  .gradient-border {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+                linear-gradient(135deg, var(--color-neon-pink), var(--color-purple-muted), var(--color-neon-gold)) border-box;
+  }
+}

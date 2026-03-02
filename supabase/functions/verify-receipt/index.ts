@@ -146,11 +146,11 @@ async function verifyAppleReceipt(receiptData: string): Promise<boolean> {
 
     const secret = Deno.env.get("APPLE_APP_SPECIFIC_SHARED_SECRET");
     
-    // If no secret is configured, just pretend it's valid so TestFlight isn't completely blocked
-    // while the user sets things up.
+    // SECURITY: If no secret is configured, REJECT the receipt.
+    // You MUST set APPLE_APP_SPECIFIC_SHARED_SECRET in Supabase secrets.
     if (!secret) {
-        console.warn("APPLE_APP_SPECIFIC_SHARED_SECRET not set. Approving receipt blindly.");
-        return true; 
+        console.error("APPLE_APP_SPECIFIC_SHARED_SECRET not set. Cannot verify receipt — REJECTING.");
+        return false; 
     }
 
     const response = await fetch(url, {

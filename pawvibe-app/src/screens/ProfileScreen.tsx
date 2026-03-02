@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Platform, Image } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Platform, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect, useRef } from 'react';
@@ -23,6 +23,7 @@ export default function ProfileScreen() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'Credits' | 'Subscription'>('Credits');
     const confettiRef = useRef<any>(null);
+    const lastProcessedRef = useRef<number>(0);
     const [isRestoring, setIsRestoring] = useState(false);
 
     useEffect(() => {
@@ -85,6 +86,10 @@ export default function ProfileScreen() {
 
     useEffect(() => {
         if (lastPurchaseSuccess?.timestamp && lastPurchaseSuccess?.productId) {
+            // Prevent duplicate processing for the same event
+            if (lastProcessedRef.current === lastPurchaseSuccess.timestamp) return;
+            lastProcessedRef.current = lastPurchaseSuccess.timestamp;
+
             confettiRef.current?.start();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
@@ -97,8 +102,8 @@ export default function ProfileScreen() {
             // and updated the database. fetchProfileData pulls the real, confirmed data.
             fetchProfileData();
 
-            // Clear so stale timestamp doesn't re-trigger on remount
-            clearLastPurchaseSuccess();
+            // Delay clear so confetti animation has time to start
+            setTimeout(() => clearLastPurchaseSuccess(), 500);
         }
     }, [lastPurchaseSuccess?.timestamp]);
 
@@ -340,6 +345,17 @@ export default function ProfileScreen() {
                         </>
                     )}
                 </TouchableOpacity>
+
+                {/* Privacy Policy & Terms of Service */}
+                <View style={styles.legalContainer}>
+                    <TouchableOpacity onPress={() => Linking.openURL('https://paw-vibe.net/privacy')}>
+                        <Text style={styles.legalLink}>{t('app.privacy_policy', 'Privacy Policy')}</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.legalSeparator}>•</Text>
+                    <TouchableOpacity onPress={() => Linking.openURL('https://paw-vibe.net/terms')}>
+                        <Text style={styles.legalLink}>{t('app.terms_of_service', 'Terms of Service')}</Text>
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -349,7 +365,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A001A' },
     header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 10 : 20 },
     title: { fontSize: 32, fontWeight: '900', color: '#fff' },
-    scrollContent: { padding: 20 },
+    scrollContent: { padding: 20, paddingBottom: 40 },
     centerContainer: { flex: 1, backgroundColor: '#0A001A', justifyContent: 'center', alignItems: 'center' },
     headerTitle: { color: '#FFD700', fontSize: 32, fontWeight: '900', marginBottom: 10, marginTop: 10, textShadowColor: '#FF007F', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
     errorText: { color: 'white', textAlign: 'center', marginTop: 50 },
@@ -400,5 +416,10 @@ const styles = StyleSheet.create({
     modalTitle: { color: '#FFD700', fontSize: 24, fontWeight: '900', marginBottom: 15, textAlign: 'center' },
     modalMessage: { color: 'white', fontSize: 16, textAlign: 'center', marginBottom: 25, lineHeight: 24 },
     modalCloseBtn: { backgroundColor: '#FF007F', paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25 },
-    btnText: { color: 'white', fontWeight: '900', fontSize: 16 }
+    btnText: { color: 'white', fontWeight: '900', fontSize: 16 },
+
+    // Legal Links
+    legalContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 25, marginBottom: 10, gap: 8 },
+    legalLink: { color: '#6A4C93', fontSize: 13, textDecorationLine: 'underline' },
+    legalSeparator: { color: '#6A4C93', fontSize: 13 },
 });
