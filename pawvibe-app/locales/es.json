@@ -1,5 +1,6 @@
 {
     "infoPlist": {
-        "NSCameraUsageDescription": "PawVibe necesita acceso a tu cámara para analizar la vibra de tu mascota."
+        "NSCameraUsageDescription": "PawVibe necesita acceso a tu cámara para tomar fotos de tus mascotas para el análisis de energía y emociones con IA.",
+        "NSPhotoLibraryUsageDescription": "PawVibe necesita acceso a tu biblioteca de fotos para que puedas seleccionar fotos de tus mascotas para el análisis de energía y emociones con IA."
     }
 }

@@ -16,7 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.setifera.pawvibe",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için fotoğraf çekmek üzere kameranıza erişim gerektirir.",
+        "NSPhotoLibraryUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için galerinizden fotoğraf seçmenize olanak tanımak amacıyla fotoğraf kütüphanenize erişim gerektirir."
       }
     },
     "android": {

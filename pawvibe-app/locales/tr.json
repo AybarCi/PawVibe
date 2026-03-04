@@ -1,5 +1,6 @@
 {
     "infoPlist": {
-        "NSCameraUsageDescription": "PawVibe, evcil hayvanınızın ruh halini analiz etmek için kameranıza erişmek istiyor."
+        "NSCameraUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için fotoğraf çekmek üzere kameranıza erişim gerektirir.",
+        "NSPhotoLibraryUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için galerinizden fotoğraf seçmenize olanak tanımak amacıyla fotoğraf kütüphanenize erişim gerektirir."
     }
 }
