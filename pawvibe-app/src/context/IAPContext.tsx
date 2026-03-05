@@ -118,39 +118,41 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
                 console.log('[IAP] Connected to store');
 
-                // Fetch ALL products in one shot — no type filter.
-                // Separate by type field locally. This is the most reliable approach.
-                const allSkus = [...itemSkus, ...subSkus];
-                console.log('[IAP] Fetching SKUs:', allSkus);
-
-                const allFetched = await RNIap.fetchProducts({ skus: allSkus });
-
-                const consumables = (allFetched || []).filter((p: any) => p.type === 'in-app');
-                const subs = (allFetched || []).filter((p: any) => p.type === 'subs');
-
-                console.log('[IAP] Consumables found:', consumables.map((p: any) => p.id));
-                console.log('[IAP] Subscriptions found:', subs.map((p: any) => p.id));
-
-                // If the single fetch didn't find subscriptions, try fetching them separately
-                if (subs.length === 0 && subSkus.length > 0) {
-                    console.log('[IAP] No subscriptions in combined fetch, trying separate fetch with type:subs...');
-                    try {
-                        const subFetched = await RNIap.fetchProducts({ skus: subSkus, type: 'subs' });
-                        if (subFetched && subFetched.length > 0) {
-                            console.log('[IAP] Separate subs fetch found:', subFetched.map((p: any) => p.id));
-                            subs.push(...subFetched);
-                        } else {
-                            console.warn('[IAP] Separate subs fetch also returned empty. Check App Store Connect!');
-                        }
-                    } catch (subErr: any) {
-                        console.warn('[IAP] Separate subs fetch error:', subErr.message);
+                // Fetch Consumables
+                let consumables: any[] = [];
+                try {
+                    if (itemSkus.length > 0) {
+                        consumables = await RNIap.getProducts({ skus: itemSkus });
+                        console.log('[IAP] Consumables found:', consumables.map((p: any) => p.productId));
                     }
+                } catch (err: any) {
+                    console.warn('[IAP] Error fetching consumables:', err.message);
+                }
+
+                // Fetch Subscriptions
+                let subs: any[] = [];
+                try {
+                    if (subSkus.length > 0) {
+                        subs = await RNIap.getSubscriptions({ skus: subSkus });
+                        console.log('[IAP] Subscriptions found:', subs.map((p: any) => p.productId));
+                    }
+                } catch (err: any) {
+                    console.warn('[IAP] Error fetching subscriptions:', err.message);
                 }
 
                 setProducts(consumables as Product[]);
                 setSubscriptions(subs as ProductSubscription[]);
                 setIsConfigured(true);
                 console.log('[IAP] Configured and ready');
+
+                // Flush old failed iOS transactions so the user isn't locked out of retrying
+                if (Platform.OS === 'ios') {
+                    try {
+                        await RNIap.clearTransactionIOS();
+                    } catch (e) {
+                        // Ignore errors here
+                    }
+                }
             } catch (err: any) {
                 console.warn('[IAP] Init Error:', err.code, err.message);
             }
@@ -263,13 +265,17 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // This fires on user cancellation, card declined, etc.
         const purchaseErrorSubscription = RNIap.purchaseErrorListener((error: PurchaseError) => {
             console.warn('[IAP] purchaseErrorListener:', error.code, error.message);
-            // Only reset flags for user-initiated purchases — stale tx errors
-            // must not interfere with an active purchase attempt.
+            // Must finish transaction on error to prevent iOS queue lockup
+            if (Platform.OS === 'ios') {
+                try {
+                    // Attempt to pop any stuck transaction
+                    RNIap.clearTransactionIOS();
+                } catch (e) { }
+            }
             if (userInitiatedPurchaseRef.current) {
                 setIsPurchasing(false);
                 userInitiatedPurchaseRef.current = false;
             }
-            // User cancellation is silent — no need to show error
         });
 
         return () => {
@@ -280,47 +286,35 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, []);
 
     // === PURCHASE PACKAGE ===
-    // We await requestPurchase for the native payment flow to complete,
-    // but we do NOT treat its resolution as "purchase success".
-    // Actual success comes ONLY through purchaseUpdatedListener above.
     const purchasePackage = async (productId: string, offerToken?: string): Promise<void> => {
         const RNIap = getRNIap();
         setIsPurchasing(true);
         userInitiatedPurchaseRef.current = true;
 
         try {
-            if (productId === IAP_PRODUCTS.PREMIUM_UNLIMITED) {
-                // Subscription purchase
-                await RNIap.requestPurchase({
-                    request: {
-                        apple: { sku: productId },
-                        google: {
-                            skus: [productId],
-                            ...(offerToken && {
-                                subscriptionOffers: [{ sku: productId, offerToken }]
-                            })
-                        },
-                    },
-                    type: 'subs'
-                });
+            if (subSkus.includes(productId)) {
+                // Subscription
+                const subReq: any = { sku: productId };
+                if (Platform.OS === 'android' && offerToken) {
+                    subReq.subscriptionOffers = [{ sku: productId, offerToken }];
+                }
+
+                // For subscriptions, use requestSubscription explicitly
+                await RNIap.requestSubscription(subReq);
             } else {
-                // Consumable purchase
-                await RNIap.requestPurchase({
-                    request: {
-                        apple: { sku: productId },
-                        google: { skus: [productId] },
-                    },
-                    type: 'in-app'
-                });
+                // Consumable
+                await RNIap.requestPurchase({ skus: [productId] });
             }
-            // requestPurchase resolved — this means the native payment flow completed.
-            // But we do NOT update UI here. The purchaseUpdatedListener handles
-            // receipt verification, database updates, and triggers lastPurchaseSuccess.
             console.log('[IAP] requestPurchase resolved for:', productId);
         } catch (err: any) {
             console.warn('[IAP] requestPurchase error:', err.code, err.message);
             setIsPurchasing(false);
-            // Re-throw non-cancellation errors so the UI can show them
+            userInitiatedPurchaseRef.current = false;
+
+            if (Platform.OS === 'ios') {
+                try { await RNIap.clearTransactionIOS(); } catch (e) { }
+            }
+
             if (err.code !== 'E_USER_CANCELLED') {
                 throw err;
             }
