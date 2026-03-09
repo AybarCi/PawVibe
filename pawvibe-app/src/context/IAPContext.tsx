@@ -9,7 +9,7 @@
  * - finishTransaction must be called after receipt verification
  */
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import type { Product, ProductSubscription, PurchaseError, Purchase } from 'react-native-iap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
@@ -220,6 +220,10 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         errorDetail = data.error;
                     }
                     console.error('[IAP] Receipt verification failed:', errorDetail);
+
+                    if (wasUserInitiated) {
+                        Alert.alert("Satın Alma Hatası", `Doğrulama aşamasında hata oluştu: ${errorDetail}`);
+                    }
 
                     // For stale (non-user-initiated) transactions that fail verification,
                     // finish them anyway so iOS stops replaying them. The credits weren't

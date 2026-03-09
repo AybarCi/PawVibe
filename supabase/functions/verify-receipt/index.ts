@@ -62,15 +62,21 @@ serve(async (req) => {
         // --- Award User their credits or subscription ---
         
         // 1. Transaction Deduplication Check (important for consumables)
-        if (transactionId) {
-             const { data: existingTx } = await supabase
+        // Android tokens are very long, truncate to avoid DB crashes.
+        const safeTransactionId = transactionId ? transactionId.substring(0, 100) : undefined;
+
+        if (safeTransactionId) {
+             const { data: existingTx, error: selectError } = await supabase
                 .from('iap_transactions')
                 .select('id')
-                .eq('transaction_id', transactionId)
+                .eq('transaction_id', safeTransactionId)
                 .maybeSingle();
                 
              if (existingTx) {
                  return new Response(JSON.stringify({ success: true, message: 'Already processed' }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+             }
+             if (selectError) {
+                 console.error("Deduplication select error:", selectError);
              }
         }
 
@@ -106,16 +112,21 @@ serve(async (req) => {
         }
 
         // 4. Log Transaction
-        if (transactionId) {
-             await supabase
+        if (safeTransactionId) {
+             const { error: insertError } = await supabase
                  .from('iap_transactions')
                  .insert({
                      user_id: user.id,
-                     transaction_id: transactionId,
+                     transaction_id: safeTransactionId,
                      product_id: productId,
                      platform: platform,
-                     receipt_data: receipt
+                     receipt_data: String(receipt).substring(0, 1500) // prevent huge payload DB crash
                  });
+                 
+             if (insertError) {
+                 console.error("Transaction insert error:", insertError.message);
+                 // We don't throw here so we don't revert the user's credits, but we log the error.
+             }
         }
 
         return new Response(JSON.stringify({ 
@@ -126,7 +137,8 @@ serve(async (req) => {
         });
 
     } catch (error: any) {
-        return new Response(JSON.stringify({ success: false, error: error.message }), {
+        console.error("verify-receipt ERROR:", error);
+        return new Response(JSON.stringify({ success: false, error: error.message || 'Unknown verification error' }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400
         });

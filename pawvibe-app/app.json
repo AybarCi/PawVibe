@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.1.4",
+    "version": "1.1.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -17,17 +17,19 @@
       "bundleIdentifier": "com.setifera.pawvibe",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için fotoğraf çekmek üzere kameranıza erişim gerektirir.",
-        "NSPhotoLibraryUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için galerinizden fotoğraf seçmenize olanak tanımak amacıyla fotoğraf kütüphanenize erişim gerektirir."
-      }
+        "NSCameraUsageDescription": "PawVibe needs access to your camera to take photos of your pets for the AI vibe analysis.",
+        "NSPhotoLibraryUsageDescription": "PawVibe needs access to your photo library so you can select existing photos of your pets for the AI vibe analysis."
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0A001A"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.setifera.pawvibe"
+      "package": "com.setifera.pawvibe",
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/favicon.png"

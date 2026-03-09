@@ -109,11 +109,11 @@ export default function ProfileScreen() {
 
     const handlePurchase = async (productId: string) => {
         Haptics.selectionAsync();
-        const item = [...products, ...subscriptions].find(p => p.id === productId);
+        const item = [...products, ...subscriptions].find((p: any) => p.productId === productId);
         if (!item) {
             console.warn(`[IAP] Product ${productId} not found in fetched products.`);
-            console.warn('[IAP] Available products:', products.map(p => p.id));
-            console.warn('[IAP] Available subscriptions:', subscriptions.map(p => p.id));
+            console.warn('[IAP] Available products:', products.map((p: any) => p.productId));
+            console.warn('[IAP] Available subscriptions:', subscriptions.map((p: any) => p.productId));
             Toast.show({
                 type: 'error',
                 text1: t('app.error', 'Error'),
@@ -218,26 +218,38 @@ export default function ProfileScreen() {
                                 <Text style={styles.creditValue}>{profile.purchased_credits}</Text>
                             </View>
 
-                            <View style={styles.purchaseContainer}>
-                                <Text style={styles.purchaseTitle}>{t('app.get_more_scans')}</Text>
+                            {products.length === 0 ? (
+                                <View style={[styles.purchaseContainer, { alignItems: 'center', paddingVertical: 30 }]}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 }}>
+                                        <Ionicons name="alert-circle-outline" size={32} color="#FFD700" />
+                                        <Text style={{ ...styles.purchaseTitle, marginBottom: 0 }}>{t('app.products_loading', 'Loading Store...')}</Text>
+                                    </View>
+                                    <Text style={{ color: '#ccc', textAlign: 'center', fontSize: 13, paddingHorizontal: 20 }}>
+                                        {t('app.products_not_available', 'Products are currently unavailable. Please check your App Store Connect configuration or active Sandbox account.')}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={styles.purchaseContainer}>
+                                    <Text style={styles.purchaseTitle}>{t('app.get_more_scans')}</Text>
 
-                                <TouchableOpacity style={[styles.purchaseBtn, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.SNACK_PACK)}>
-                                    <Text style={styles.purchaseBtnText}>🦴 {t('app.snack_pack')}</Text>
-                                    <Text style={styles.purchasePrice}>{products.find(p => p.id === IAP_PRODUCTS.SNACK_PACK)?.displayPrice || '$0.99'}</Text>
-                                </TouchableOpacity>
+                                    <TouchableOpacity style={[styles.purchaseBtn, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.SNACK_PACK)}>
+                                        <Text style={styles.purchaseBtnText}>🦴 {t('app.snack_pack')}</Text>
+                                        <Text style={styles.purchasePrice}>{(products.find((p: any) => p.productId === IAP_PRODUCTS.SNACK_PACK) as any)?.localizedPrice || ''}</Text>
+                                    </TouchableOpacity>
 
-                                <TouchableOpacity style={[styles.gradientContainer, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PARTY_PACK)}>
-                                    <LinearGradient
-                                        colors={['#FF007F', '#6A4C93']}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                        style={styles.gradientBtn}
-                                    >
-                                        <Text style={styles.purchaseBtnText}>🎉 {t('app.party_pack')}</Text>
-                                        <Text style={styles.purchasePrice}>{products.find(p => p.id === IAP_PRODUCTS.PARTY_PACK)?.displayPrice || '$2.99'}</Text>
-                                    </LinearGradient>
-                                </TouchableOpacity>
-                            </View>
+                                    <TouchableOpacity style={[styles.gradientContainer, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PARTY_PACK)}>
+                                        <LinearGradient
+                                            colors={['#FF007F', '#6A4C93']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.gradientBtn}
+                                        >
+                                            <Text style={styles.purchaseBtnText}>🎉 {t('app.party_pack')}</Text>
+                                            <Text style={styles.purchasePrice}>{(products.find((p: any) => p.productId === IAP_PRODUCTS.PARTY_PACK) as any)?.localizedPrice || ''}</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
                         </View>
                     )
                 }
@@ -277,17 +289,29 @@ export default function ProfileScreen() {
                                         </View>
                                     </View>
 
-                                    <TouchableOpacity style={[styles.gradientContainer, { marginTop: 10 }, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PREMIUM_UNLIMITED)}>
-                                        <LinearGradient
-                                            colors={['#FFD700', '#FF8C00']}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={styles.gradientBtn}
-                                        >
-                                            <Text style={styles.premiumBtnText}>👑 {t('app.subscribe_now', 'Subscribe Now')}</Text>
-                                            <Text style={styles.premiumPrice}>{subscriptions.find(p => p.id === IAP_PRODUCTS.PREMIUM_UNLIMITED)?.displayPrice || '$4.99/mo'}</Text>
-                                        </LinearGradient>
-                                    </TouchableOpacity>
+                                    {subscriptions.length === 0 ? (
+                                        <View style={[styles.purchaseContainer, { alignItems: 'center', paddingVertical: 20 }]}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 }}>
+                                                <Ionicons name="alert-circle-outline" size={32} color="#FFD700" />
+                                                <Text style={{ ...styles.purchaseTitle, marginBottom: 0, fontSize: 16 }}>{t('app.products_loading', 'Loading Store...')}</Text>
+                                            </View>
+                                            <Text style={{ color: '#ccc', textAlign: 'center', fontSize: 13, paddingHorizontal: 10 }}>
+                                                {t('app.products_not_available', 'Products are currently unavailable. Please check your App Store Connect configuration or active Sandbox account.')}
+                                            </Text>
+                                        </View>
+                                    ) : (
+                                        <TouchableOpacity style={[styles.gradientContainer, { marginTop: 10 }, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PREMIUM_UNLIMITED)}>
+                                            <LinearGradient
+                                                colors={['#FFD700', '#FF8C00']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={styles.gradientBtn}
+                                            >
+                                                <Text style={styles.premiumBtnText}>👑 {t('app.subscribe_now', 'Subscribe Now')}</Text>
+                                                <Text style={styles.premiumPrice}>{(subscriptions.find((p: any) => p.productId === IAP_PRODUCTS.PREMIUM_UNLIMITED) as any)?.localizedPrice || ''}</Text>
+                                            </LinearGradient>
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
                             )}
                         </View>
