@@ -16,7 +16,9 @@ import { supabase } from '../../lib/supabase';
 import { IAP_PRODUCTS, itemSkus, subSkus } from '../../lib/iap';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
-const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+// Only mock IAP in Expo Go development environment
+// ExecutionEnvironment.StoreClient covers BOTH Expo Go AND real App Store builds, so we must NOT use it here
+const isExpoGo = Constants.appOwnership === 'expo';
 
 let cachedRNIap: any = null;
 

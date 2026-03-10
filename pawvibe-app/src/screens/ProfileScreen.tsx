@@ -357,12 +357,10 @@ export default function ProfileScreen() {
 
                             {products.length === 0 ? (
                                 <View style={[styles.purchaseContainer, { alignItems: 'center', paddingVertical: 30 }]}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 }}>
-                                        <Ionicons name="alert-circle-outline" size={32} color="#FFD700" />
-                                        <Text style={{ ...styles.purchaseTitle, marginBottom: 0 }}>{t('app.products_loading', 'Loading Store...')}</Text>
-                                    </View>
-                                    <Text style={{ color: '#ccc', textAlign: 'center', fontSize: 13, paddingHorizontal: 20 }}>
-                                        {t('app.products_not_available', 'Products are currently unavailable. Please check your App Store Connect configuration or active Sandbox account.')}
+                                    <ActivityIndicator size="large" color="#FFD700" style={{ marginBottom: 15 }} />
+                                    <Text style={{ ...styles.purchaseTitle, marginBottom: 5 }}>{t('app.products_loading', 'Loading Store...')}</Text>
+                                    <Text style={{ color: '#aaa', textAlign: 'center', fontSize: 13, paddingHorizontal: 20 }}>
+                                        {t('app.products_not_available', 'Products will appear here shortly. Please check your internet connection or try again later.')}
                                     </Text>
                                 </View>
                             ) : (
@@ -428,12 +426,10 @@ export default function ProfileScreen() {
 
                                     {subscriptions.length === 0 ? (
                                         <View style={[styles.purchaseContainer, { alignItems: 'center', paddingVertical: 20 }]}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 }}>
-                                                <Ionicons name="alert-circle-outline" size={32} color="#FFD700" />
-                                                <Text style={{ ...styles.purchaseTitle, marginBottom: 0, fontSize: 16 }}>{t('app.products_loading', 'Loading Store...')}</Text>
-                                            </View>
-                                            <Text style={{ color: '#ccc', textAlign: 'center', fontSize: 13, paddingHorizontal: 10 }}>
-                                                {t('app.products_not_available', 'Products are currently unavailable. Please check your App Store Connect configuration or active Sandbox account.')}
+                                            <ActivityIndicator size="large" color="#FFD700" style={{ marginBottom: 15 }} />
+                                            <Text style={{ ...styles.purchaseTitle, marginBottom: 5, fontSize: 16 }}>{t('app.products_loading', 'Loading Store...')}</Text>
+                                            <Text style={{ color: '#aaa', textAlign: 'center', fontSize: 13, paddingHorizontal: 10 }}>
+                                                {t('app.products_not_available', 'Products will appear here shortly. Please check your internet connection or try again later.')}
                                             </Text>
                                         </View>
                                     ) : (
