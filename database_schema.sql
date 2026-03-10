@@ -5,6 +5,7 @@
 -- 1. Create profiles table
 CREATE TABLE public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+    username TEXT UNIQUE,
     weekly_credits INTEGER DEFAULT 5 NOT NULL,
     purchased_credits INTEGER DEFAULT 0 NOT NULL,
     last_reset_date TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -65,9 +66,12 @@ CREATE POLICY "Users can insert own scans"
 -- Automatically create a profile when a new user signs up (Anonymous or standard)
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
+DECLARE
+    random_suffix TEXT := upper(substr(md5(random()::text), 1, 6));
+    new_username TEXT := 'Guest-' || random_suffix;
 BEGIN
-    INSERT INTO public.profiles (id, weekly_credits, purchased_credits, is_premium, last_reset_date)
-    VALUES (new.id, 5, 0, false, now());
+    INSERT INTO public.profiles (id, weekly_credits, purchased_credits, is_premium, last_reset_date, username)
+    VALUES (new.id, 5, 0, false, now(), new_username);
     RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
