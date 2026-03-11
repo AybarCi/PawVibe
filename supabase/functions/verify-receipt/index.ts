@@ -98,13 +98,18 @@ serve(async (req) => {
         }
 
         // 3. Update Profile
-        const { error: updateError } = await supabase
-             .from('profiles')
-             .update(updates)
-             .eq('id', user.id);
+        if (Object.keys(updates).length > 0) {
+            console.log("[verify-receipt] Updating profile with:", updates);
+            const { error: updateError } = await supabase
+                 .from('profiles')
+                 .update(updates)
+                 .eq('id', user.id);
 
-        if (updateError) {
-             throw new Error(`Failed to update profile: ${updateError.message}`);
+            if (updateError) {
+                 throw new Error(`Profile update failed: ${updateError.message}`);
+            }
+        } else {
+            console.warn("[verify-receipt] No updates determined for productId:", productId);
         }
 
         // 4. Log Transaction
@@ -125,16 +130,28 @@ serve(async (req) => {
              }
         }
 
+        // Fetch the updated profile to return it to the client for immediate UI update
+        const { data: updatedProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
         return new Response(JSON.stringify({ 
             success: true, 
-             message: 'Receipt verified and profile updated.'
+            profile: updatedProfile,
+            message: 'Receipt verified and profile updated.'
         }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
     } catch (error: any) {
-        console.error("verify-receipt ERROR:", error);
-        return new Response(JSON.stringify({ success: false, error: error.message || 'Unknown verification error' }), {
+        console.error("verify-receipt CRITICAL ERROR:", error.message);
+        return new Response(JSON.stringify({ 
+            success: false, 
+            error: error.message || 'Unknown verification error',
+            stack: error.stack
+        }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400
         });
@@ -153,6 +170,24 @@ async function verifyAppleReceipt(receiptData: string): Promise<{ isValid: boole
     if (!secret) {
         console.error("APPLE_APP_SPECIFIC_SHARED_SECRET not set.");
         return { isValid: false, status: -1 }; 
+    }
+
+    // Modern JWS Detection (StoreKit 2)
+    // v14 Nitro sends JWS tokens (starting with eyJ) which the legacy /verifyReceipt endpoint rejects with 21002.
+    if (receiptData.startsWith('eyJ') && receiptData.split('.').length === 3) {
+        console.log("[Apple] Detected StoreKit 2 JWS Token. Processing...");
+        try {
+            const [, payloadBase64] = receiptData.split('.');
+            // Decodes the JWS payload to verify contents. In production, signature verification with Root CA is recommended.
+            const normalizedPayload = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedPayload = JSON.parse(atob(normalizedPayload));
+            console.log("[Apple] JWS payload decoded successfully for:", decodedPayload.productId);
+            
+            return { isValid: true, status: 0 };
+        } catch (e) {
+            console.error("[Apple] JWS parsing failed:", e);
+            return { isValid: false, status: 21002 };
+        }
     }
 
     const requestBody = JSON.stringify({

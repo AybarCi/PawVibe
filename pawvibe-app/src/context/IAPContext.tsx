@@ -58,7 +58,7 @@ interface IAPContextState {
     purchasePackage: (productId: string, offerToken?: string) => Promise<void>;
     restorePurchases: () => Promise<{ success: boolean; error?: string }>;
     clearLastPurchaseSuccess: () => void;
-    lastPurchaseSuccess: { timestamp: number; productId: string; } | null;
+    lastPurchaseSuccess: { timestamp: number; productId: string; profile?: any; } | null;
 }
 
 const IAPContext = createContext<IAPContextState>({
@@ -79,7 +79,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [subscriptions, setSubscriptions] = useState<ProductSubscription[]>([]);
     const [isConfigured, setIsConfigured] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
-    const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ timestamp: number; productId: string; } | null>(null);
+    const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ timestamp: number; productId: string; profile?: any; } | null>(null);
 
     // Prevent duplicate transaction processing (persistent across restarts)
     const processedTransactions = useRef(new Set<string>());
@@ -190,17 +190,8 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
             try {
                 // v14 Nitro: purchaseToken contains the verification data (receipt or JWS)
-                // We use this directly to avoid triggering the getReceiptIOS password prompt loop
+                // Using this directly avoids triggering the Apple ID password prompt loop
                 let receipt = purchase.purchaseToken || (purchase as any).transactionReceipt;
-
-                if (!receipt && Platform.OS === 'ios') {
-                    // Try getReceiptDataIOS which is a more stable variant in Nitro for old backends
-                    try {
-                        receipt = await RNIap.getReceiptDataIOS();
-                    } catch (e) {
-                        console.warn('[IAP] No receipt found for iOS purchase');
-                    }
-                }
 
                 if (!receipt) {
                     console.warn('[IAP] No receipt found for product:', pid);
@@ -267,7 +258,11 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Server returns 'Already processed' for duplicate transactions.
                     const isAlreadyProcessed = data?.message === 'Already processed';
                     if (!isAlreadyProcessed) {
-                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid });
+                        setLastPurchaseSuccess({
+                            timestamp: Date.now(),
+                            productId: pid,
+                            profile: data?.profile // Include the updated profile from backend
+                        });
                     } else {
                         console.log('[IAP] Already-processed tx — no UI feedback:', txId);
                     }
@@ -368,12 +363,6 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 const pid = purchase.productId;
                 // v14 Nitro: purchaseToken contains the verification data
                 let receipt = purchase.purchaseToken || (purchase as any).transactionReceipt;
-
-                if (!receipt && Platform.OS === 'ios') {
-                    try {
-                        receipt = await RNIap.getReceiptDataIOS();
-                    } catch (e) { }
-                }
 
                 const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
 

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Platform, Image, Linking, TextInput, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Platform, Image, Linking, TextInput, KeyboardAvoidingView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect, useRef } from 'react';
@@ -24,6 +24,7 @@ export default function ProfileScreen() {
     const [activeTab, setActiveTab] = useState<'Credits' | 'Subscription'>('Credits');
     const confettiRef = useRef<any>(null);
     const lastProcessedRef = useRef<number>(0);
+    const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
     const [isRestoring, setIsRestoring] = useState(false);
 
     // Profile Modals State
@@ -111,8 +112,13 @@ export default function ProfileScreen() {
                 text2: t('app.purchase_success_msg', 'Your purchase was successful!'),
             });
 
-            // At this point, verify-receipt Edge Function has ALREADY confirmed payment
-            // and updated the database. fetchProfileData pulls the real, confirmed data.
+            // Update local state instantly if profile was returned from backend
+            if (lastPurchaseSuccess.profile) {
+                console.log('[Profile] Updating local profile from purchase event');
+                setProfile(lastPurchaseSuccess.profile);
+            }
+
+            // Backup refresh to ensure everything is in sync
             fetchProfileData();
 
             // Delay clear so confetti animation has time to start
@@ -331,7 +337,7 @@ export default function ProfileScreen() {
             <View style={[StyleSheet.absoluteFill, { zIndex: 999 }]} pointerEvents="none">
                 <ConfettiCannon
                     count={200}
-                    origin={{ x: -20, y: -20 }}
+                    origin={{ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 }}
                     autoStart={false}
                     ref={confettiRef}
                     colors={['#FF007F', '#6A4C93', '#FFD700', '#00FFFF']}
