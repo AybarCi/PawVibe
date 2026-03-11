@@ -312,30 +312,33 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsPurchasing(true);
         userInitiatedPurchaseRef.current = true;
 
+        console.log('[IAP] Initiating purchase for:', productId);
+
         try {
             const isSub = subSkus.includes(productId);
-            const purchaseType = isSub ? 'subs' : 'in-app';
 
-            const request: any = {};
-
-            if (Platform.OS === 'ios') {
-                request.apple = { sku: productId };
-            } else {
-                // Android
-                if (isSub) {
-                    request.google = {
-                        skus: [productId],
-                        subscriptionOffers: offerToken ? [{ sku: productId, offerToken }] : [],
-                    };
+            if (isSub) {
+                // Subscription logic
+                if (Platform.OS === 'ios') {
+                    await RNIap.requestSubscription({ sku: productId });
                 } else {
-                    request.google = { skus: [productId] };
+                    await RNIap.requestSubscription({
+                        sku: productId,
+                        ...(offerToken ? { subscriptionOffers: [{ sku: productId, offerToken }] } : {})
+                    });
+                }
+            } else {
+                // One-time purchase logic
+                if (Platform.OS === 'ios') {
+                    await RNIap.requestPurchase({ sku: productId });
+                } else {
+                    await RNIap.requestPurchase({ skus: [productId] });
                 }
             }
 
-            await RNIap.requestPurchase({ request, type: purchaseType });
-            console.log('[IAP] requestPurchase resolved for:', productId);
+            console.log('[IAP] Purchase request SENT for:', productId);
         } catch (err: any) {
-            console.warn('[IAP] requestPurchase error:', err.code, err.message);
+            console.warn('[IAP] Purchase request error:', err.code, err.message);
             setIsPurchasing(false);
             userInitiatedPurchaseRef.current = false;
 
@@ -343,7 +346,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 try { await RNIap.clearTransactionIOS(); } catch (e) { }
             }
 
-            if (err.code !== 'E_USER_CANCELLED') {
+            if (err.code !== 'E_USER_CANCELLED' && err.code !== 'ERR_USER_CANCELLED') {
                 throw err;
             }
         }
