@@ -59,7 +59,6 @@ interface IAPContextState {
     restorePurchases: () => Promise<{ success: boolean; error?: string }>;
     clearLastPurchaseSuccess: () => void;
     lastPurchaseSuccess: { timestamp: number; productId: string; } | null;
-    iapDebugInfo: string;
 }
 
 const IAPContext = createContext<IAPContextState>({
@@ -71,7 +70,6 @@ const IAPContext = createContext<IAPContextState>({
     restorePurchases: async () => ({ success: false, error: 'Not initialized' }),
     clearLastPurchaseSuccess: () => { },
     lastPurchaseSuccess: null,
-    iapDebugInfo: '',
 });
 
 export const useIAPContext = () => useContext(IAPContext);
@@ -82,7 +80,6 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [isConfigured, setIsConfigured] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ timestamp: number; productId: string; } | null>(null);
-    const [iapDebugInfo, setIapDebugInfo] = useState<string>('Initializing...');
 
     // Prevent duplicate transaction processing (persistent across restarts)
     const processedTransactions = useRef(new Set<string>());
@@ -116,15 +113,12 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const initIAP = async () => {
             const RNIap = getRNIap();
             try {
-                setIapDebugInfo(`isExpoGo=${isExpoGo}, appOwnership=${Constants.appOwnership}`);
                 const connected = await RNIap.initConnection();
                 if (!connected) {
                     console.warn('[IAP] initConnection returned false');
-                    setIapDebugInfo(`initConnection=false, isExpoGo=${isExpoGo}, appOwnership=${Constants.appOwnership}`);
                     return;
                 }
                 console.log('[IAP] Connected to store');
-                setIapDebugInfo('Connected, fetching...');
 
                 // react-native-iap v14: use fetchProducts() with type parameter
                 // getProducts() and getSubscriptions() are REMOVED in v14
@@ -136,7 +130,6 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     console.log('[IAP] fetchProducts returned:', allItems.map((p: any) => ({ id: p.productId || p.id, type: p.type })));
                 } catch (err: any) {
                     console.warn('[IAP] Error fetching products:', err.message);
-                    setIapDebugInfo(`FetchErr: ${err.message} | SKUs: ${allSkus.join(',')}`);
                 }
 
                 // Separate consumables from subscriptions based on type or productId
@@ -162,7 +155,6 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 setProducts(normalizedConsumables as Product[]);
                 setSubscriptions(normalizedSubs as ProductSubscription[]);
                 setIsConfigured(true);
-                setIapDebugInfo(`OK! P:${normalizedConsumables.length} S:${normalizedSubs.length} | Total:${allItems.length} | IDs:${allItems.map((i: any) => i.productId || i.id).join(',')}`);
                 console.log('[IAP] Configured — Products:', normalizedConsumables.length, 'Subs:', normalizedSubs.length);
 
                 // Flush old failed iOS transactions so the user isn't locked out of retrying
@@ -175,7 +167,6 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
             } catch (err: any) {
                 console.warn('[IAP] Init Error:', err.code, err.message);
-                setIapDebugInfo(`InitError: ${err.code} - ${err.message}`);
             }
         };
 
@@ -398,7 +389,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const clearLastPurchaseSuccess = () => setLastPurchaseSuccess(null);
 
     return (
-        <IAPContext.Provider value={{ products, subscriptions, isConfigured, isPurchasing, purchasePackage, restorePurchases, clearLastPurchaseSuccess, lastPurchaseSuccess, iapDebugInfo }}>
+        <IAPContext.Provider value={{ products, subscriptions, isConfigured, isPurchasing, purchasePackage, restorePurchases, clearLastPurchaseSuccess, lastPurchaseSuccess }}>
             {children}
         </IAPContext.Provider>
     );

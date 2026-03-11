@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
     const { t } = useTranslation();
-    const { products, subscriptions, purchasePackage, restorePurchases, lastPurchaseSuccess, clearLastPurchaseSuccess, isPurchasing, iapDebugInfo } = useIAPContext();
+    const { products, subscriptions, purchasePackage, restorePurchases, lastPurchaseSuccess, clearLastPurchaseSuccess, isPurchasing } = useIAPContext();
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -39,11 +39,14 @@ export default function ProfileScreen() {
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
+            // If user already has email, mark as linked immediately
+            if (session?.user?.email) setIsLinkedLocally(true);
             if (!session) setLoading(false);
         });
 
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            if (session?.user?.email) setIsLinkedLocally(true);
             if (!session) setLoading(false);
         });
 
@@ -233,7 +236,25 @@ export default function ProfileScreen() {
             fetchProfileData();
 
         } catch (e: any) {
-            Toast.show({ type: 'error', text1: t('app.error'), text2: e.message || 'Error linking account' });
+            const errorMsg = e.message || '';
+            // If email is already taken or user already has email, treat as already linked
+            if (errorMsg.includes('already registered') || errorMsg.includes('already been registered') ||
+                errorMsg.includes('email address') || errorMsg.includes('already') || errorMsg.includes('duplicate')) {
+                // Mark as linked and hide the card + modal immediately
+                await supabase
+                    .from('profiles')
+                    .update({ is_account_linked: true })
+                    .eq('id', session?.user?.id);
+                setIsLinkedLocally(true);
+                setShowLinkModal(false);
+                fetchProfileData();
+                // Show toast after modal closes so it's visible
+                setTimeout(() => {
+                    Toast.show({ type: 'success', text1: t('app.success'), text2: t('app.already_linked', 'Your account is already secured! 🎉') });
+                }, 500);
+            } else {
+                Toast.show({ type: 'error', text1: t('app.error'), text2: errorMsg || 'Error linking account' });
+            }
         } finally {
             setIsUpdating(false);
         }
@@ -362,7 +383,6 @@ export default function ProfileScreen() {
                                     <Text style={{ color: '#aaa', textAlign: 'center', fontSize: 13, paddingHorizontal: 20 }}>
                                         {t('app.products_not_available', 'Products will appear here shortly. Please check your internet connection or try again later.')}
                                     </Text>
-                                    {iapDebugInfo ? <Text style={{ color: '#666', textAlign: 'center', fontSize: 10, marginTop: 10 }}>[DEBUG] {iapDebugInfo}</Text> : null}
                                 </View>
                             ) : (
                                 <View style={styles.purchaseContainer}>
@@ -432,7 +452,6 @@ export default function ProfileScreen() {
                                             <Text style={{ color: '#aaa', textAlign: 'center', fontSize: 13, paddingHorizontal: 10 }}>
                                                 {t('app.products_not_available', 'Products will appear here shortly. Please check your internet connection or try again later.')}
                                             </Text>
-                                            {iapDebugInfo ? <Text style={{ color: '#666', textAlign: 'center', fontSize: 10, marginTop: 10 }}>[DEBUG] {iapDebugInfo}</Text> : null}
                                         </View>
                                     ) : (
                                         <TouchableOpacity style={[styles.gradientContainer, { marginTop: 10 }, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PREMIUM_UNLIMITED)}>
