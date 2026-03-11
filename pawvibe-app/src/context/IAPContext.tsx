@@ -116,7 +116,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const initIAP = async () => {
             const RNIap = getRNIap();
             try {
-                setIapDebugInfo(`isExpoGo=${isExpoGo}, appOwnership=${Constants.appOwnership}, execEnv=${Constants.executionEnvironment}`);
+                setIapDebugInfo(`isExpoGo=${isExpoGo}, appOwnership=${Constants.appOwnership}`);
                 const connected = await RNIap.initConnection();
                 if (!connected) {
                     console.warn('[IAP] initConnection returned false');
@@ -124,37 +124,46 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     return;
                 }
                 console.log('[IAP] Connected to store');
-                setIapDebugInfo('Connected to store, fetching products...');
+                setIapDebugInfo('Connected, fetching...');
 
-                // Fetch Consumables
-                let consumables: any[] = [];
+                // react-native-iap v14: use fetchProducts() with type parameter
+                // getProducts() and getSubscriptions() are REMOVED in v14
+                const allSkus = [...itemSkus, ...subSkus];
+                let allItems: any[] = [];
+
                 try {
-                    if (itemSkus.length > 0) {
-                        consumables = await RNIap.getProducts({ skus: itemSkus });
-                        console.log('[IAP] Consumables found:', consumables.map((p: any) => p.productId));
-                    }
+                    allItems = await RNIap.fetchProducts({ skus: allSkus, type: 'all' });
+                    console.log('[IAP] fetchProducts returned:', allItems.map((p: any) => ({ id: p.productId || p.id, type: p.type })));
                 } catch (err: any) {
-                    console.warn('[IAP] Error fetching consumables:', err.message);
-                    setIapDebugInfo(prev => prev + ` | ConsumableErr: ${err.message}`);
+                    console.warn('[IAP] Error fetching products:', err.message);
+                    setIapDebugInfo(`FetchErr: ${err.message} | SKUs: ${allSkus.join(',')}`);
                 }
 
-                // Fetch Subscriptions
-                let subs: any[] = [];
-                try {
-                    if (subSkus.length > 0) {
-                        subs = await RNIap.getSubscriptions({ skus: subSkus });
-                        console.log('[IAP] Subscriptions found:', subs.map((p: any) => p.productId));
-                    }
-                } catch (err: any) {
-                    console.warn('[IAP] Error fetching subscriptions:', err.message);
-                    setIapDebugInfo(prev => prev + ` | SubErr: ${err.message}`);
-                }
+                // Separate consumables from subscriptions based on type or productId
+                const consumables = allItems.filter((item: any) => {
+                    const id = item.productId || item.id;
+                    return item.type === 'in-app' || item.type === 'inapp' || itemSkus.includes(id);
+                });
+                const subs = allItems.filter((item: any) => {
+                    const id = item.productId || item.id;
+                    return item.type === 'subs' || subSkus.includes(id);
+                });
 
-                setProducts(consumables as Product[]);
-                setSubscriptions(subs as ProductSubscription[]);
+                // Normalize product IDs (v14 uses 'id' instead of 'productId')
+                const normalizeProduct = (item: any) => ({
+                    ...item,
+                    productId: item.productId || item.id,
+                    localizedPrice: item.localizedPrice || item.displayPrice,
+                });
+
+                const normalizedConsumables = consumables.map(normalizeProduct);
+                const normalizedSubs = subs.map(normalizeProduct);
+
+                setProducts(normalizedConsumables as Product[]);
+                setSubscriptions(normalizedSubs as ProductSubscription[]);
                 setIsConfigured(true);
-                setIapDebugInfo(`OK! Products: ${consumables.length}, Subs: ${subs.length} | Queried: ${itemSkus.join(',')} | SubQueried: ${subSkus.join(',')}`);
-                console.log('[IAP] Configured and ready');
+                setIapDebugInfo(`OK! P:${normalizedConsumables.length} S:${normalizedSubs.length} | Total:${allItems.length} | IDs:${allItems.map((i: any) => i.productId || i.id).join(',')}`);
+                console.log('[IAP] Configured — Products:', normalizedConsumables.length, 'Subs:', normalizedSubs.length);
 
                 // Flush old failed iOS transactions so the user isn't locked out of retrying
                 if (Platform.OS === 'ios') {
