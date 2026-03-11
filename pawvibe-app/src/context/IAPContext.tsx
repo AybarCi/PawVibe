@@ -189,12 +189,17 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const wasUserInitiated = userInitiatedPurchaseRef.current;
 
             try {
-                // v14: transactionReceipt is REMOVED on iOS
-                // iOS uses purchase.id (StoreKit 2 transaction ID)
+                // v14: transactionReceipt is REMOVED on iOS Purchase object
+                // We must fetch the base64 app receipt explicitly for the backend verify-receipt function
                 // Android uses purchase.purchaseToken
-                const receipt = Platform.OS === 'ios'
-                    ? (purchase.id || purchase.transactionId)
-                    : purchase.purchaseToken;
+                let receipt: string | undefined;
+                try {
+                    receipt = Platform.OS === 'ios'
+                        ? await RNIap.getReceiptIOS()
+                        : purchase.purchaseToken;
+                } catch (e) {
+                    console.warn('[IAP] Failed to get receipt for verification:', e);
+                }
                 if (!receipt) {
                     console.warn('[IAP] No receipt/token found, skipping:', pid);
                     return;
@@ -360,12 +365,17 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
             let restoredCount = 0;
             for (const purchase of purchases) {
-                // v14: transactionReceipt is REMOVED
-                // iOS uses purchase.id (StoreKit 2 transaction ID)
+                // v14: transactionReceipt is REMOVED on iOS Purchase object
+                // We must fetch the base64 app receipt explicitly for the backend verify-receipt function
                 // Android uses purchase.purchaseToken
-                const receipt = Platform.OS === 'ios'
-                    ? (purchase.id || purchase.transactionId)
-                    : purchase.purchaseToken;
+                let receipt: string | undefined;
+                try {
+                    receipt = Platform.OS === 'ios'
+                        ? await RNIap.getReceiptIOS()
+                        : purchase.purchaseToken;
+                } catch (e) {
+                    console.warn('[IAP] Failed to get receipt for verification:', e);
+                }
                 const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
                 const pid = purchase.productId;
 
