@@ -181,30 +181,34 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         //   2. Replayed/unfinished transactions from previous sessions (userInitiatedPurchaseRef = false)
         // We handle both cases safely using dual-layer deduplication.
         const purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(async (purchase: Purchase) => {
-            console.log('[IAP] purchaseUpdatedListener fired for:', purchase.productId);
+            const pid = purchase.productId;
+            console.log('[IAP] purchaseUpdatedListener fired for:', pid);
 
             // Capture at entry — stale replayed transactions will have false,
             // user-initiated purchases will have true. This prevents race conditions.
             const wasUserInitiated = userInitiatedPurchaseRef.current;
 
             try {
-                // Validate that we have a real transaction receipt (iOS) or token (Android)
+                // v14: transactionReceipt is REMOVED on iOS
+                // iOS uses purchase.id (StoreKit 2 transaction ID)
+                // Android uses purchase.purchaseToken
                 const receipt = Platform.OS === 'ios'
-                    ? (purchase as any).transactionReceipt || purchase.purchaseToken
+                    ? (purchase.id || purchase.transactionId)
                     : purchase.purchaseToken;
                 if (!receipt) {
-                    console.warn('[IAP] No receipt/token found, skipping:', purchase.productId);
+                    console.warn('[IAP] No receipt/token found, skipping:', pid);
                     return;
                 }
 
-                const txId = purchase.transactionId || purchase.purchaseToken;
+                // v14: use purchase.id as primary key (works on both platforms)
+                const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
                 if (!txId) return;
 
                 // CLIENT-SIDE DEDUP: Already processed this transaction before?
                 if (processedTransactions.current.has(txId)) {
                     console.log('[IAP] Transaction already processed (client), finishing silently:', txId);
                     // Still finish the transaction so iOS stops replaying it
-                    const isConsumable = !subSkus.includes(purchase.productId);
+                    const isConsumable = !subSkus.includes(pid);
                     try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { /* ignore */ }
                     return;
                 }
@@ -216,9 +220,9 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 const { error, data } = await supabase.functions.invoke('verify-receipt', {
                     body: {
                         receipt,
-                        productId: purchase.productId,
+                        productId: pid,
                         platform: Platform.OS,
-                        transactionId: purchase.transactionId || purchase.purchaseToken
+                        transactionId: txId
                     }
                 });
 
@@ -226,7 +230,6 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Log detailed error info for debugging
                     let errorDetail = 'Unknown error';
                     if (error) {
-                        // FunctionsHttpError contains response context
                         errorDetail = error?.message || error?.context?.statusText || JSON.stringify(error);
                     } else if (data?.error) {
                         errorDetail = data.error;
@@ -241,16 +244,16 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // finish them anyway so iOS stops replaying them. The credits weren't
                     // granted, but leaving them unfinished causes endless replay loops.
                     if (!wasUserInitiated) {
-                        const isConsumable = !subSkus.includes(purchase.productId);
+                        const isConsumable = !subSkus.includes(pid);
                         try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { /* ignore */ }
                         console.log('[IAP] Finished stale failed tx to stop replay:', txId);
                     }
                     // For user-initiated purchases, don't finish — let the user retry
                 } else {
                     // Verification OK — finish transaction so Apple/Google knows we delivered
-                    const isConsumable = !subSkus.includes(purchase.productId);
+                    const isConsumable = !subSkus.includes(pid);
                     await RNIap.finishTransaction({ purchase, isConsumable });
-                    console.log('[IAP] Transaction finished. ProductId:', purchase.productId);
+                    console.log('[IAP] Transaction finished. ProductId:', pid);
 
                     // Persist to prevent future replay processing
                     await persistProcessedTx(txId);
@@ -259,7 +262,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Server returns 'Already processed' for duplicate transactions.
                     const isAlreadyProcessed = data?.message === 'Already processed';
                     if (!isAlreadyProcessed) {
-                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: purchase.productId });
+                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid });
                     } else {
                         console.log('[IAP] Already-processed tx — no UI feedback:', txId);
                     }
@@ -357,29 +360,34 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
             let restoredCount = 0;
             for (const purchase of purchases) {
-                // iOS uses transactionReceipt, Android uses purchaseToken
+                // v14: transactionReceipt is REMOVED
+                // iOS uses purchase.id (StoreKit 2 transaction ID)
+                // Android uses purchase.purchaseToken
                 const receipt = Platform.OS === 'ios'
-                    ? (purchase as any).transactionReceipt || purchase.purchaseToken
+                    ? (purchase.id || purchase.transactionId)
                     : purchase.purchaseToken;
+                const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
+                const pid = purchase.productId;
+
                 if (receipt) {
                     const { error, data } = await supabase.functions.invoke('verify-receipt', {
                         body: {
                             receipt,
-                            productId: purchase.productId,
+                            productId: pid,
                             platform: Platform.OS,
-                            transactionId: purchase.transactionId
+                            transactionId: txId
                         }
                     });
                     // Only finish transaction if verify succeeded — matches listener pattern
                     if (!error && data?.success) {
                         await RNIap.finishTransaction({
                             purchase,
-                            isConsumable: !subSkus.includes(purchase.productId)
+                            isConsumable: !subSkus.includes(pid)
                         });
-                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: purchase.productId });
+                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid });
                         restoredCount++;
                     } else {
-                        console.warn('[IAP] Restore verify failed for:', purchase.productId, error || data?.error);
+                        console.warn('[IAP] Restore verify failed for:', pid, error || data?.error);
                     }
                 }
             }
