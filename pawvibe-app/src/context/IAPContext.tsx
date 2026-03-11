@@ -302,25 +302,34 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, []);
 
     // === PURCHASE PACKAGE ===
+    // react-native-iap v14: requestSubscription is REMOVED
+    // All purchases go through requestPurchase with type + platform-specific request
     const purchasePackage = async (productId: string, offerToken?: string): Promise<void> => {
         const RNIap = getRNIap();
         setIsPurchasing(true);
         userInitiatedPurchaseRef.current = true;
 
         try {
-            if (subSkus.includes(productId)) {
-                // Subscription
-                const subReq: any = { sku: productId };
-                if (Platform.OS === 'android' && offerToken) {
-                    subReq.subscriptionOffers = [{ sku: productId, offerToken }];
-                }
+            const isSub = subSkus.includes(productId);
+            const purchaseType = isSub ? 'subs' : 'in-app';
 
-                // For subscriptions, use requestSubscription explicitly
-                await RNIap.requestSubscription(subReq);
+            const request: any = {};
+
+            if (Platform.OS === 'ios') {
+                request.apple = { sku: productId };
             } else {
-                // Consumable
-                await RNIap.requestPurchase({ skus: [productId] });
+                // Android
+                if (isSub) {
+                    request.google = {
+                        skus: [productId],
+                        subscriptionOffers: offerToken ? [{ sku: productId, offerToken }] : [],
+                    };
+                } else {
+                    request.google = { skus: [productId] };
+                }
             }
+
+            await RNIap.requestPurchase({ request, type: purchaseType });
             console.log('[IAP] requestPurchase resolved for:', productId);
         } catch (err: any) {
             console.warn('[IAP] requestPurchase error:', err.code, err.message);
