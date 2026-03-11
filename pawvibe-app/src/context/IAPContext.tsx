@@ -305,20 +305,16 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, []);
 
     // === PURCHASE PACKAGE ===
-    // react-native-iap v14: requestSubscription is REMOVED
-    // All purchases go through requestPurchase with type + platform-specific request
     const purchasePackage = async (productId: string, offerToken?: string): Promise<void> => {
         const RNIap = getRNIap();
         setIsPurchasing(true);
         userInitiatedPurchaseRef.current = true;
 
-        console.log('[IAP] Initiating purchase for:', productId);
-
         try {
             const isSub = subSkus.includes(productId);
 
             if (isSub) {
-                // Subscription logic
+                // Subscription: iOS v14 Nitro explicitly requires requestSubscription
                 if (Platform.OS === 'ios') {
                     await RNIap.requestSubscription({ sku: productId });
                 } else {
@@ -328,17 +324,17 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     });
                 }
             } else {
-                // One-time purchase logic
+                // Consumable (Credits): iOS v14 Nitro requires the 'request.apple' object structure
                 if (Platform.OS === 'ios') {
-                    await RNIap.requestPurchase({ sku: productId });
+                    await RNIap.requestPurchase({
+                        request: { apple: { sku: productId } },
+                        type: 'in-app'
+                    });
                 } else {
-                    await RNIap.requestPurchase({ skus: [productId] });
+                    await RNIap.requestPurchase({ skus: [productId], type: 'in-app' });
                 }
             }
-
-            console.log('[IAP] Purchase request SENT for:', productId);
         } catch (err: any) {
-            console.warn('[IAP] Purchase request error:', err.code, err.message);
             setIsPurchasing(false);
             userInitiatedPurchaseRef.current = false;
 
