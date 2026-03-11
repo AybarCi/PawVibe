@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.1.8",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -20,7 +20,7 @@
         "NSCameraUsageDescription": "PawVibe needs access to your camera to take photos of your pets for the AI vibe analysis.",
         "NSPhotoLibraryUsageDescription": "PawVibe needs access to your photo library so you can select existing photos of your pets for the AI vibe analysis."
       },
-      "buildNumber": "2"
+      "buildNumber": "4"
     },
     "android": {
       "adaptiveIcon": {
@@ -38,6 +38,7 @@
       "expo-asset",
       "expo-font",
       "expo-localization",
+      "react-native-iap",
       "./plugins/withDisableExtraTranslationLint"
     ],
     "extra": {

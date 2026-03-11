@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
     const { t } = useTranslation();
-    const { products, subscriptions, purchasePackage, restorePurchases, lastPurchaseSuccess, clearLastPurchaseSuccess, isPurchasing } = useIAPContext();
+    const { products, subscriptions, purchasePackage, restorePurchases, lastPurchaseSuccess, clearLastPurchaseSuccess, isPurchasing, iapDebugInfo } = useIAPContext();
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -362,6 +362,7 @@ export default function ProfileScreen() {
                                     <Text style={{ color: '#aaa', textAlign: 'center', fontSize: 13, paddingHorizontal: 20 }}>
                                         {t('app.products_not_available', 'Products will appear here shortly. Please check your internet connection or try again later.')}
                                     </Text>
+                                    {iapDebugInfo ? <Text style={{ color: '#666', textAlign: 'center', fontSize: 10, marginTop: 10 }}>[DEBUG] {iapDebugInfo}</Text> : null}
                                 </View>
                             ) : (
                                 <View style={styles.purchaseContainer}>
@@ -431,6 +432,7 @@ export default function ProfileScreen() {
                                             <Text style={{ color: '#aaa', textAlign: 'center', fontSize: 13, paddingHorizontal: 10 }}>
                                                 {t('app.products_not_available', 'Products will appear here shortly. Please check your internet connection or try again later.')}
                                             </Text>
+                                            {iapDebugInfo ? <Text style={{ color: '#666', textAlign: 'center', fontSize: 10, marginTop: 10 }}>[DEBUG] {iapDebugInfo}</Text> : null}
                                         </View>
                                     ) : (
                                         <TouchableOpacity style={[styles.gradientContainer, { marginTop: 10 }, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PREMIUM_UNLIMITED)}>
