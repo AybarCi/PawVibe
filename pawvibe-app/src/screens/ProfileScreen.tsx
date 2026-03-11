@@ -338,6 +338,7 @@ export default function ProfileScreen() {
             {confettiTrigger > 0 && (
                 <View style={[StyleSheet.absoluteFill, { zIndex: 999 }]} pointerEvents="none">
                     <ConfettiCannon
+                        key={confettiTrigger}
                         count={200}
                         origin={{ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 }} // Central explosion
                         fallSpeed={3000}
