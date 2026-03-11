@@ -189,18 +189,17 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const wasUserInitiated = userInitiatedPurchaseRef.current;
 
             try {
-                // v14: transactionReceipt might be available via compatibility layer or getReceiptIOS
-                let receipt: string | undefined = (purchase as any).transactionReceipt;
+                // v14 Nitro: purchaseToken contains the verification data (receipt or JWS)
+                // We use this directly to avoid triggering the getReceiptIOS password prompt loop
+                let receipt = purchase.purchaseToken || (purchase as any).transactionReceipt;
 
                 if (!receipt && Platform.OS === 'ios') {
-                    console.log('[IAP] No transactionReceipt on object, fetching app receipt...');
+                    // Try getReceiptDataIOS which is a more stable variant in Nitro for old backends
                     try {
-                        receipt = await RNIap.getReceiptIOS();
+                        receipt = await RNIap.getReceiptDataIOS();
                     } catch (e) {
-                        console.warn('[IAP] Failed to fetch app receipt:', e);
+                        console.warn('[IAP] No receipt found for iOS purchase');
                     }
-                } else if (!receipt && Platform.OS === 'android') {
-                    receipt = purchase.purchaseToken;
                 }
 
                 if (!receipt) {
@@ -367,14 +366,13 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             let restoredCount = 0;
             for (const purchase of purchases) {
                 const pid = purchase.productId;
-                let receipt: string | undefined = (purchase as any).transactionReceipt;
+                // v14 Nitro: purchaseToken contains the verification data
+                let receipt = purchase.purchaseToken || (purchase as any).transactionReceipt;
 
                 if (!receipt && Platform.OS === 'ios') {
                     try {
-                        receipt = await RNIap.getReceiptIOS();
+                        receipt = await RNIap.getReceiptDataIOS();
                     } catch (e) { }
-                } else if (!receipt && Platform.OS === 'android') {
-                    receipt = purchase.purchaseToken;
                 }
 
                 const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
