@@ -26,6 +26,7 @@ export default function ProfileScreen() {
     const lastProcessedRef = useRef<number>(0);
     const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
     const [isRestoring, setIsRestoring] = useState(false);
+    const [confettiTrigger, setConfettiTrigger] = useState(0);
 
     // Profile Modals State
     const [showUsernameModal, setShowUsernameModal] = useState(false);
@@ -104,7 +105,7 @@ export default function ProfileScreen() {
             if (lastProcessedRef.current === lastPurchaseSuccess.timestamp) return;
             lastProcessedRef.current = lastPurchaseSuccess.timestamp;
 
-            confettiRef.current?.start();
+            setConfettiTrigger(prev => prev + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
                 type: 'success',
@@ -333,17 +334,19 @@ export default function ProfileScreen() {
                 )}
             </View>
 
-            {/* Confetti Cannon (Hidden by default, triggered via ref) */}
-            <View style={[StyleSheet.absoluteFill, { zIndex: 999 }]} pointerEvents="none">
-                <ConfettiCannon
-                    count={200}
-                    origin={{ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 }}
-                    autoStart={false}
-                    ref={confettiRef}
-                    colors={['#FF007F', '#6A4C93', '#FFD700', '#00FFFF']}
-                    fadeOut={true}
-                />
-            </View>
+            {/* Confetti Cannon - Powered by state trigger to avoid flickering square */}
+            {confettiTrigger > 0 && (
+                <View style={[StyleSheet.absoluteFill, { zIndex: 999 }]} pointerEvents="none">
+                    <ConfettiCannon
+                        count={200}
+                        origin={{ x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2 }} // Central explosion
+                        fallSpeed={3000}
+                        autoStart={true}
+                        fadeOut={true}
+                        colors={['#FF007F', '#6A4C93', '#FFD700', '#00FFFF']}
+                    />
+                </View>
+            )}
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* <Text style={styles.headerTitle}>{t('app.profile_title')}</Text> */}
@@ -536,7 +539,7 @@ export default function ProfileScreen() {
                         try {
                             const { success, error } = await restorePurchases();
                             if (success) {
-                                confettiRef.current?.start();
+                                setConfettiTrigger(prev => prev + 1);
                                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                                 Toast.show({ type: 'success', text1: t('app.restore_complete'), text2: t('app.restore_success_msg') });
                                 fetchProfileData();

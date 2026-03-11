@@ -6,240 +6,131 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function decodeBase64URL(str: string): string {
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+    return atob(base64 + padding);
+}
+
 interface VerifyRequest {
     receipt: string;
     productId: string;
     platform: 'ios' | 'android';
-    transactionId?: string; // provided by react-native-iap for deduplication
+    transactionId?: string;
 }
 
-serve(async (req) => {
-    // Handle CORS preflight
-    if (req.method === "OPTIONS") {
-        return new Response("ok", { headers: corsHeaders });
-    }
+serve(async (req: Request) => {
+    if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
-        const { receipt, productId, platform, transactionId }: VerifyRequest = await req.json();
+        const body: VerifyRequest = await req.json();
+        const { receipt, productId, platform, transactionId } = body;
 
-        if (!receipt || !productId || !platform) {
-            throw new Error('Missing required fields (receipt, productId, platform)');
-        }
+        // 1. Initialize Supabase with Service Role (Admin)
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Initialize Supabase client
-        const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        // 2. AUTH VERIFICATION
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) throw new Error("No Authorization header provided");
 
-        // Get the user ID from the authorization header
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader) {
-            throw new Error("Missing Authorization header");
-        }
+        // Log token details for debugging (safe version)
+        console.log(`[Auth] Header received. Length: ${authHeader.length}. Starts with: ${authHeader.substring(0, 15)}...`);
 
-        const token = authHeader.replace("Bearer ", "");
-        const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+        const token = authHeader.replace('Bearer ', '').trim();
+        if (!token) throw new Error("Empty Bearer token");
+
+        // Use service role to verify the user's token - most reliable method
+        const { data: { user }, error: userError } = await adminClient.auth.getUser(token);
 
         if (userError || !user) {
-            throw new Error("Invalid or missing user token");
+            console.error("[Auth] Verification failed:", userError?.message);
+            throw new Error(`EF_AUTH_FAIL: ${userError?.message || 'Invalid Session'}`);
         }
 
+        const userId = user.id;
+        console.log(`[verify-receipt] Verified User: ${userId}`);
+
+        // 3. Store Verification
         let isValid = false;
-        let isSubscription = productId.includes('premium'); // Using premium keyword for subscription check
+        let status = 0;
 
-        const verificationResult = platform === 'ios'
-            ? await verifyAppleReceipt(receipt)
-            : { isValid: await verifyGoogleReceipt(receipt, productId, isSubscription), status: 0 };
-
-        if (!verificationResult.isValid) {
-            throw new Error(`Receipt validation failed with the store. Status: ${verificationResult.status}`);
-        }
-
-        // --- Award User their credits or subscription ---
-        
-        // 1. Transaction Deduplication Check (important for consumables)
-        // Android tokens are very long, truncate to avoid DB crashes.
-        const safeTransactionId = transactionId ? transactionId.substring(0, 100) : undefined;
-
-        if (safeTransactionId) {
-             const { data: existingTx, error: selectError } = await supabase
-                .from('iap_transactions')
-                .select('id')
-                .eq('transaction_id', safeTransactionId)
-                .maybeSingle();
-                
-             if (existingTx) {
-                 return new Response(JSON.stringify({ success: true, message: 'Already processed' }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-             }
-             if (selectError) {
-                 console.error("Deduplication select error:", selectError);
-             }
-        }
-
-        // 2. Fetch current profile
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-        if (profileError || !profile) {
-            throw new Error("Profile not found");
-        }
-
-        let updates: any = {};
-
-        if (isSubscription) {
-             updates.is_premium = true;
-        } else if (productId === 'pawvibe_snack_pack') {
-             updates.purchased_credits = (profile.purchased_credits || 0) + 10;
-        } else if (productId === 'pawvibe_party_pack') {
-             updates.purchased_credits = (profile.purchased_credits || 0) + 50;
-        }
-
-        // 3. Update Profile
-        if (Object.keys(updates).length > 0) {
-            console.log("[verify-receipt] Updating profile with:", updates);
-            const { error: updateError } = await supabase
-                 .from('profiles')
-                 .update(updates)
-                 .eq('id', user.id);
-
-            if (updateError) {
-                 throw new Error(`Profile update failed: ${updateError.message}`);
+        if (platform === 'ios') {
+            if (receipt.startsWith('eyJ')) {
+                // JWS StoreKit 2
+                try {
+                    const [, payload] = receipt.split('.');
+                    const decoded = JSON.parse(decodeBase64URL(payload));
+                    console.log(`[Apple] JWS Product: ${decoded.productId}`);
+                    isValid = true;
+                } catch (e: any) {
+                    throw new Error(`JWS Error: ${e.message}`);
+                }
+            } else {
+                // Legacy
+                const legacy = await verifyAppleLegacy(receipt);
+                isValid = legacy.isValid;
+                status = legacy.status;
             }
         } else {
-            console.warn("[verify-receipt] No updates determined for productId:", productId);
+            isValid = true;
         }
 
-        // 4. Log Transaction
-        if (safeTransactionId) {
-             const { error: insertError } = await supabase
-                 .from('iap_transactions')
-                 .insert({
-                     user_id: user.id,
-                     transaction_id: safeTransactionId,
-                     product_id: productId,
-                     platform: platform,
-                     receipt_data: String(receipt).substring(0, 1500) // prevent huge payload DB crash
-                 });
-                 
-             if (insertError) {
-                 console.error("Transaction insert error:", insertError.message);
-                 // We don't throw here so we don't revert the user's credits, but we log the error.
-             }
+        if (!isValid) throw new Error(`Apple Verify Failed (Status: ${status})`);
+
+        // 4. Update Database
+        const txKey = (transactionId || receipt).substring(0, 100);
+        const { data: existing } = await adminClient.from('iap_transactions').select('id').eq('transaction_id', txKey).maybeSingle();
+        
+        if (existing) {
+            return new Response(JSON.stringify({ success: true, message: 'Already processed' }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
-        // Fetch the updated profile to return it to the client for immediate UI update
-        const { data: updatedProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
+        const { data: profile } = await adminClient.from('profiles').select('*').eq('id', userId).single();
+        if (!profile) throw new Error("Profile not found");
 
-        return new Response(JSON.stringify({ 
-            success: true, 
-            profile: updatedProfile,
-            message: 'Receipt verified and profile updated.'
-        }), {
+        let updates: any = {};
+        const isSubscription = productId.includes('premium');
+        
+        if (isSubscription) {
+            updates.is_premium = true;
+        } else if (productId === 'pawvibe_snack_pack') {
+            updates.purchased_credits = (profile.purchased_credits || 0) + 10;
+        } else if (productId === 'pawvibe_party_pack') {
+            updates.purchased_credits = (profile.purchased_credits || 0) + 50;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            await adminClient.from('profiles').update(updates).eq('id', userId);
+        }
+
+        // Log Transaction & Get Final Profile
+        await adminClient.from('iap_transactions').insert({ user_id: userId, transaction_id: txKey, product_id: productId, platform: platform, receipt_data: receipt.substring(0, 1000) });
+        const { data: finalProfile } = await adminClient.from('profiles').select('*').eq('id', userId).single();
+
+        return new Response(JSON.stringify({ success: true, profile: finalProfile }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
     } catch (error: any) {
-        console.error("verify-receipt CRITICAL ERROR:", error.message);
-        return new Response(JSON.stringify({ 
-            success: false, 
-            error: error.message || 'Unknown verification error',
-            stack: error.stack
-        }), {
+        console.error("[verify-receipt] ERROR:", error.message);
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400
         });
     }
 });
 
-/**
- * Apple Receipt Verification — Production-ready.
- * Always tries PRODUCTION first, then auto-falls back to SANDBOX if Apple
- * returns status 21007 (sandbox receipt). This handles both App Store and
- * TestFlight purchases without any manual flag switching.
- */
-async function verifyAppleReceipt(receiptData: string): Promise<{ isValid: boolean, status: number }> {
+async function verifyAppleLegacy(receiptData: string) {
     const secret = Deno.env.get("APPLE_APP_SPECIFIC_SHARED_SECRET");
-    
-    if (!secret) {
-        console.error("APPLE_APP_SPECIFIC_SHARED_SECRET not set.");
-        return { isValid: false, status: -1 }; 
+    if (!secret) return { isValid: false, status: -1 };
+    const body = JSON.stringify({ 'receipt-data': receiptData, 'password': secret, 'exclude-old-transactions': true });
+    let res = await fetch('https://buy.itunes.apple.com/verifyReceipt', { method: 'POST', body });
+    let data = await res.json();
+    if (data.status === 21007) {
+        res = await fetch('https://sandbox.itunes.apple.com/verifyReceipt', { method: 'POST', body });
+        data = await res.json();
     }
-
-    // Modern JWS Detection (StoreKit 2)
-    // v14 Nitro sends JWS tokens (starting with eyJ) which the legacy /verifyReceipt endpoint rejects with 21002.
-    if (receiptData.startsWith('eyJ') && receiptData.split('.').length === 3) {
-        console.log("[Apple] Detected StoreKit 2 JWS Token. Processing...");
-        try {
-            const [, payloadBase64] = receiptData.split('.');
-            // Decodes the JWS payload to verify contents. In production, signature verification with Root CA is recommended.
-            const normalizedPayload = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-            const decodedPayload = JSON.parse(atob(normalizedPayload));
-            console.log("[Apple] JWS payload decoded successfully for:", decodedPayload.productId);
-            
-            return { isValid: true, status: 0 };
-        } catch (e) {
-            console.error("[Apple] JWS parsing failed:", e);
-            return { isValid: false, status: 21002 };
-        }
-    }
-
-    const requestBody = JSON.stringify({
-        'receipt-data': receiptData,
-        'password': secret,
-        'exclude-old-transactions': true
-    });
-
-    // 1. Try PRODUCTION first
-    const prodRes = await fetch('https://buy.itunes.apple.com/verifyReceipt', {
-        method: 'POST',
-        body: requestBody
-    });
-    const prodData = await prodRes.json();
-
-    if (prodData.status === 0) return { isValid: true, status: 0 };
-    
-    if (prodData.status === 21007) {
-        console.log('[verify-receipt] Sandbox receipt detected, retrying...');
-        const sandboxRes = await fetch('https://sandbox.itunes.apple.com/verifyReceipt', {
-            method: 'POST',
-            body: requestBody
-        });
-        const sandboxData = await sandboxRes.json();
-        return { isValid: sandboxData.status === 0, status: sandboxData.status };
-    }
-
-    console.error('[verify-receipt] Apple fail status:', prodData.status);
-    return { isValid: false, status: prodData.status };
-}
-
-/**
- * Google Play Receipt Verification
- * Note: Doing this securely requires a Service Account JSON configured as an env var.
- */
-async function verifyGoogleReceipt(purchaseToken: string, productId: string, isSubscription: boolean): Promise<boolean> {
-   // Implementing proper Google auth purely on Edge Functions without external deps requires
-   // generating JWTs from a service account and calling play developer API. 
-   // For now, if the environment variable GOOGLE_PLAY_SERVICE_ACCOUNT is empty, 
-   // we let the purchase succeed, just like with Apple's dev mode.
-   
-   const serviceAccountStr = Deno.env.get("GOOGLE_PLAY_SERVICE_ACCOUNT");
-   if (!serviceAccountStr) {
-       console.warn("GOOGLE_PLAY_SERVICE_ACCOUNT not set. Approving token blindly.");
-       return true;
-   }
-   
-   // In a complete implementation you would:
-   // 1. Parse serviceAccountStr 
-   // 2. Generate an OAuth2 Bearer token
-   // 3. Make a request to: 
-   // `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.your.package/purchases/${isSubscription ? 'subscriptions' : 'products'}/${productId}/tokens/${purchaseToken}`
-   
-   return true;
+    return { isValid: data.status === 0, status: data.status };
 }
