@@ -65,9 +65,9 @@ export default function ProfileScreen() {
         }, [session])
     );
 
-    const fetchProfileData = async () => {
+    const fetchProfileData = async (silent = false) => {
         if (!session?.user) return;
-        setLoading(true);
+        if (!silent) setLoading(true);
 
         try {
             // Fetch profile credits
@@ -119,8 +119,8 @@ export default function ProfileScreen() {
                 setProfile(lastPurchaseSuccess.profile);
             }
 
-            // Backup refresh to ensure everything is in sync
-            fetchProfileData();
+            // Backup refresh to ensure everything is in sync (silent to avoid UI flicker)
+            fetchProfileData(true);
 
             // Delay clear so confetti animation has time to start
             setTimeout(() => clearLastPurchaseSuccess(), 500);

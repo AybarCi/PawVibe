@@ -91,7 +91,7 @@ serve(async (req: Request) => {
         if (!profile) throw new Error("Profile not found");
 
         let updates: any = {};
-        const isSubscription = productId.includes('premium');
+        const isSubscription = productId.includes('premium') || productId === 'pawvibe_premium_monthly';
         
         if (isSubscription) {
             updates.is_premium = true;
