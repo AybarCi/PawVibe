@@ -189,39 +189,41 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const wasUserInitiated = userInitiatedPurchaseRef.current;
 
             try {
-                // v14: transactionReceipt is REMOVED on iOS Purchase object
-                // We must fetch the base64 app receipt explicitly for the backend verify-receipt function
-                // Android uses purchase.purchaseToken
-                let receipt: string | undefined;
-                try {
-                    receipt = Platform.OS === 'ios'
-                        ? await RNIap.getReceiptIOS()
-                        : purchase.purchaseToken;
-                } catch (e) {
-                    console.warn('[IAP] Failed to get receipt for verification:', e);
+                // v14: transactionReceipt might be available via compatibility layer or getReceiptIOS
+                let receipt: string | undefined = (purchase as any).transactionReceipt;
+
+                if (!receipt && Platform.OS === 'ios') {
+                    console.log('[IAP] No transactionReceipt on object, fetching app receipt...');
+                    try {
+                        receipt = await RNIap.getReceiptIOS();
+                    } catch (e) {
+                        console.warn('[IAP] Failed to fetch app receipt:', e);
+                    }
+                } else if (!receipt && Platform.OS === 'android') {
+                    receipt = purchase.purchaseToken;
                 }
+
                 if (!receipt) {
-                    console.warn('[IAP] No receipt/token found, skipping:', pid);
+                    console.warn('[IAP] No receipt found for product:', pid);
                     return;
                 }
 
-                // v14: use purchase.id as primary key (works on both platforms)
+                // Dedup ID
                 const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
                 if (!txId) return;
 
-                // CLIENT-SIDE DEDUP: Already processed this transaction before?
+                // CLIENT-SIDE DEDUP
                 if (processedTransactions.current.has(txId)) {
-                    console.log('[IAP] Transaction already processed (client), finishing silently:', txId);
-                    // Still finish the transaction so iOS stops replaying it
+                    console.log('[IAP] Already processed tx (client):', txId);
                     const isConsumable = !subSkus.includes(pid);
-                    try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { /* ignore */ }
+                    try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { }
                     return;
                 }
 
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) throw new Error("User not authenticated.");
 
-                // SERVER-SIDE verification — this updates the database
+                // SERVER-SIDE verification
                 const { error, data } = await supabase.functions.invoke('verify-receipt', {
                     body: {
                         receipt,
@@ -232,28 +234,27 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 });
 
                 if (error || !data?.success) {
-                    // Log detailed error info for debugging
                     let errorDetail = 'Unknown error';
                     if (error) {
-                        errorDetail = error?.message || error?.context?.statusText || JSON.stringify(error);
+                        try {
+                            const errorBody = await error.context.json();
+                            errorDetail = errorBody.error || errorBody.message || error.message;
+                        } catch (e) {
+                            errorDetail = error.message;
+                        }
                     } else if (data?.error) {
                         errorDetail = data.error;
                     }
-                    console.error('[IAP] Receipt verification failed:', errorDetail);
+                    console.error('[IAP] Backend Verification Failed:', errorDetail);
 
                     if (wasUserInitiated) {
-                        Alert.alert("Satın Alma Hatası", `Doğrulama aşamasında hata oluştu: ${errorDetail}`);
+                        Alert.alert("Satın Alma Hatası", `Doğrulama hatası: ${errorDetail}`);
                     }
 
-                    // For stale (non-user-initiated) transactions that fail verification,
-                    // finish them anyway so iOS stops replaying them. The credits weren't
-                    // granted, but leaving them unfinished causes endless replay loops.
                     if (!wasUserInitiated) {
                         const isConsumable = !subSkus.includes(pid);
-                        try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { /* ignore */ }
-                        console.log('[IAP] Finished stale failed tx to stop replay:', txId);
+                        try { await RNIap.finishTransaction({ purchase, isConsumable }); } catch (e) { }
                     }
-                    // For user-initiated purchases, don't finish — let the user retry
                 } else {
                     // Verification OK — finish transaction so Apple/Google knows we delivered
                     const isConsumable = !subSkus.includes(pid);
@@ -365,21 +366,20 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
             let restoredCount = 0;
             for (const purchase of purchases) {
-                // v14: transactionReceipt is REMOVED on iOS Purchase object
-                // We must fetch the base64 app receipt explicitly for the backend verify-receipt function
-                // Android uses purchase.purchaseToken
-                let receipt: string | undefined;
-                try {
-                    receipt = Platform.OS === 'ios'
-                        ? await RNIap.getReceiptIOS()
-                        : purchase.purchaseToken;
-                } catch (e) {
-                    console.warn('[IAP] Failed to get receipt for verification:', e);
-                }
-                const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
                 const pid = purchase.productId;
+                let receipt: string | undefined = (purchase as any).transactionReceipt;
 
-                if (receipt) {
+                if (!receipt && Platform.OS === 'ios') {
+                    try {
+                        receipt = await RNIap.getReceiptIOS();
+                    } catch (e) { }
+                } else if (!receipt && Platform.OS === 'android') {
+                    receipt = purchase.purchaseToken;
+                }
+
+                const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
+
+                if (receipt && txId) {
                     const { error, data } = await supabase.functions.invoke('verify-receipt', {
                         body: {
                             receipt,
@@ -388,7 +388,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             transactionId: txId
                         }
                     });
-                    // Only finish transaction if verify succeeded — matches listener pattern
+
                     if (!error && data?.success) {
                         await RNIap.finishTransaction({
                             purchase,
@@ -397,7 +397,18 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid });
                         restoredCount++;
                     } else {
-                        console.warn('[IAP] Restore verify failed for:', pid, error || data?.error);
+                        let errorDetail = 'Unknown error';
+                        if (error) {
+                            try {
+                                const errorBody = await error.context.json();
+                                errorDetail = errorBody.error || errorBody.message || error.message;
+                            } catch (e) {
+                                errorDetail = error.message;
+                            }
+                        } else {
+                            errorDetail = data?.error || 'Validation failed';
+                        }
+                        console.warn('[IAP] Restore verify failed:', pid, errorDetail);
                     }
                 }
             }

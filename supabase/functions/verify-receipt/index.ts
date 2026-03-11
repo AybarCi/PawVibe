@@ -47,16 +47,12 @@ serve(async (req) => {
         let isValid = false;
         let isSubscription = productId.includes('premium'); // Using premium keyword for subscription check
 
-        if (platform === 'ios') {
-            isValid = await verifyAppleReceipt(receipt);
-        } else if (platform === 'android') {
-            isValid = await verifyGoogleReceipt(receipt, productId, isSubscription);
-        } else {
-            throw new Error('Unsupported platform');
-        }
+        const verificationResult = platform === 'ios'
+            ? await verifyAppleReceipt(receipt)
+            : { isValid: await verifyGoogleReceipt(receipt, productId, isSubscription), status: 0 };
 
-        if (!isValid) {
-            throw new Error('Receipt validation failed with the store');
+        if (!verificationResult.isValid) {
+            throw new Error(`Receipt validation failed with the store. Status: ${verificationResult.status}`);
         }
 
         // --- Award User their credits or subscription ---
@@ -151,13 +147,12 @@ serve(async (req) => {
  * returns status 21007 (sandbox receipt). This handles both App Store and
  * TestFlight purchases without any manual flag switching.
  */
-async function verifyAppleReceipt(receiptData: string): Promise<boolean> {
+async function verifyAppleReceipt(receiptData: string): Promise<{ isValid: boolean, status: number }> {
     const secret = Deno.env.get("APPLE_APP_SPECIFIC_SHARED_SECRET");
     
-    // SECURITY: If no secret is configured, REJECT the receipt.
     if (!secret) {
-        console.error("APPLE_APP_SPECIFIC_SHARED_SECRET not set. Cannot verify receipt — REJECTING.");
-        return false; 
+        console.error("APPLE_APP_SPECIFIC_SHARED_SECRET not set.");
+        return { isValid: false, status: -1 }; 
     }
 
     const requestBody = JSON.stringify({
@@ -173,22 +168,20 @@ async function verifyAppleReceipt(receiptData: string): Promise<boolean> {
     });
     const prodData = await prodRes.json();
 
-    // status 0 = valid receipt
-    if (prodData.status === 0) return true;
+    if (prodData.status === 0) return { isValid: true, status: 0 };
     
-    // status 21007 = sandbox receipt sent to production → retry with sandbox
     if (prodData.status === 21007) {
-        console.log('[verify-receipt] Sandbox receipt detected, retrying with sandbox endpoint');
+        console.log('[verify-receipt] Sandbox receipt detected, retrying...');
         const sandboxRes = await fetch('https://sandbox.itunes.apple.com/verifyReceipt', {
             method: 'POST',
             body: requestBody
         });
         const sandboxData = await sandboxRes.json();
-        return sandboxData.status === 0;
+        return { isValid: sandboxData.status === 0, status: sandboxData.status };
     }
 
-    console.error('[verify-receipt] Apple returned status:', prodData.status);
-    return false;
+    console.error('[verify-receipt] Apple fail status:', prodData.status);
+    return { isValid: false, status: prodData.status };
 }
 
 /**
