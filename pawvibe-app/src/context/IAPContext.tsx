@@ -9,10 +9,12 @@
  * - finishTransaction must be called after receipt verification
  */
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
+import Toast from 'react-native-toast-message';
 import type { Product, ProductSubscription, PurchaseError, Purchase } from 'react-native-iap';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
+import { logMetaPurchase, logMetaEvent } from '../../lib/metaTracking';
 import { IAP_PRODUCTS, itemSkus, subSkus } from '../../lib/iap';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
@@ -85,6 +87,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const processedTransactions = useRef(new Set<string>());
     // Track whether user actively initiated a purchase (vs. replayed transaction)
     const userInitiatedPurchaseRef = useRef(false);
+    const productsRef = useRef<any[]>([]);
 
     // Load previously processed transaction IDs from storage on mount
     useEffect(() => {
@@ -154,6 +157,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
                 setProducts(normalizedConsumables as Product[]);
                 setSubscriptions(normalizedSubs as ProductSubscription[]);
+                productsRef.current = [...normalizedConsumables, ...normalizedSubs];
                 setIsConfigured(true);
                 console.log('[IAP] Configured — Products:', normalizedConsumables.length, 'Subs:', normalizedSubs.length);
 
@@ -238,7 +242,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     console.error('[IAP] Backend Verification Failed:', errorDetail);
 
                     if (wasUserInitiated) {
-                        Alert.alert("Satın Alma Hatası", `Doğrulama hatası: ${errorDetail}`);
+                        Toast.show({ type: 'error', text1: 'Satın Alma Hatası', text2: `Doğrulama hatası: ${errorDetail}` });
                     }
 
                     if (!wasUserInitiated) {
@@ -251,20 +255,37 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     await RNIap.finishTransaction({ purchase, isConsumable });
                     console.log('[IAP] Transaction finished. ProductId:', pid);
 
+                    // Meta Event Logging
+                    try {
+                        const productInfo = productsRef.current.find(p => p.productId === pid);
+                        const priceStr = productInfo?.price || '0';
+                        const currency = productInfo?.currency || 'USD';
+                        const price = typeof priceStr === 'string' ? parseFloat(priceStr.replace(/[^0-9.]/g, '')) : Number(priceStr);
+                        if (price > 0) {
+                            logMetaPurchase(price, currency);
+                        } else {
+                            logMetaEvent('PurchaseSuccess_NoPrice', { productId: pid });
+                        }
+                    } catch (e) {
+                        console.warn('[IAP] Meta logging error:', e);
+                    }
+
                     // Persist to prevent future replay processing
                     await persistProcessedTx(txId);
 
-                    // Show toast/confetti for successful, non-duplicate purchases.
-                    // Server returns 'Already processed' for duplicate transactions.
+                    // Show toast/confetti for successful purchases.
+                    // If it was already processed, only show feedback if the user explicitly clicked buy/restore.
                     const isAlreadyProcessed = data?.message === 'Already processed';
-                    if (!isAlreadyProcessed) {
+                    if (!isAlreadyProcessed || wasUserInitiated) {
+                         // Even if already processed, if the user explicitly clicked "Buy" and Apple just returned the old receipt,
+                         // we must update the UI to show they have Premium now! (data.profile will contain the updated profile from verify-receipt)
                         setLastPurchaseSuccess({
                             timestamp: Date.now(),
                             productId: pid,
-                            profile: data?.profile // Include the updated profile from backend
+                            profile: data?.profile 
                         });
                     } else {
-                        console.log('[IAP] Already-processed tx — no UI feedback:', txId);
+                        console.log('[IAP] Already-processed tx from background queue — no UI feedback:', txId);
                     }
                 }
             } catch (e) {
@@ -311,27 +332,36 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         userInitiatedPurchaseRef.current = true;
 
         try {
+            // v14 Nitro: requestPurchase requires { request: { apple/google: {...} }, type: 'subs' | 'in-app' }
+            // The 'request' wrapper and 'type' discriminator are REQUIRED in v14.
             const isSub = subSkus.includes(productId);
+            const purchaseType = isSub ? 'subs' : 'in-app';
 
-            if (isSub) {
-                // Subscription: iOS v14 Nitro explicitly requires requestSubscription
-                if (Platform.OS === 'ios') {
-                    await RNIap.requestSubscription({ sku: productId });
-                } else {
-                    await RNIap.requestSubscription({
-                        sku: productId,
-                        ...(offerToken ? { subscriptionOffers: [{ sku: productId, offerToken }] } : {})
-                    });
-                }
+            if (Platform.OS === 'ios') {
+                await RNIap.requestPurchase({
+                    request: {
+                        apple: { sku: productId },
+                    },
+                    type: purchaseType,
+                });
             } else {
-                // Consumable (Credits): iOS v14 Nitro requires the 'request.apple' object structure
-                if (Platform.OS === 'ios') {
+                if (isSub) {
                     await RNIap.requestPurchase({
-                        request: { apple: { sku: productId } },
-                        type: 'in-app'
+                        request: {
+                            google: {
+                                skus: [productId],
+                                ...(offerToken ? { subscriptionOffers: [{ sku: productId, offerToken }] } : {}),
+                            },
+                        },
+                        type: purchaseType,
                     });
                 } else {
-                    await RNIap.requestPurchase({ skus: [productId], type: 'in-app' });
+                    await RNIap.requestPurchase({
+                        request: {
+                            google: { skus: [productId] },
+                        },
+                        type: purchaseType,
+                    });
                 }
             }
         } catch (err: any) {
@@ -380,7 +410,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             purchase,
                             isConsumable: !subSkus.includes(pid)
                         });
-                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid });
+                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid, profile: data?.profile });
                         restoredCount++;
                     } else {
                         let errorDetail = 'Unknown error';

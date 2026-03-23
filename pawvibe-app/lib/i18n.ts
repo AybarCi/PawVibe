@@ -76,6 +76,7 @@ const resources = {
         "restore_failed": "Could not restore purchases. Please try again.",
         "success": "Success!",
         "purchase_success_msg": "Your purchase was successful!",
+        "purchase_failed": "Purchase failed.",
         "profile_fetch_error": "Failed to fetch profile data.",
         "product_not_found": "Product not found. Please try again later.",
         "privacy_policy": "Privacy Policy",
@@ -101,7 +102,9 @@ const resources = {
         "login_title": "Welcome Back! 👋",
         "login_desc": "If you previously secured an account, log in to restore your credits and premium status.",
         "login_btn": "Log In",
-        "login_success": "Logged in successfully! Welcome back."
+        "login_success": "Logged in successfully! Welcome back.",
+        "account_exists_title": "Account Already Exists",
+        "account_exists_msg": "This email is already linked to an account. Would you like to log in to load your credits and premium status?"
       }
     }
   },
@@ -179,6 +182,7 @@ const resources = {
         "restore_failed": "Satın alımlar geri yüklenemedi. Lütfen tekrar deneyin.",
         "success": "Başarılı!",
         "purchase_success_msg": "Satın alımınız başarıyla tamamlandı!",
+        "purchase_failed": "Satın alma işlemi başarısız.",
         "profile_fetch_error": "Profil verileri alınamadı.",
         "product_not_found": "Ürün bulunamadı. Lütfen daha sonra tekrar deneyin.",
         "privacy_policy": "Gizlilik Politikası",
@@ -204,7 +208,9 @@ const resources = {
         "login_title": "Tekrar Hoş Geldin! 👋",
         "login_desc": "Eğer daha önce bir hesabı e-postan ile güvenceye aldıysan, kredi ve aboneliklerini yüklemek için giriş yap.",
         "login_btn": "Giriş Yap",
-        "login_success": "Başarıyla giriş yapıldı! Tekrar hoş geldin."
+        "login_success": "Başarıyla giriş yapıldı! Tekrar hoş geldin.",
+        "account_exists_title": "Hesap Zaten Mevcut",
+        "account_exists_msg": "Bu e-posta zaten bir hesaba bağlı. Kredilerini ve premium durumunu yüklemek için giriş yapmak ister misin?"
       }
     }
   },
@@ -276,6 +282,7 @@ const resources = {
         "restore_failed": "No se pudieron restaurar las compras. Inténtalo de nuevo.",
         "success": "¡Éxito!",
         "purchase_success_msg": "¡Tu compra fue exitosa!",
+        "purchase_failed": "La compra falló.",
         "profile_fetch_error": "No se pudieron obtener los datos del perfil.",
         "product_not_found": "Producto no encontrado. Inténtalo más tarde.",
         "privacy_policy": "Política de Privacidad",
@@ -301,7 +308,9 @@ const resources = {
         "login_title": "¡Bienvenido de nuevo! 👋",
         "login_desc": "Si ya aseguraste tu cuenta, inicia sesión para restaurar tus créditos y estado premium.",
         "login_btn": "Iniciar Sesión",
-        "login_success": "¡Inicio de sesión exitoso! Bienvenido de nuevo."
+        "login_success": "¡Inicio de sesión exitoso! Bienvenido de nuevo.",
+        "account_exists_title": "La cuenta ya existe",
+        "account_exists_msg": "Este correo ya está vinculado a una cuenta. ¿Deseas iniciar sesión para cargar tus créditos y estado premium?"
       }
     }
   },
@@ -373,6 +382,7 @@ const resources = {
         "restore_failed": "Не удалось восстановить покупки. Попробуйте снова.",
         "success": "Успешно!",
         "purchase_success_msg": "Ваша покупка прошла успешно!",
+        "purchase_failed": "Покупка не удалась.",
         "profile_fetch_error": "Не удалось загрузить данные профиля.",
         "product_not_found": "Продукт не найден. Попробуйте позже.",
         "privacy_policy": "Политика конфиденциальности",
@@ -398,7 +408,9 @@ const resources = {
         "login_title": "С возвращением! 👋",
         "login_desc": "Если вы уже привязали аккаунт, войдите, чтобы восстановить кредиты и премиум.",
         "login_btn": "Войти",
-        "login_success": "Успешный вход! С возвращением."
+        "login_success": "Успешный вход! С возвращением.",
+        "account_exists_title": "Аккаунт уже существует",
+        "account_exists_msg": "Этот email уже привязан к аккаунту. Хотите войти, чтобы загрузить кредиты и премиум-статус?"
       }
     }
   },
@@ -470,6 +482,7 @@ const resources = {
         "restore_failed": "Impossible de restaurer les achats. Veuillez réessayer.",
         "success": "Succès !",
         "purchase_success_msg": "Votre achat a été effectué avec succès !",
+        "purchase_failed": "L'achat a échoué.",
         "profile_fetch_error": "Impossible de récupérer les données du profil.",
         "product_not_found": "Produit introuvable. Veuillez réessayer plus tard.",
         "privacy_policy": "Politique de confidentialité",
@@ -495,7 +508,9 @@ const resources = {
         "login_title": "Bon retour ! 👋",
         "login_desc": "Si vous avez déjà sécurisé un compte, connectez-vous pour restaurer vos crédits et votre statut premium.",
         "login_btn": "Connexion",
-        "login_success": "Connecté avec succès ! Bon retour."
+        "login_success": "Connecté avec succès ! Bon retour.",
+        "account_exists_title": "Le compte existe déjà",
+        "account_exists_msg": "Cet email est déjà lié à un compte. Voulez-vous vous connecter pour charger vos crédits et votre statut premium ?"
       }
     }
   },
@@ -567,6 +582,7 @@ const resources = {
         "restore_failed": "Não foi possível restaurar as compras. Tente novamente.",
         "success": "Sucesso!",
         "purchase_success_msg": "Sua compra foi realizada com sucesso!",
+        "purchase_failed": "A compra falhou.",
         "profile_fetch_error": "Não foi possível carregar os dados do perfil.",
         "product_not_found": "Produto não encontrado. Tente novamente mais tarde.",
         "privacy_policy": "Política de Privacidade",
@@ -592,7 +608,9 @@ const resources = {
         "login_title": "Bem-vindo de volta! 👋",
         "login_desc": "Se você já protegeu uma conta, faça login para restaurar seus créditos e status premium.",
         "login_btn": "Entrar",
-        "login_success": "Login efetuado com sucesso! Bem-vindo de volta."
+        "login_success": "Login efetuado com sucesso! Bem-vindo de volta.",
+        "account_exists_title": "Conta já existe",
+        "account_exists_msg": "Este email já está vinculado a uma conta. Deseja fazer login para carregar seus créditos e status premium?"
       }
     }
   },
@@ -664,6 +682,7 @@ const resources = {
         "restore_failed": "Käufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut.",
         "success": "Erfolgreich!",
         "purchase_success_msg": "Dein Kauf war erfolgreich!",
+        "purchase_failed": "Kauf fehlgeschlagen.",
         "profile_fetch_error": "Profildaten konnten nicht geladen werden.",
         "product_not_found": "Produkt nicht gefunden. Bitte versuche es später erneut.",
         "privacy_policy": "Datenschutzrichtlinie",
@@ -689,7 +708,9 @@ const resources = {
         "login_title": "Willkommen zurück! 👋",
         "login_desc": "Wenn du bereits ein Konto gesichert hast, melde dich an, um deine Credits und deinen Premium-Status wiederherzustellen.",
         "login_btn": "Einloggen",
-        "login_success": "Erfolgreich eingeloggt! Willkommen zurück."
+        "login_success": "Erfolgreich eingeloggt! Willkommen zurück.",
+        "account_exists_title": "Konto existiert bereits",
+        "account_exists_msg": "Diese E-Mail ist bereits mit einem Konto verknüpft. Möchtest du dich einloggen, um deine Credits und deinen Premium-Status zu laden?"
       }
     }
   }

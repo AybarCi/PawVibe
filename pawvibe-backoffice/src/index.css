@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF007F;
+  --color-secondary: #6A4C93;
+  --color-accent: #FFD700;
+  --color-background: #0A001A;
+  --color-card: #15002C;
+  --color-border: #2D005A;
+}
+
+:root {
+  background-color: var(--color-background);
+  color: white;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Tremor Chart Visibility Fixes */
+.tremor-chart-override .recharts-cartesian-axis-tick-value {
+  fill: #9ca3af !important;
+  /* text-gray-400 */
+  font-size: 10px;
+}
+
+.tremor-chart-override .recharts-cartesian-grid-horizontal line,
+.tremor-chart-override .recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.05) !important;
+}
+
+.tremor-chart-override .recharts-tooltip-cursor {
+  stroke: rgba(255, 0, 127, 0.2) !important;
+}

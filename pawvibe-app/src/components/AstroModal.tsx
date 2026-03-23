@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import i18n from '../../lib/i18n';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { BlurView } from 'expo-blur';
+import Toast from 'react-native-toast-message';
 
 interface AstroModalProps {
     visible: boolean;
@@ -30,12 +31,12 @@ export default function AstroModal({ visible, onClose, scanId, isPremiumUser }: 
                 if (isAvailable) {
                     await Sharing.shareAsync(uri);
                 } else {
-                    Alert.alert(t('app.error', 'Error'), 'Sharing is not supported on this device.');
+                    Toast.show({ type: 'error', text1: t('app.error', 'Error'), text2: 'Sharing is not supported on this device.' });
                 }
             }
         } catch (error) {
             console.error(error);
-            Alert.alert(t('app.error', 'Error'), 'Could not share image.');
+            Toast.show({ type: 'error', text1: t('app.error', 'Error'), text2: 'Could not share image.' });
         }
     };
 

@@ -37,6 +37,7 @@ export default function ProfileScreen() {
     const [password, setPassword] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
     const [isLinkedLocally, setIsLinkedLocally] = useState(false);
+    const [showAccountExistsModal, setShowAccountExistsModal] = useState(false);
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -66,7 +67,9 @@ export default function ProfileScreen() {
     );
 
     const fetchProfileData = async (silent = false) => {
-        if (!session?.user) return;
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!currentSession?.user) return;
+        
         if (!silent) setLoading(true);
 
         try {
@@ -74,7 +77,7 @@ export default function ProfileScreen() {
             const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', session.user.id)
+                .eq('id', currentSession.user.id)
                 .maybeSingle();
 
             if (profileError) {
@@ -155,10 +158,16 @@ export default function ProfileScreen() {
             // Success is NOT handled here — it comes through lastPurchaseSuccess listener.
             await purchasePackage(productId, offerToken);
         } catch (err: any) {
+            let errorText = t('app.purchase_failed', 'Purchase failed.');
+            if (err && err.message && err.message !== 'undefined') {
+                errorText = err.message;
+            } else if (typeof err === 'string' && err !== 'undefined') {
+                errorText = err;
+            }
             Toast.show({
                 type: 'error',
                 text1: t('app.error', 'Error'),
-                text2: err.message || 'Purchase failed',
+                text2: errorText,
             });
         }
     };
@@ -244,21 +253,13 @@ export default function ProfileScreen() {
 
         } catch (e: any) {
             const errorMsg = e.message || '';
-            // If email is already taken or user already has email, treat as already linked
+            // If email is already registered under another account,
+            // ask the user if they want to LOG IN to that account instead.
             if (errorMsg.includes('already registered') || errorMsg.includes('already been registered') ||
                 errorMsg.includes('email address') || errorMsg.includes('already') || errorMsg.includes('duplicate')) {
-                // Mark as linked and hide the card + modal immediately
-                await supabase
-                    .from('profiles')
-                    .update({ is_account_linked: true })
-                    .eq('id', session?.user?.id);
-                setIsLinkedLocally(true);
                 setShowLinkModal(false);
-                fetchProfileData();
-                // Show toast after modal closes so it's visible
-                setTimeout(() => {
-                    Toast.show({ type: 'success', text1: t('app.success'), text2: t('app.already_linked', 'Your account is already secured! 🎉') });
-                }, 500);
+                // Show confirmation modal to switch to existing account
+                setShowAccountExistsModal(true);
             } else {
                 Toast.show({ type: 'error', text1: t('app.error'), text2: errorMsg || 'Error linking account' });
             }
@@ -279,9 +280,8 @@ export default function ProfileScreen() {
 
         setIsUpdating(true);
         try {
-            // Note: In Supabase, signInWithPassword naturally replaces the anonymous session
-            // The old anonymous account remains in the DB but detaches from this device.
-            const { error } = await supabase.auth.signInWithPassword({
+            // signInWithPassword replaces the anonymous session with the real account
+            const { data: signInData, error } = await supabase.auth.signInWithPassword({
                 email: email.trim(),
                 password: password,
             });
@@ -290,9 +290,23 @@ export default function ProfileScreen() {
 
             Toast.show({ type: 'success', text1: t('app.success'), text2: t('app.login_success', 'Logged in successfully! Welcome back.') });
             setShowLoginModal(false);
+            setIsLinkedLocally(true);
 
-            // Re-fetch profile data to load old credits
-            fetchProfileData();
+            // Directly fetch profile using the user ID from signIn response
+            // This is MORE RELIABLE than fetchProfileData() which uses getSession()
+            // because getSession() may briefly return null during the session swap.
+            if (signInData?.user) {
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', signInData.user.id)
+                    .maybeSingle();
+
+                if (profileData) {
+                    setProfile(profileData);
+                    console.log('[Profile] Loaded after login — Premium:', profileData.is_premium, 'Credits:', profileData.purchased_credits);
+                }
+            }
         } catch (e: any) {
             Toast.show({ type: 'error', text1: t('app.error'), text2: e.message || 'Error logging in' });
         } finally {
@@ -684,6 +698,67 @@ export default function ProfileScreen() {
                         </View>
                     </View>
                 </KeyboardAvoidingView>
+            </Modal>
+
+            {/* Account Already Exists Confirmation Modal */}
+            <Modal visible={showAccountExistsModal} transparent animationType="fade">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Ionicons name="alert-circle-outline" size={48} color="#FFD700" style={{ alignSelf: 'center', marginBottom: 15 }} />
+                        <Text style={styles.modalTitle}>{t('app.account_exists_title', 'Account Already Exists')}</Text>
+                        <Text style={[styles.modalMessage, { fontSize: 14, marginBottom: 20 }]}>
+                            {t('app.account_exists_msg', 'This email is already linked to an account. Would you like to log in to load your credits and premium status?')}
+                        </Text>
+                        <View style={styles.modalBtnRow}>
+                            <TouchableOpacity style={[styles.modalActionBtn, { backgroundColor: '#333' }]} onPress={() => setShowAccountExistsModal(false)} disabled={isUpdating}>
+                                <Text style={styles.btnText}>{t('app.cancel_btn', 'Cancel')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.modalActionBtn}
+                                disabled={isUpdating}
+                                onPress={async () => {
+                                    setIsUpdating(true);
+                                    try {
+                                        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                                            email: email.trim(),
+                                            password: password,
+                                        });
+                                        if (signInError) throw signInError;
+
+                                        setIsLinkedLocally(true);
+
+                                        if (signInData?.user) {
+                                            const { data: profileData } = await supabase
+                                                .from('profiles')
+                                                .select('*')
+                                                .eq('id', signInData.user.id)
+                                                .maybeSingle();
+
+                                            if (profileData) {
+                                                setProfile(profileData);
+                                                console.log('[Profile] Loaded after link→login — Premium:', profileData.is_premium, 'Credits:', profileData.purchased_credits);
+                                            }
+                                        }
+
+                                        setShowAccountExistsModal(false);
+                                        Toast.show({ type: 'success', text1: t('app.success'), text2: t('app.login_success', 'Logged in successfully! Welcome back.') });
+                                    } catch (loginErr: any) {
+                                        Toast.show({ type: 'error', text1: t('app.error'), text2: loginErr.message || 'Login failed' });
+                                    } finally {
+                                        setIsUpdating(false);
+                                    }
+                                }}
+                            >
+                                {isUpdating ? <ActivityIndicator color="#fff" /> : (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                        <Ionicons name="log-in-outline" size={18} color="#fff" />
+                                        <Text style={styles.btnText}>{t('app.login_btn', 'Log In')}</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
             </Modal>
         </SafeAreaView>
     );

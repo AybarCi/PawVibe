@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import * as Haptics from 'expo-haptics';
 import Toast, { BaseToast, ErrorToast, ToastConfigParams } from 'react-native-toast-message';
+import { initMetaTracking } from './lib/metaTracking';
 
 // Import screens
 import CameraScreen from './src/screens/CameraScreen';
@@ -122,6 +123,9 @@ export default function App() {
                 console.warn('[App] Startup error:', e);
             } finally {
                 await SplashScreen.hideAsync();
+                
+                // Initialize Meta Tracking after splash screen
+                initMetaTracking();
             }
         }
         prepare();

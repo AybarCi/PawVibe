@@ -83,15 +83,21 @@ serve(async (req: Request) => {
         const txKey = (transactionId || receipt).substring(0, 100);
         const { data: existing } = await adminClient.from('iap_transactions').select('id').eq('transaction_id', txKey).maybeSingle();
         
+        const isSubscription = productId.includes('premium') || productId === 'pawvibe_premium_monthly';
+        
         if (existing) {
-            return new Response(JSON.stringify({ success: true, message: 'Already processed' }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            // If it's a subscription, ensure this user gets premium (e.g. restoring on a new device)
+            if (isSubscription) {
+                await adminClient.from('profiles').update({ is_premium: true }).eq('id', userId);
+            }
+            const { data: finalProfile } = await adminClient.from('profiles').select('*').eq('id', userId).single();
+            return new Response(JSON.stringify({ success: true, message: 'Already processed', profile: finalProfile }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         const { data: profile } = await adminClient.from('profiles').select('*').eq('id', userId).single();
         if (!profile) throw new Error("Profile not found");
 
         let updates: any = {};
-        const isSubscription = productId.includes('premium') || productId === 'pawvibe_premium_monthly';
         
         if (isSubscription) {
             updates.is_premium = true;
@@ -114,10 +120,10 @@ serve(async (req: Request) => {
         });
 
     } catch (error: any) {
-        console.error("[verify-receipt] ERROR:", error.message);
-        return new Response(JSON.stringify({ success: false, error: error.message }), {
+        console.error("[verify-receipt] ERROR:", error.stack || error.message);
+        return new Response(JSON.stringify({ success: false, error: error.message || 'Unknown verification error' }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 400
+            status: 200
         });
     }
 });
