@@ -169,6 +169,51 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         // Ignore errors here
                     }
                 }
+
+                // === SILENT RESTORE ===
+                // Automatically check store for active subscriptions on app startup.
+                // This ensures premium status is restored without user interaction.
+                try {
+                    const purchases = await RNIap.getAvailablePurchases();
+                    if (purchases && purchases.length > 0) {
+                        console.log('[IAP] Silent restore: found', purchases.length, 'purchase(s)');
+
+                        for (const purchase of purchases) {
+                            const pid = purchase.productId;
+                            // Only check subscriptions — consumables are already consumed
+                            if (!subSkus.includes(pid)) continue;
+
+                            const receipt = purchase.purchaseToken || (purchase as any).transactionReceipt;
+                            const txId = purchase.id || purchase.transactionId || purchase.purchaseToken;
+                            if (!receipt || !txId) continue;
+
+                            // Skip if already processed
+                            if (processedTransactions.current.has(txId)) {
+                                console.log('[IAP] Silent restore: already processed tx:', txId);
+                                continue;
+                            }
+
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session) break;
+
+                            const { error, data } = await supabase.functions.invoke('verify-receipt', {
+                                body: { receipt, productId: pid, platform: Platform.OS, transactionId: txId }
+                            });
+
+                            if (!error && data?.success) {
+                                await RNIap.finishTransaction({ purchase, isConsumable: false });
+                                await persistProcessedTx(txId);
+                                console.log('[IAP] Silent restore: verified subscription', pid);
+                            } else {
+                                console.warn('[IAP] Silent restore: verify failed for', pid);
+                            }
+                        }
+                    } else {
+                        console.log('[IAP] Silent restore: no existing purchases found');
+                    }
+                } catch (e) {
+                    console.warn('[IAP] Silent restore error (non-fatal):', e);
+                }
             } catch (err: any) {
                 console.warn('[IAP] Init Error:', err.code, err.message);
             }

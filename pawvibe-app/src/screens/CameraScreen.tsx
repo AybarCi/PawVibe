@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../lib/i18n'; // Correctly import the i18n instance
 import * as Sharing from 'expo-sharing';
+import ShareModal from '../components/ShareModal';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
@@ -34,6 +35,8 @@ export default function CameraScreen({ navigation }: any) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [photoUri, setPhotoUri] = useState<string | null>(null);
     const [scanningTextIndex, setScanningTextIndex] = useState(0);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareImageUri, setShareImageUri] = useState<string | null>(null);
     const [result, setResult] = useState<AnalysisResult | null>(null); // Updated type for result
     const insets = useSafeAreaInsets();
 
@@ -237,12 +240,8 @@ export default function CameraScreen({ navigation }: any) {
         try {
             if (viewShotRef.current) {
                 const uri = await viewShotRef.current.capture();
-                const isAvailable = await Sharing.isAvailableAsync();
-                if (isAvailable) {
-                    await Sharing.shareAsync(uri);
-                } else {
-                    showCustomAlert(t('app.sharing_unavailable', 'Sharing Unavailable'), t('app.sharing_not_supported', 'Sharing is not supported on this device.'));
-                }
+                setShareImageUri(uri);
+                setShowShareModal(true);
             }
         } catch (error) {
             console.error(error);
@@ -362,6 +361,13 @@ export default function CameraScreen({ navigation }: any) {
                                 <Text style={styles.btnText}>{t('app.share')} 🚀</Text>
                             </TouchableOpacity>
                         </View>
+
+                        {/* Custom Share Modal */}
+                        <ShareModal
+                            visible={showShareModal}
+                            imageUri={shareImageUri}
+                            onClose={() => setShowShareModal(false)}
+                        />
                     </ScrollView>
 
                     {/* Advanced Dynamic Scroll Indicator (Neon Glow) */}
@@ -372,7 +378,7 @@ export default function CameraScreen({ navigation }: any) {
                                 style={styles.neonGradient}
                             >
                                 <MaterialCommunityIcons name="chevron-double-down" size={28} color="#FFFFFF" />
-                                <Text style={styles.neonGlowText}>{t('app.scroll_down', { defaultValue: 'AŞAĞI KAYDIR' })}</Text>
+                                <Text style={styles.neonGlowText}>{t('app.scroll_down')}</Text>
                             </LinearGradient>
                         </Animated.View>
                     )}

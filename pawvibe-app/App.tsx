@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Image, Platform, AppState, View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './lib/i18n'; // Initialize i18n
@@ -17,12 +18,23 @@ import { initMetaTracking } from './lib/metaTracking';
 import CameraScreen from './src/screens/CameraScreen';
 import MyScansScreen from './src/screens/MyScansScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import AccountScreen from './src/screens/AccountScreen';
 import { IAPProvider } from './src/context/IAPContext';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
 const Tab = createBottomTabNavigator();
+const ProfileStack = createNativeStackNavigator();
+
+function ProfileStackScreen() {
+    return (
+        <ProfileStack.Navigator id="ProfileStack" screenOptions={{ headerShown: false }}>
+            <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+            <ProfileStack.Screen name="Account" component={AccountScreen} />
+        </ProfileStack.Navigator>
+    );
+}
 
 const DarkPurpleTheme = {
     ...DefaultTheme,
@@ -206,7 +218,7 @@ export default function App() {
                         />
                         <Tab.Screen
                             name="Profile"
-                            component={ProfileScreen}
+                            component={ProfileStackScreen}
                             options={{ headerShown: false, tabBarLabel: t('app.tab_profile') }}
                             listeners={({ navigation, route }) => ({
                                 tabPress: (e) => {

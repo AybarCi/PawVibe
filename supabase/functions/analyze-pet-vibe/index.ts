@@ -71,46 +71,55 @@ serve(async (req) => {
       }
     }
 
-    // OpenAI call
-    const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        temperature: 0.9,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: `You are an incredibly dramatic, overly empathetic, witty, and hilariously sarcastic pet whisperer and mood analyzer. Your goal is to make the user laugh out loud while perfectly capturing the "vibe" of the photo. Let your personality shine, use emojis playfully, and be extremely sympathetic yet funny. 
-            
-First, check if there is a pet (like a dog, cat, bird, reptile, etc.) in the image. Return ONLY a valid JSON object with the following keys and accurate types: is_pet (boolean), mood_title (string), confidence (number between 0 and 1), explanation (string), chaos_score (integer 0-100), energy_level (integer 0-100), sweetness_score (integer 0-100), judgment_level (integer 0-100), cuddle_o_meter (integer 0-100), derp_factor (integer 0-100). 
-            
-If there are NO pets in the image (e.g., it's a picture of sunglasses, a mug, or a landscape), set is_pet to false, and playfully roast the user in the 'mood_title' and 'explanation' for trying to trick you into analyzing an inanimate object's soul. Set all 6 score values to 0. The values for 'mood_title' and 'explanation' MUST be written in this ISO language code: ${language}.`
-          },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: "Analyze this pet's vibe." },
-              { type: 'image_url', image_url: { url: `data:image/webp;base64,${image_base64}` } }
-            ]
-          }
-        ]
-      })
-    });
+    // OpenAI call - using a more robust prompt for consistent JSON output
+    let moodResult;
+    try {
+      const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.7, // Slightly lower temperature for better consistency
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'system',
+              content: `You are a professional pet mood analyzer with a witty personality. 
+              Output MUST be a single, valid JSON object. 
+              Language for 'mood_title' and 'explanation': ${language}.
+              
+              Required keys: is_pet (bool), mood_title (string), confidence (float 0-1), explanation (string), chaos_score (int 0-100), energy_level (int 0-100), sweetness_score (int 0-100), judgment_level (int 0-100), cuddle_o_meter (int 0-100), derp_factor (int 0-100).
+              
+              If no pet is found, set is_pet to false, playfully roast the user, and set all 6 numeric scores to 0.`
+            },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: "Analyze pet vive." },
+                { type: 'image_url', image_url: { url: `data:image/webp;base64,${image_base64}` } }
+              ]
+            }
+          ]
+        })
+      });
 
-    const openAiData = await openAiResponse.json();
-    
-    if (!openAiResponse.ok) {
-      console.error("OpenAI Error:", openAiData);
-      throw new Error('Failed to resolve mood from OpenAI');
+      const openAiData = await openAiResponse.json();
+      
+      if (!openAiResponse.ok) {
+        throw new Error(`OpenAI Error: ${JSON.stringify(openAiData)}`);
+      }
+
+      // Robust parsing
+      const rawContent = openAiData.choices[0].message.content.trim();
+      moodResult = JSON.parse(rawContent);
+
+    } catch (parseError) {
+      console.error("Critical AI Response Error:", parseError);
+      throw new Error("AI returned an invalid format. Please try again.");
     }
-
-    // Parse the JSON string from OpenAI
-    const moodResult = JSON.parse(openAiData.choices[0].message.content);
 
     // Atomic credit deduction — prevents race condition where 2 concurrent requests
     // both pass the credit check and double-deduct, causing negative credits.

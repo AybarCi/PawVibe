@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../lib/i18n';
 import ViewShot from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
+import ShareModal from './ShareModal';
 import { BlurView } from 'expo-blur';
 import Toast from 'react-native-toast-message';
 
@@ -21,21 +21,19 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
     const [reportData, setReportData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const viewShotRef = useRef<any>(null);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareImageUri, setShareImageUri] = useState<string | null>(null);
 
     const captureAndShare = async () => {
         try {
             if (viewShotRef.current) {
                 const uri = await viewShotRef.current.capture();
-                const isAvailable = await Sharing.isAvailableAsync();
-                if (isAvailable) {
-                    await Sharing.shareAsync(uri);
-                } else {
-                    Toast.show({ type: 'error', text1: t('app.error', 'Error'), text2: 'Sharing is not supported on this device.' });
-                }
+                setShareImageUri(uri);
+                setShowShareModal(true);
             }
         } catch (error) {
             console.error(error);
-            Toast.show({ type: 'error', text1: t('app.error', 'Error'), text2: 'Could not share image.' });
+            Toast.show({ type: 'error', text1: t('app.error', 'Error'), text2: t('app.could_not_share') });
         }
     };
 
@@ -147,6 +145,12 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                                 <Ionicons name="share-social-outline" size={20} color="white" style={{ marginRight: 8 }} />
                                 <Text style={styles.shareBtnText}>{t('app.share', 'Share')} 🚀</Text>
                             </TouchableOpacity>
+
+                            <ShareModal
+                                visible={showShareModal}
+                                imageUri={shareImageUri}
+                                onClose={() => setShowShareModal(false)}
+                            />
                         </ScrollView>
                     ) : null}
 

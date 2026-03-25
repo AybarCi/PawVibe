@@ -1,7 +1,21 @@
-import { AppEventsLogger, Settings } from 'react-native-fbsdk-next';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
+const isExpoGo = Constants.appOwnership === 'expo';
+
+let AppEventsLogger: any = { logPurchase: () => {}, logEvent: () => {} };
+let Settings: any = { setAdvertiserTrackingEnabled: () => {}, initializeSDK: () => {} };
+
+if (!isExpoGo) {
+  try {
+    const fbsdk = require('react-native-fbsdk-next');
+    AppEventsLogger = fbsdk.AppEventsLogger;
+    Settings = fbsdk.Settings;
+  } catch (e) {
+    console.warn("Failed to load fbsdk", e);
+  }
+}
 export const initMetaTracking = async () => {
   try {
     if (Platform.OS === 'ios') {
