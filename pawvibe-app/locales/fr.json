@@ -1,6 +1,6 @@
 {
-    "infoPlist": {
-        "NSCameraUsageDescription": "PawVibe a besoin d'accéder à votre appareil photo pour prendre des photos de vos animaux pour l'analyse des émotions et de l'énergie par l'IA.",
-        "NSPhotoLibraryUsageDescription": "PawVibe a besoin d'accéder à votre photothèque pour que vous puissiez sélectionner des photos de vos animaux pour l'analyse des émotions et de l'énergie par l'IA."
-    }
+  "NSCameraUsageDescription": "PawVibe a besoin d'accéder à votre appareil photo pour prendre des photos de vos animaux de compagnie pour l'analyse d'ambiance par IA.",
+  "NSPhotoLibraryUsageDescription": "PawVibe a besoin d'accéder à votre bibliothèque de photos pour sélectionner des photos d'animaux pour l'analyse d'ambiance par IA.",
+  "NSPhotoLibraryAddUsageDescription": "PawVibe a besoin de la permission de sauvegarder la carte d'ambiance de votre animal dans votre bibliothèque de photos.",
+  "NSUserTrackingUsageDescription": "Cet identifiant sera utilisé pour vous proposer des publicités personnalisées et améliorer votre expérience."
 }

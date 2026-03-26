@@ -1,6 +1,6 @@
 {
-    "infoPlist": {
-        "NSCameraUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için fotoğraf çekmek üzere kameranıza erişim gerektirir.",
-        "NSPhotoLibraryUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için galerinizden fotoğraf seçmenize olanak tanımak amacıyla fotoğraf kütüphanenize erişim gerektirir."
-    }
+  "NSCameraUsageDescription": "PawVibe, evcil hayvanınızın yapay zeka ile duygu ve enerji analizini yapabilmek için fotoğraf çekmek üzere kameranıza erişim gerektirir.",
+  "NSPhotoLibraryUsageDescription": "PawVibe, evcil hayvanınızın galeriden fotoğraf seçebilmesi ve AI analizi yapabilmesi için fotoğraf kütüphanenize erişim gerektirir.",
+  "NSPhotoLibraryAddUsageDescription": "PawVibe, evcil hayvanınızın analiz kartını galerinize kaydedebilmek için izin gerektirir.",
+  "NSUserTrackingUsageDescription": "Bu tanımlayıcı, size daha uygun reklamlar sunabilmek ve deneyiminizi kişiselleştirebilmemiz için kullanılacaktır."
 }

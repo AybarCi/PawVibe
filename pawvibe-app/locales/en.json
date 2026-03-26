@@ -1,6 +1,6 @@
 {
-    "infoPlist": {
-        "NSCameraUsageDescription": "PawVibe needs access to your camera to take photos of your pets for the AI vibe analysis.",
-        "NSPhotoLibraryUsageDescription": "PawVibe needs access to your photo library so you can select existing photos of your pets for the AI vibe analysis."
-    }
+  "NSCameraUsageDescription": "PawVibe needs access to your camera to take photos of your pets for the AI vibe analysis.",
+  "NSPhotoLibraryUsageDescription": "PawVibe needs access to your photo library to select pet photos for the AI vibe analysis.",
+  "NSPhotoLibraryAddUsageDescription": "PawVibe needs permission to save your pet's vibe card to your photo library.",
+  "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you and improve your experience."
 }

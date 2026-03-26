@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.3.6",
+    "version": "1.3.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -35,7 +35,7 @@
           "snssdk1233"
         ]
       },
-      "buildNumber": "20",
+      "buildNumber": "21",
       "usesAppleSignIn": true
     },
     "android": {
@@ -45,7 +45,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.setifera.pawvibe",
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -58,7 +58,7 @@
       [
         "expo-tracking-transparency",
         {
-          "userTrackingPermission": "Size daha uygun reklamlar sunabilmemiz ve deneyiminizi kişiselleştirebilmemiz için izninize ihtiyacımız var."
+          "userTrackingPermission": "This identifier will be used to deliver personalized ads to you and improve your experience."
         }
       ],
       [
@@ -71,7 +71,7 @@
           "advertiserIDCollectionEnabled": true,
           "autoLogAppEventsEnabled": true,
           "isAutoInitEnabled": true,
-          "iosUserTrackingPermission": "Size daha uygun reklamlar sunabilmemiz ve deneyiminizi kişiselleştirebilmemiz için izninize ihtiyacımız var."
+          "iosUserTrackingPermission": "This identifier will be used to deliver personalized ads to you and improve your experience."
         }
       ],
       "./plugins/withDisableExtraTranslationLint",
