@@ -250,13 +250,13 @@ export default function CameraScreen({ navigation }: any) {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#0A001A' }}>
+        <SafeAreaView style={styles.container}>
             {/* Show Result OR Camera */}
             {result && photoUri ? (
                 <View style={{ flex: 1, width: '100%' }}>
                     <ScrollView
-                        style={{ flex: 1, width: '100%' }}
-                        contentContainerStyle={{ alignItems: 'center', paddingTop: 20, paddingBottom: 50 }}
+                        style={{ flex: 1 }}
+                        contentContainerStyle={styles.scrollContent}
                         onLayout={(e) => setScrollViewHeight(e.nativeEvent.layout.height)}
                         onContentSizeChange={(_, h) => setContentHeight(h)}
                         onScroll={handleScroll}
@@ -265,91 +265,93 @@ export default function CameraScreen({ navigation }: any) {
                         <Text style={[styles.title, { fontSize: 24, textAlign: 'center' }]}>{t('app.vibe_check_complete')}</Text>
 
                         {/* Shareable Card wrapped in ViewShot */}
-                        <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 1.0 }} style={styles.shareableCard}>
-                            {/* Pet Photo */}
-                            <View style={styles.imageContainer}>
-                                <Image
-                                    source={{ uri: photoUri }}
-                                    style={styles.petImage}
-                                    resizeMode="cover"
-                                />
-                            </View>
+                        <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 1.0 }}>
+                            <View style={styles.shareableCard}>
+                                {/* Pet Photo */}
+                                <View style={styles.imageContainer}>
+                                    <Image
+                                        source={{ uri: photoUri }}
+                                        style={styles.petImage}
+                                        resizeMode="cover"
+                                    />
+                                </View>
 
-                            {/* Stats Overlay */}
-                            <View style={styles.statsOverlay}>
-                                <Text style={styles.moodTitle} numberOfLines={2} adjustsFontSizeToFit>{result.mood_title}</Text>
-                                {result.is_pet !== false && (
-                                    <View style={styles.statsGrid}>
-                                        <View style={styles.statColumn}>
-                                            <View style={styles.cuteStatPill}>
-                                                <View style={styles.pillHeader}>
-                                                    <Text style={styles.pillEmoji}>🌪️</Text>
-                                                    <Text style={styles.pillLabel} numberOfLines={1}>{t('app.chaos')}</Text>
-                                                    <Text style={styles.pillScore}>{result.chaos_score ?? 0}</Text>
+                                {/* Stats Overlay */}
+                                <View style={styles.statsOverlay}>
+                                    <Text style={styles.moodTitle} numberOfLines={2} adjustsFontSizeToFit>{result.mood_title}</Text>
+                                    {result.is_pet !== false && (
+                                        <View style={styles.statsGrid}>
+                                            <View style={styles.statColumn}>
+                                                <View style={styles.cuteStatPill}>
+                                                    <View style={styles.pillHeader}>
+                                                        <Text style={styles.pillEmoji}>🌪️</Text>
+                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.chaos')}</Text>
+                                                        <Text style={styles.pillScore}>{result.chaos_score ?? 0}</Text>
+                                                    </View>
+                                                    <View style={styles.progressBarBg}>
+                                                        <View style={[styles.progressBarFill, { width: `${result.chaos_score ?? 0}%`, backgroundColor: '#FF007F' }]} />
+                                                    </View>
                                                 </View>
-                                                <View style={styles.progressBarBg}>
-                                                    <View style={[styles.progressBarFill, { width: `${result.chaos_score ?? 0}%`, backgroundColor: '#FF007F' }]} />
+                                                <View style={styles.cuteStatPill}>
+                                                    <View style={styles.pillHeader}>
+                                                        <Text style={styles.pillEmoji}>⚡</Text>
+                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.energy')}</Text>
+                                                        <Text style={styles.pillScore}>{result.energy_level ?? 0}</Text>
+                                                    </View>
+                                                    <View style={styles.progressBarBg}>
+                                                        <View style={[styles.progressBarFill, { width: `${result.energy_level ?? 0}%`, backgroundColor: '#FFD700' }]} />
+                                                    </View>
+                                                </View>
+                                                <View style={styles.cuteStatPill}>
+                                                    <View style={styles.pillHeader}>
+                                                        <Text style={styles.pillEmoji}>🍬</Text>
+                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.sweetness')}</Text>
+                                                        <Text style={styles.pillScore}>{result.sweetness_score ?? 0}</Text>
+                                                    </View>
+                                                    <View style={styles.progressBarBg}>
+                                                        <View style={[styles.progressBarFill, { width: `${result.sweetness_score ?? 0}%`, backgroundColor: '#00FFFF' }]} />
+                                                    </View>
                                                 </View>
                                             </View>
-                                            <View style={styles.cuteStatPill}>
-                                                <View style={styles.pillHeader}>
-                                                    <Text style={styles.pillEmoji}>⚡</Text>
-                                                    <Text style={styles.pillLabel} numberOfLines={1}>{t('app.energy')}</Text>
-                                                    <Text style={styles.pillScore}>{result.energy_level ?? 0}</Text>
+                                            <View style={styles.statColumn}>
+                                                <View style={styles.cuteStatPill}>
+                                                    <View style={styles.pillHeader}>
+                                                        <Text style={styles.pillEmoji}>😒</Text>
+                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.judgment')}</Text>
+                                                        <Text style={styles.pillScore}>{result.judgment_level ?? 0}</Text>
+                                                    </View>
+                                                    <View style={styles.progressBarBg}>
+                                                        <View style={[styles.progressBarFill, { width: `${result.judgment_level ?? 0}%`, backgroundColor: '#FF4500' }]} />
+                                                    </View>
                                                 </View>
-                                                <View style={styles.progressBarBg}>
-                                                    <View style={[styles.progressBarFill, { width: `${result.energy_level ?? 0}%`, backgroundColor: '#FFD700' }]} />
+                                                <View style={styles.cuteStatPill}>
+                                                    <View style={styles.pillHeader}>
+                                                        <Text style={styles.pillEmoji}>🤗</Text>
+                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.cuddle')}</Text>
+                                                        <Text style={styles.pillScore}>{result.cuddle_o_meter ?? 0}</Text>
+                                                    </View>
+                                                    <View style={styles.progressBarBg}>
+                                                        <View style={[styles.progressBarFill, { width: `${result.cuddle_o_meter ?? 0}%`, backgroundColor: '#FF1493' }]} />
+                                                    </View>
                                                 </View>
-                                            </View>
-                                            <View style={styles.cuteStatPill}>
-                                                <View style={styles.pillHeader}>
-                                                    <Text style={styles.pillEmoji}>🍬</Text>
-                                                    <Text style={styles.pillLabel} numberOfLines={1}>{t('app.sweetness')}</Text>
-                                                    <Text style={styles.pillScore}>{result.sweetness_score ?? 0}</Text>
-                                                </View>
-                                                <View style={styles.progressBarBg}>
-                                                    <View style={[styles.progressBarFill, { width: `${result.sweetness_score ?? 0}%`, backgroundColor: '#00FFFF' }]} />
+                                                <View style={styles.cuteStatPill}>
+                                                    <View style={styles.pillHeader}>
+                                                        <Text style={styles.pillEmoji}>🤪</Text>
+                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.derp')}</Text>
+                                                        <Text style={styles.pillScore}>{result.derp_factor ?? 0}</Text>
+                                                    </View>
+                                                    <View style={styles.progressBarBg}>
+                                                        <View style={[styles.progressBarFill, { width: `${result.derp_factor ?? 0}%`, backgroundColor: '#32CD32' }]} />
+                                                    </View>
                                                 </View>
                                             </View>
                                         </View>
-                                        <View style={styles.statColumn}>
-                                            <View style={styles.cuteStatPill}>
-                                                <View style={styles.pillHeader}>
-                                                    <Text style={styles.pillEmoji}>😒</Text>
-                                                    <Text style={styles.pillLabel} numberOfLines={1}>{t('app.judgment')}</Text>
-                                                    <Text style={styles.pillScore}>{result.judgment_level ?? 0}</Text>
-                                                </View>
-                                                <View style={styles.progressBarBg}>
-                                                    <View style={[styles.progressBarFill, { width: `${result.judgment_level ?? 0}%`, backgroundColor: '#FF4500' }]} />
-                                                </View>
-                                            </View>
-                                            <View style={styles.cuteStatPill}>
-                                                <View style={styles.pillHeader}>
-                                                    <Text style={styles.pillEmoji}>🤗</Text>
-                                                    <Text style={styles.pillLabel} numberOfLines={1}>{t('app.cuddle')}</Text>
-                                                    <Text style={styles.pillScore}>{result.cuddle_o_meter ?? 0}</Text>
-                                                </View>
-                                                <View style={styles.progressBarBg}>
-                                                    <View style={[styles.progressBarFill, { width: `${result.cuddle_o_meter ?? 0}%`, backgroundColor: '#FF1493' }]} />
-                                                </View>
-                                            </View>
-                                            <View style={styles.cuteStatPill}>
-                                                <View style={styles.pillHeader}>
-                                                    <Text style={styles.pillEmoji}>�</Text>
-                                                    <Text style={styles.pillLabel} numberOfLines={1}>{t('app.derp')}</Text>
-                                                    <Text style={styles.pillScore}>{result.derp_factor ?? 0}</Text>
-                                                </View>
-                                                <View style={styles.progressBarBg}>
-                                                    <View style={[styles.progressBarFill, { width: `${result.derp_factor ?? 0}%`, backgroundColor: '#32CD32' }]} />
-                                                </View>
-                                            </View>
-                                        </View>
-                                    </View>
-                                )}
-                                {result.is_pet === false && result.explanation && (
-                                    <Text style={styles.funnyExplanation}>{result.explanation}</Text>
-                                )}
-                                {!isPremium && <Text style={styles.watermark}>PawVibe</Text>}
+                                    )}
+                                    {result.is_pet === false && result.explanation && (
+                                        <Text style={styles.funnyExplanation}>{result.explanation}</Text>
+                                    )}
+                                    {!isPremium && <Text style={styles.watermark}>PawVibe</Text>}
+                                </View>
                             </View>
                         </ViewShot>
 
@@ -415,15 +417,19 @@ export default function CameraScreen({ navigation }: any) {
                         </View>
                     )}
                 </View>
-            )
-            }
-        </SafeAreaView >
+            )}
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#0A001A', justifyContent: 'center', alignItems: 'center' },
+    container: { flex: 1, backgroundColor: '#0A001A' },
     camera: { flex: 1, width: '100%', justifyContent: 'flex-end' },
+    scrollContent: {
+        alignItems: 'center',
+        paddingTop: 20,
+        paddingBottom: 50,
+    },
     buttonContainer: {
         position: 'absolute',
         bottom: 0,
@@ -510,7 +516,7 @@ const styles = StyleSheet.create({
     },
     statsOverlay: {
         paddingVertical: 15,
-        paddingHorizontal: 25, // Adjusted to match new pill layout perfectly
+        paddingHorizontal: 12, // Reduced to give more room horizontally for pills
         backgroundColor: '#1A0B2E',
         alignItems: 'center',
     },
@@ -529,9 +535,9 @@ const styles = StyleSheet.create({
     /* Cute Pill Badges & Progress Bars */
     cuteStatPill: {
         backgroundColor: 'rgba(26, 11, 46, 0.85)',
-        width: '95%',
+        width: '98%', // Increased from 95% to fill more of the column
         paddingVertical: 10,
-        paddingHorizontal: 15,
+        paddingHorizontal: 8, // Reduced horizontal padding within pill
         borderRadius: 25,
         borderWidth: 2,
         borderColor: '#6A4C93',
@@ -550,13 +556,16 @@ const styles = StyleSheet.create({
     },
     pillEmoji: {
         fontSize: 18,
+        width: 24, // Fixed width helps centering and prevents pushing labels
+        textAlign: 'center',
     },
     pillLabel: {
         color: '#D3C4E5',
-        fontSize: 11,
+        fontSize: 10, // Slightly smaller to ensure fit
         fontWeight: '900',
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 0.5, // Reduced letter spacing
+        flexShrink: 1, // Allow label to shrink instead of pushing components
     },
     pillScore: {
         color: '#FFD700',
@@ -607,7 +616,6 @@ const styles = StyleSheet.create({
         color: '#6A4C93',
         fontSize: 12,
         fontWeight: '800',
-        marginTop: 15,
         letterSpacing: 3,
         textTransform: 'uppercase',
     },
@@ -615,45 +623,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         width: '90%',
         justifyContent: 'space-between',
-    },
-    // Modal Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContent: {
-        backgroundColor: '#1A0B2E',
-        padding: 25,
-        borderRadius: 15,
-        width: '85%',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#FF007F',
-        shadowColor: '#FF007F',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
-    },
-    modalTitle: {
-        color: '#FFD700',
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    modalMessage: {
-        color: 'white',
-        fontSize: 16,
-        textAlign: 'center',
-        marginBottom: 25,
-    },
-    modalCloseBtn: {
-        backgroundColor: '#FF007F',
-        paddingVertical: 12,
-        paddingHorizontal: 30,
-        borderRadius: 10,
     },
     scannerOverlay: {
         justifyContent: 'center',

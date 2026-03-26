@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.3.5",
+    "version": "1.3.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -35,7 +35,7 @@
           "snssdk1233"
         ]
       },
-      "buildNumber": "19",
+      "buildNumber": "20",
       "usesAppleSignIn": true
     },
     "android": {
