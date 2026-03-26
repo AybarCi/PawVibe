@@ -10,7 +10,7 @@ import * as Sharing from 'expo-sharing';
 import ShareModal from '../components/ShareModal';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence, withDelay } from 'react-native-reanimated';
 import ViewShot from 'react-native-view-shot';
 import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
@@ -28,6 +28,40 @@ interface AnalysisResult {
     is_pet?: boolean;
     explanation?: string;
 }
+
+// Sub-component for animated stat pills
+const StatPill = ({ label, score, emoji, color, delay = 0 }: { label: string, score: number, emoji: string, color: string, delay?: number }) => {
+    const animatedWidth = useSharedValue(0);
+
+    useEffect(() => {
+        // Start animation after a short delay when component mounts
+        animatedWidth.value = withDelay(
+            delay,
+            withTiming(score, {
+                duration: 1500,
+                easing: Easing.out(Easing.exp),
+            })
+        );
+    }, [score, delay]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        width: `${animatedWidth.value}%`,
+        backgroundColor: color,
+    }));
+
+    return (
+        <View style={styles.cuteStatPill}>
+            <View style={styles.pillHeader}>
+                <Text style={styles.pillEmoji}>{emoji}</Text>
+                <Text style={styles.pillLabel} numberOfLines={1}>{label}</Text>
+                <Text style={styles.pillScore}>{score}</Text>
+            </View>
+            <View style={styles.progressBarBg}>
+                <Animated.View style={[styles.progressBarFill, animatedStyle]} />
+            </View>
+        </View>
+    );
+};
 
 export default function CameraScreen({ navigation }: any) {
     const { t } = useTranslation();
@@ -282,68 +316,50 @@ export default function CameraScreen({ navigation }: any) {
                                     {result.is_pet !== false && (
                                         <View style={styles.statsGrid}>
                                             <View style={styles.statColumn}>
-                                                <View style={styles.cuteStatPill}>
-                                                    <View style={styles.pillHeader}>
-                                                        <Text style={styles.pillEmoji}>🌪️</Text>
-                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.chaos')}</Text>
-                                                        <Text style={styles.pillScore}>{result.chaos_score ?? 0}</Text>
-                                                    </View>
-                                                    <View style={styles.progressBarBg}>
-                                                        <View style={[styles.progressBarFill, { width: `${result.chaos_score ?? 0}%`, backgroundColor: '#FF007F' }]} />
-                                                    </View>
-                                                </View>
-                                                <View style={styles.cuteStatPill}>
-                                                    <View style={styles.pillHeader}>
-                                                        <Text style={styles.pillEmoji}>⚡</Text>
-                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.energy')}</Text>
-                                                        <Text style={styles.pillScore}>{result.energy_level ?? 0}</Text>
-                                                    </View>
-                                                    <View style={styles.progressBarBg}>
-                                                        <View style={[styles.progressBarFill, { width: `${result.energy_level ?? 0}%`, backgroundColor: '#FFD700' }]} />
-                                                    </View>
-                                                </View>
-                                                <View style={styles.cuteStatPill}>
-                                                    <View style={styles.pillHeader}>
-                                                        <Text style={styles.pillEmoji}>🍬</Text>
-                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.sweetness')}</Text>
-                                                        <Text style={styles.pillScore}>{result.sweetness_score ?? 0}</Text>
-                                                    </View>
-                                                    <View style={styles.progressBarBg}>
-                                                        <View style={[styles.progressBarFill, { width: `${result.sweetness_score ?? 0}%`, backgroundColor: '#00FFFF' }]} />
-                                                    </View>
-                                                </View>
+                                                <StatPill
+                                                    label={t('app.chaos')}
+                                                    score={result.chaos_score ?? 0}
+                                                    emoji="🌪️"
+                                                    color="#FF007F"
+                                                    delay={300}
+                                                />
+                                                <StatPill
+                                                    label={t('app.energy')}
+                                                    score={result.energy_level ?? 0}
+                                                    emoji="⚡"
+                                                    color="#FFD700"
+                                                    delay={500}
+                                                />
+                                                <StatPill
+                                                    label={t('app.sweetness')}
+                                                    score={result.sweetness_score ?? 0}
+                                                    emoji="🍬"
+                                                    color="#00FFFF"
+                                                    delay={700}
+                                                />
                                             </View>
                                             <View style={styles.statColumn}>
-                                                <View style={styles.cuteStatPill}>
-                                                    <View style={styles.pillHeader}>
-                                                        <Text style={styles.pillEmoji}>😒</Text>
-                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.judgment')}</Text>
-                                                        <Text style={styles.pillScore}>{result.judgment_level ?? 0}</Text>
-                                                    </View>
-                                                    <View style={styles.progressBarBg}>
-                                                        <View style={[styles.progressBarFill, { width: `${result.judgment_level ?? 0}%`, backgroundColor: '#FF4500' }]} />
-                                                    </View>
-                                                </View>
-                                                <View style={styles.cuteStatPill}>
-                                                    <View style={styles.pillHeader}>
-                                                        <Text style={styles.pillEmoji}>🤗</Text>
-                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.cuddle')}</Text>
-                                                        <Text style={styles.pillScore}>{result.cuddle_o_meter ?? 0}</Text>
-                                                    </View>
-                                                    <View style={styles.progressBarBg}>
-                                                        <View style={[styles.progressBarFill, { width: `${result.cuddle_o_meter ?? 0}%`, backgroundColor: '#FF1493' }]} />
-                                                    </View>
-                                                </View>
-                                                <View style={styles.cuteStatPill}>
-                                                    <View style={styles.pillHeader}>
-                                                        <Text style={styles.pillEmoji}>🤪</Text>
-                                                        <Text style={styles.pillLabel} numberOfLines={1}>{t('app.derp')}</Text>
-                                                        <Text style={styles.pillScore}>{result.derp_factor ?? 0}</Text>
-                                                    </View>
-                                                    <View style={styles.progressBarBg}>
-                                                        <View style={[styles.progressBarFill, { width: `${result.derp_factor ?? 0}%`, backgroundColor: '#32CD32' }]} />
-                                                    </View>
-                                                </View>
+                                                <StatPill
+                                                    label={t('app.judgment')}
+                                                    score={result.judgment_level ?? 0}
+                                                    emoji="😒"
+                                                    color="#FF4500"
+                                                    delay={400}
+                                                />
+                                                <StatPill
+                                                    label={t('app.cuddle')}
+                                                    score={result.cuddle_o_meter ?? 0}
+                                                    emoji="🤗"
+                                                    color="#FF1493"
+                                                    delay={600}
+                                                />
+                                                <StatPill
+                                                    label={t('app.derp')}
+                                                    score={result.derp_factor ?? 0}
+                                                    emoji="🤪"
+                                                    color="#32CD32"
+                                                    delay={800}
+                                                />
                                             </View>
                                         </View>
                                     )}
@@ -613,6 +629,7 @@ const styles = StyleSheet.create({
     },
 
     watermark: {
+        paddingTop: 10,
         color: '#6A4C93',
         fontSize: 12,
         fontWeight: '800',
