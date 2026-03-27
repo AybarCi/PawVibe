@@ -61,8 +61,8 @@ interface IAPContextState {
     restorePurchases: () => Promise<{ success: boolean; error?: string }>;
     clearLastPurchaseSuccess: () => void;
     lastPurchaseSuccess: { transactionId: string; productId: string; profile?: any; } | null;
-    celebratedTransactionIds: string[];
-    markAsCelebrated: (txId: string) => void;
+    showConfetti: boolean;
+    setShowConfetti: (show: boolean) => void;
 }
 
 const IAPContext = createContext<IAPContextState>({
@@ -74,8 +74,8 @@ const IAPContext = createContext<IAPContextState>({
     restorePurchases: async () => ({ success: false, error: 'Not initialized' }),
     clearLastPurchaseSuccess: () => { },
     lastPurchaseSuccess: null,
-    celebratedTransactionIds: [],
-    markAsCelebrated: () => { },
+    showConfetti: false,
+    setShowConfetti: () => { },
 });
 
 export const useIAPContext = () => useContext(IAPContext);
@@ -86,27 +86,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [isConfigured, setIsConfigured] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ transactionId: string; productId: string; profile?: any; } | null>(null);
-    const [celebratedTransactionIds, setCelebratedTransactionIds] = useState<string[]>([]);
-
-    // 1. Load celebrated IDs from Storage on mount
-    useEffect(() => {
-        AsyncStorage.getItem('iap_celebrated_txs').then((stored) => {
-            if (stored) {
-                try {
-                    setCelebratedTransactionIds(JSON.parse(stored));
-                } catch (e) { }
-            }
-        });
-    }, []);
-
-    const markAsCelebrated = async (txId: string) => {
-        setCelebratedTransactionIds(prev => {
-            if (prev.includes(txId)) return prev;
-            const newIds = [...prev, txId].slice(-50); // Keep last 50
-            AsyncStorage.setItem('iap_celebrated_txs', JSON.stringify(newIds));
-            return newIds;
-        });
-    };
+    const [showConfetti, setShowConfetti] = useState(false);
 
     // Prevent duplicate transaction processing (persistent across restarts)
     const processedTransactions = useRef(new Set<string>());
@@ -355,6 +335,9 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Persist to prevent future replay processing
                     await persistProcessedTx(txId);
 
+                    // Show success feedback
+                    setShowConfetti(true);
+                    
                     // Show toast/confetti for successful purchases.
                     // If it was already processed, only show feedback if the user explicitly clicked buy/restore.
                     const isAlreadyProcessed = data?.message === 'Already processed';
@@ -493,6 +476,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             isConsumable: !subSkus.includes(pid)
                         });
                         setLastPurchaseSuccess({ transactionId: txId, productId: pid, profile: data?.profile });
+                        setShowConfetti(true);
                         restoredCount++;
                     } else {
                         let errorDetail = 'Unknown error';
@@ -534,8 +518,8 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             restorePurchases,
             clearLastPurchaseSuccess,
             lastPurchaseSuccess,
-            celebratedTransactionIds,
-            markAsCelebrated
+            showConfetti,
+            setShowConfetti
         }}>
             {children}
         </IAPContext.Provider>

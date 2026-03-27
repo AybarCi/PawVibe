@@ -25,8 +25,8 @@ export default function ProfileScreen({ navigation }: any) {
         lastPurchaseSuccess, 
         clearLastPurchaseSuccess, 
         isPurchasing,
-        celebratedTransactionIds,
-        markAsCelebrated
+        showConfetti,
+        setShowConfetti
     } = useIAPContext();
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<any>(null);
@@ -96,44 +96,39 @@ export default function ProfileScreen({ navigation }: any) {
         } finally {
             setLoading(false);
         }
-    };
-
+    }
+    // CONFETTI TRIGGER: Listen to global flag, trigger once, and RESET immediately.
     useEffect(() => {
-        if (lastPurchaseSuccess?.transactionId && lastPurchaseSuccess?.productId) {
-            const txId = lastPurchaseSuccess.transactionId;
+        if (showConfetti) {
+            console.log('[Profile] Success flag detected, triggering confetti!');
 
-            // 1. DEDUP (GLOBAL & PERSISTENT): 
-            // Check if we already celebrated this EXACT transaction in this session or past sessions
-            if (celebratedTransactionIds.includes(txId)) {
-                console.log('[Profile] Success event already celebrated (Persistent), skipping UI:', txId);
-                return;
-            }
-            
-            // Mark as celebrated in global context (and AsyncStorage) immediately
-            markAsCelebrated(txId);
+            // 1. Consume the event immediately (Global Reset)
+            setShowConfetti(false);
 
-            console.log('[Profile] DURABLE FIX: Triggering unique success feedback for:', txId);
+            // 2. Local feedback
             setConfettiTrigger(prev => prev + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+    }, [showConfetti]);
+
+    // SUCCESS DATA FEEDBACK: Handle Toast and Profile Updates
+    useEffect(() => {
+        if (lastPurchaseSuccess?.productId) {
+            console.log('[Profile] Success data detected, showing feedback');
+
             Toast.show({
                 type: 'success',
                 text1: t('app.success', 'Success!'),
                 text2: t('app.purchase_success_msg', 'Your purchase was successful!'),
             });
 
-            // Update local state instantly if profile was returned from backend
             if (lastPurchaseSuccess.profile) {
                 setProfile(lastPurchaseSuccess.profile);
             }
-
-            // Backup refresh to ensure everything is in sync
             fetchProfileData(true);
-
-            // 2. IMMEDIATE CLEAR: Tell context we consumed this event for this screen instance
-            // (This avoids re-triggering on remount if within the 2s window)
             clearLastPurchaseSuccess();
         }
-    }, [lastPurchaseSuccess?.transactionId, celebratedTransactionIds]);
+    }, [lastPurchaseSuccess?.transactionId]);
 
     const handlePurchase = async (productId: string) => {
         Haptics.selectionAsync();
