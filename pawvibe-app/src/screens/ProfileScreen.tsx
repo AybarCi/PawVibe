@@ -17,13 +17,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen({ navigation }: any) {
     const { t } = useTranslation();
-    const { products, subscriptions, purchasePackage, restorePurchases, lastPurchaseSuccess, clearLastPurchaseSuccess, isPurchasing } = useIAPContext();
+    const { 
+        products, 
+        subscriptions, 
+        purchasePackage, 
+        restorePurchases, 
+        lastPurchaseSuccess, 
+        clearLastPurchaseSuccess, 
+        isPurchasing,
+        celebratedTransactionIds,
+        markAsCelebrated
+    } = useIAPContext();
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'Credits' | 'Subscription'>('Credits');
     const confettiRef = useRef<any>(null);
-    const lastProcessedRef = useRef<number>(0);
     const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
     const [isRestoring, setIsRestoring] = useState(false);
     const [confettiTrigger, setConfettiTrigger] = useState(0);
@@ -89,23 +98,20 @@ export default function ProfileScreen({ navigation }: any) {
         }
     };
 
-    // Keep track of transaction IDs that have already triggered confetti in this session
-    const seenTransactions = useRef(new Set<string>());
-
     useEffect(() => {
         if (lastPurchaseSuccess?.transactionId && lastPurchaseSuccess?.productId) {
             const txId = lastPurchaseSuccess.transactionId;
 
-            // 1. DEDUP: Check if we already celebrated this EXACT transaction
-            if (seenTransactions.current.has(txId)) {
-                console.log('[Profile] Success event already seen/celebrated, skipping UI:', txId);
+            // 1. DEDUP (GLOBAL): Check if we already celebrated this EXACT transaction in this session
+            if (celebratedTransactionIds.includes(txId)) {
+                console.log('[Profile] Success event already celebrated (Global), skipping UI:', txId);
                 return;
             }
             
-            // Mark as seen immediately to prevent race conditions
-            seenTransactions.current.add(txId);
+            // Mark as celebrated in global context immediately
+            markAsCelebrated(txId);
 
-            console.log('[Profile] FINAL FIX: Triggering unique success feedback for:', txId);
+            console.log('[Profile] GLOBAL FIX: Triggering unique success feedback for:', txId);
             setConfettiTrigger(prev => prev + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
@@ -125,7 +131,7 @@ export default function ProfileScreen({ navigation }: any) {
             // 2. IMMEDIATE CLEAR: Tell context we consumed this event for this screen instance
             clearLastPurchaseSuccess();
         }
-    }, [lastPurchaseSuccess?.transactionId]);
+    }, [lastPurchaseSuccess?.transactionId, celebratedTransactionIds]);
 
     const handlePurchase = async (productId: string) => {
         Haptics.selectionAsync();

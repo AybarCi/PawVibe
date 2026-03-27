@@ -61,6 +61,8 @@ interface IAPContextState {
     restorePurchases: () => Promise<{ success: boolean; error?: string }>;
     clearLastPurchaseSuccess: () => void;
     lastPurchaseSuccess: { transactionId: string; productId: string; profile?: any; } | null;
+    celebratedTransactionIds: string[];
+    markAsCelebrated: (txId: string) => void;
 }
 
 const IAPContext = createContext<IAPContextState>({
@@ -72,6 +74,8 @@ const IAPContext = createContext<IAPContextState>({
     restorePurchases: async () => ({ success: false, error: 'Not initialized' }),
     clearLastPurchaseSuccess: () => { },
     lastPurchaseSuccess: null,
+    celebratedTransactionIds: [],
+    markAsCelebrated: () => { },
 });
 
 export const useIAPContext = () => useContext(IAPContext);
@@ -82,6 +86,11 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [isConfigured, setIsConfigured] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ transactionId: string; productId: string; profile?: any; } | null>(null);
+    const [celebratedTransactionIds, setCelebratedTransactionIds] = useState<string[]>([]);
+
+    const markAsCelebrated = (txId: string) => {
+        setCelebratedTransactionIds(prev => [...prev, txId]);
+    };
 
     // Prevent duplicate transaction processing (persistent across restarts)
     const processedTransactions = useRef(new Set<string>());
@@ -500,7 +509,18 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const clearLastPurchaseSuccess = () => setLastPurchaseSuccess(null);
 
     return (
-        <IAPContext.Provider value={{ products, subscriptions, isConfigured, isPurchasing, purchasePackage, restorePurchases, clearLastPurchaseSuccess, lastPurchaseSuccess }}>
+        <IAPContext.Provider value={{
+            products,
+            subscriptions,
+            isConfigured,
+            isPurchasing,
+            purchasePackage,
+            restorePurchases,
+            clearLastPurchaseSuccess,
+            lastPurchaseSuccess,
+            celebratedTransactionIds,
+            markAsCelebrated
+        }}>
             {children}
         </IAPContext.Provider>
     );
