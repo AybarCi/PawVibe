@@ -91,10 +91,19 @@ export default function ProfileScreen({ navigation }: any) {
 
     useEffect(() => {
         if (lastPurchaseSuccess?.timestamp && lastPurchaseSuccess?.productId) {
-            // Prevent duplicate processing for the same event
+            // 1. Freshness Check: Only process events from the last 60 seconds
+            const now = Date.now();
+            const isFresh = now - lastPurchaseSuccess.timestamp < 60000;
+            if (!isFresh) {
+                console.log('[Profile] Success event too old, skipping feedback');
+                return;
+            }
+
+            // 2. Prevent duplicate processing for the same exact event in this mount
             if (lastProcessedRef.current === lastPurchaseSuccess.timestamp) return;
             lastProcessedRef.current = lastPurchaseSuccess.timestamp;
 
+            console.log('[Profile] Triggering success feedback for:', lastPurchaseSuccess.productId);
             setConfettiTrigger(prev => prev + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
@@ -105,15 +114,14 @@ export default function ProfileScreen({ navigation }: any) {
 
             // Update local state instantly if profile was returned from backend
             if (lastPurchaseSuccess.profile) {
-                console.log('[Profile] Updating local profile from purchase event');
                 setProfile(lastPurchaseSuccess.profile);
             }
 
-            // Backup refresh to ensure everything is in sync (silent to avoid UI flicker)
+            // Backup refresh to ensure everything is in sync
             fetchProfileData(true);
 
-            // Delay clear so confetti animation has time to start
-            setTimeout(() => clearLastPurchaseSuccess(), 500);
+            // 3. IMMEDIATE CLEAR: Tell context we consumed this event
+            clearLastPurchaseSuccess();
         }
     }, [lastPurchaseSuccess?.timestamp]);
 

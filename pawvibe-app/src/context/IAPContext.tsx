@@ -112,6 +112,18 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await AsyncStorage.setItem('iap_processed_txs', JSON.stringify(all));
     };
 
+    // AUTO-CLEAR Success State: Prevent the success state from hanging in context
+    // and re-triggering UI effects (like confetti) on screen re-mounts.
+    useEffect(() => {
+        if (lastPurchaseSuccess) {
+            const timer = setTimeout(() => {
+                console.log('[IAP] Auto-clearing lastPurchaseSuccess state (10s timeout)');
+                setLastPurchaseSuccess(null);
+            }, 10000); // 10 seconds is plenty for UI to react
+            return () => clearTimeout(timer);
+        }
+    }, [lastPurchaseSuccess?.timestamp]);
+
     useEffect(() => {
         const initIAP = async () => {
             const RNIap = getRNIap();
