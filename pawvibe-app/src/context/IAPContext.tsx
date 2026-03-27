@@ -117,17 +117,18 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await AsyncStorage.setItem('iap_processed_txs', JSON.stringify(all));
     };
 
-    // AGGRESSIVE AUTO-CLEAR: Success state should only live for a very short window (2s)
+    // AGGRESSIVE AUTO-CLEAR: Success state should only live for a very short window (1s)
     // to trigger animations once. Beyond that, it's stale and should be null.
     useEffect(() => {
-        if (lastPurchaseSuccess) {
+        if (lastPurchaseSuccess || showConfetti) {
             const timer = setTimeout(() => {
-                console.log('[IAP] Aggressive auto-clearing success state (2s timeout)');
+                console.log('[IAP] Aggressive auto-clearing all success states (1s timeout)');
                 setLastPurchaseSuccess(null);
-            }, 2000); 
+                setShowConfetti(false);
+            }, 1000); 
             return () => clearTimeout(timer);
         }
-    }, [lastPurchaseSuccess?.transactionId]);
+    }, [lastPurchaseSuccess?.transactionId, showConfetti]);
 
     useEffect(() => {
         const initIAP = async () => {
@@ -335,22 +336,18 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Persist to prevent future replay processing
                     await persistProcessedTx(txId);
 
-                    // Show success feedback
-                    setShowConfetti(true);
-                    
-                    // Show toast/confetti for successful purchases.
-                    // If it was already processed, only show feedback if the user explicitly clicked buy/restore.
+                    // Show success feedback ONLY if it's new OR user-initiated
                     const isAlreadyProcessed = data?.message === 'Already processed';
                     if (!isAlreadyProcessed || wasUserInitiated) {
-                         // Even if already processed, if the user explicitly clicked "Buy" and Apple just returned the old receipt,
-                         // we must update the UI to show they have Premium now! (data.profile will contain the updated profile from verify-receipt)
+                        setShowConfetti(true);
+                        
                         setLastPurchaseSuccess({
                             transactionId: txId,
                             productId: pid,
                             profile: data?.profile 
                         });
                     } else {
-                        console.log('[IAP] Already-processed tx from background queue — no UI feedback:', txId);
+                        console.log('[IAP] Transaction replayed by OS but already handled, skipping UI feedback:', txId);
                     }
                 }
             } catch (e) {
