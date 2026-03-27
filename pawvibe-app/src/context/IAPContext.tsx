@@ -60,7 +60,7 @@ interface IAPContextState {
     purchasePackage: (productId: string, offerToken?: string) => Promise<void>;
     restorePurchases: () => Promise<{ success: boolean; error?: string }>;
     clearLastPurchaseSuccess: () => void;
-    lastPurchaseSuccess: { timestamp: number; productId: string; profile?: any; } | null;
+    lastPurchaseSuccess: { transactionId: string; productId: string; profile?: any; } | null;
 }
 
 const IAPContext = createContext<IAPContextState>({
@@ -81,7 +81,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [subscriptions, setSubscriptions] = useState<ProductSubscription[]>([]);
     const [isConfigured, setIsConfigured] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
-    const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ timestamp: number; productId: string; profile?: any; } | null>(null);
+    const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ transactionId: string; productId: string; profile?: any; } | null>(null);
 
     // Prevent duplicate transaction processing (persistent across restarts)
     const processedTransactions = useRef(new Set<string>());
@@ -122,7 +122,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }, 10000); // 10 seconds is plenty for UI to react
             return () => clearTimeout(timer);
         }
-    }, [lastPurchaseSuccess?.timestamp]);
+    }, [lastPurchaseSuccess?.transactionId]);
 
     useEffect(() => {
         const initIAP = async () => {
@@ -337,7 +337,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                          // Even if already processed, if the user explicitly clicked "Buy" and Apple just returned the old receipt,
                          // we must update the UI to show they have Premium now! (data.profile will contain the updated profile from verify-receipt)
                         setLastPurchaseSuccess({
-                            timestamp: Date.now(),
+                            transactionId: txId,
                             productId: pid,
                             profile: data?.profile 
                         });
@@ -467,7 +467,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             purchase,
                             isConsumable: !subSkus.includes(pid)
                         });
-                        setLastPurchaseSuccess({ timestamp: Date.now(), productId: pid, profile: data?.profile });
+                        setLastPurchaseSuccess({ transactionId: txId, productId: pid, profile: data?.profile });
                         restoredCount++;
                     } else {
                         let errorDetail = 'Unknown error';

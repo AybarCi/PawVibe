@@ -89,21 +89,23 @@ export default function ProfileScreen({ navigation }: any) {
         }
     };
 
+    // Keep track of transaction IDs that have already triggered confetti in this session
+    const seenTransactions = useRef(new Set<string>());
+
     useEffect(() => {
-        if (lastPurchaseSuccess?.timestamp && lastPurchaseSuccess?.productId) {
-            // 1. Freshness Check: Only process events from the last 60 seconds
-            const now = Date.now();
-            const isFresh = now - lastPurchaseSuccess.timestamp < 60000;
-            if (!isFresh) {
-                console.log('[Profile] Success event too old, skipping feedback');
+        if (lastPurchaseSuccess?.transactionId && lastPurchaseSuccess?.productId) {
+            const txId = lastPurchaseSuccess.transactionId;
+
+            // 1. DEDUP: Check if we already celebrated this EXACT transaction
+            if (seenTransactions.current.has(txId)) {
+                console.log('[Profile] Success event already seen/celebrated, skipping UI:', txId);
                 return;
             }
+            
+            // Mark as seen immediately to prevent race conditions
+            seenTransactions.current.add(txId);
 
-            // 2. Prevent duplicate processing for the same exact event in this mount
-            if (lastProcessedRef.current === lastPurchaseSuccess.timestamp) return;
-            lastProcessedRef.current = lastPurchaseSuccess.timestamp;
-
-            console.log('[Profile] Triggering success feedback for:', lastPurchaseSuccess.productId);
+            console.log('[Profile] FINAL FIX: Triggering unique success feedback for:', txId);
             setConfettiTrigger(prev => prev + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
@@ -120,10 +122,10 @@ export default function ProfileScreen({ navigation }: any) {
             // Backup refresh to ensure everything is in sync
             fetchProfileData(true);
 
-            // 3. IMMEDIATE CLEAR: Tell context we consumed this event
+            // 2. IMMEDIATE CLEAR: Tell context we consumed this event for this screen instance
             clearLastPurchaseSuccess();
         }
-    }, [lastPurchaseSuccess?.timestamp]);
+    }, [lastPurchaseSuccess?.transactionId]);
 
     const handlePurchase = async (productId: string) => {
         Haptics.selectionAsync();
