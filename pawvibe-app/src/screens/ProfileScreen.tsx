@@ -102,16 +102,17 @@ export default function ProfileScreen({ navigation }: any) {
         if (lastPurchaseSuccess?.transactionId && lastPurchaseSuccess?.productId) {
             const txId = lastPurchaseSuccess.transactionId;
 
-            // 1. DEDUP (GLOBAL): Check if we already celebrated this EXACT transaction in this session
+            // 1. DEDUP (GLOBAL & PERSISTENT): 
+            // Check if we already celebrated this EXACT transaction in this session or past sessions
             if (celebratedTransactionIds.includes(txId)) {
-                console.log('[Profile] Success event already celebrated (Global), skipping UI:', txId);
+                console.log('[Profile] Success event already celebrated (Persistent), skipping UI:', txId);
                 return;
             }
             
-            // Mark as celebrated in global context immediately
+            // Mark as celebrated in global context (and AsyncStorage) immediately
             markAsCelebrated(txId);
 
-            console.log('[Profile] GLOBAL FIX: Triggering unique success feedback for:', txId);
+            console.log('[Profile] DURABLE FIX: Triggering unique success feedback for:', txId);
             setConfettiTrigger(prev => prev + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
@@ -129,6 +130,7 @@ export default function ProfileScreen({ navigation }: any) {
             fetchProfileData(true);
 
             // 2. IMMEDIATE CLEAR: Tell context we consumed this event for this screen instance
+            // (This avoids re-triggering on remount if within the 2s window)
             clearLastPurchaseSuccess();
         }
     }, [lastPurchaseSuccess?.transactionId, celebratedTransactionIds]);

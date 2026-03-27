@@ -88,8 +88,24 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [lastPurchaseSuccess, setLastPurchaseSuccess] = useState<{ transactionId: string; productId: string; profile?: any; } | null>(null);
     const [celebratedTransactionIds, setCelebratedTransactionIds] = useState<string[]>([]);
 
-    const markAsCelebrated = (txId: string) => {
-        setCelebratedTransactionIds(prev => [...prev, txId]);
+    // 1. Load celebrated IDs from Storage on mount
+    useEffect(() => {
+        AsyncStorage.getItem('iap_celebrated_txs').then((stored) => {
+            if (stored) {
+                try {
+                    setCelebratedTransactionIds(JSON.parse(stored));
+                } catch (e) { }
+            }
+        });
+    }, []);
+
+    const markAsCelebrated = async (txId: string) => {
+        setCelebratedTransactionIds(prev => {
+            if (prev.includes(txId)) return prev;
+            const newIds = [...prev, txId].slice(-50); // Keep last 50
+            AsyncStorage.setItem('iap_celebrated_txs', JSON.stringify(newIds));
+            return newIds;
+        });
     };
 
     // Prevent duplicate transaction processing (persistent across restarts)
@@ -121,14 +137,14 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await AsyncStorage.setItem('iap_processed_txs', JSON.stringify(all));
     };
 
-    // AUTO-CLEAR Success State: Prevent the success state from hanging in context
-    // and re-triggering UI effects (like confetti) on screen re-mounts.
+    // AGGRESSIVE AUTO-CLEAR: Success state should only live for a very short window (2s)
+    // to trigger animations once. Beyond that, it's stale and should be null.
     useEffect(() => {
         if (lastPurchaseSuccess) {
             const timer = setTimeout(() => {
-                console.log('[IAP] Auto-clearing lastPurchaseSuccess state (10s timeout)');
+                console.log('[IAP] Aggressive auto-clearing success state (2s timeout)');
                 setLastPurchaseSuccess(null);
-            }, 10000); // 10 seconds is plenty for UI to react
+            }, 2000); 
             return () => clearTimeout(timer);
         }
     }, [lastPurchaseSuccess?.transactionId]);
