@@ -93,6 +93,9 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Track whether user actively initiated a purchase (vs. replayed transaction)
     const userInitiatedPurchaseRef = useRef(false);
     const productsRef = useRef<any[]>([]);
+    // CRITICAL: Block duplicate UI feedback for the SAME transaction ID in the current app session.
+    // This is the ultimate defense against OS-level transaction replays.
+    const celebratedInThisSession = useRef(new Set<string>());
 
     // Load previously processed transaction IDs from storage on mount
     useEffect(() => {
@@ -339,7 +342,14 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     // Show success feedback ONLY if it's new OR user-initiated
                     const isAlreadyProcessed = data?.message === 'Already processed';
                     if (!isAlreadyProcessed || wasUserInitiated) {
-                        setShowConfetti(true);
+                        // THIRD-LAYER DEFENSE: Stop feedback if we already celebrated this ID in this session
+                        if (!celebratedInThisSession.current.has(txId)) {
+                            console.log('[IAP] 🔐 Session Lock: Firing success feedback for the FIRST time this session:', txId);
+                            celebratedInThisSession.current.add(txId);
+                            setShowConfetti(true);
+                        } else {
+                            console.log('[IAP] 🔐 Session Lock: Feedback already shown for this txId, ignoring replay:', txId);
+                        }
                         
                         setLastPurchaseSuccess({
                             transactionId: txId,
@@ -473,7 +483,13 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                             isConsumable: !subSkus.includes(pid)
                         });
                         setLastPurchaseSuccess({ transactionId: txId, productId: pid, profile: data?.profile });
-                        setShowConfetti(true);
+                        
+                        // SESSION LOCK: Only show confetti if not already shown this session
+                        if (!celebratedInThisSession.current.has(txId)) {
+                            celebratedInThisSession.current.add(txId);
+                            setShowConfetti(true);
+                        }
+                        
                         restoredCount++;
                     } else {
                         let errorDetail = 'Unknown error';
