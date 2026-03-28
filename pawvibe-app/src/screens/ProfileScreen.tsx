@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ActivityIndicator, ScrollView, TouchableOpacity, Platform, Image, Linking, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,16 +17,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen({ navigation }: any) {
     const { t } = useTranslation();
-    const { 
-        products, 
-        subscriptions, 
-        purchasePackage, 
-        restorePurchases, 
-        lastPurchaseSuccess, 
-        clearLastPurchaseSuccess, 
+    const {
+        products,
+        subscriptions,
+        purchasePackage,
+        restorePurchases,
+        lastPurchaseSuccess,
+        clearLastPurchaseSuccess,
         isPurchasing,
-        showConfetti,
-        setShowConfetti
     } = useIAPContext();
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<any>(null);
@@ -36,6 +34,7 @@ export default function ProfileScreen({ navigation }: any) {
     const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
     const [isRestoring, setIsRestoring] = useState(false);
     const [confettiTrigger, setConfettiTrigger] = useState(0);
+    const handledTx = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -54,15 +53,7 @@ export default function ProfileScreen({ navigation }: any) {
         };
     }, []);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            if (session?.user) {
-                fetchProfileData();
-            }
-        }, [session])
-    );
-
-    const fetchProfileData = async (silent = false) => {
+    const fetchProfileData = useCallback(async (silent = false) => {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (!currentSession?.user) return;
 
@@ -96,39 +87,63 @@ export default function ProfileScreen({ navigation }: any) {
         } finally {
             setLoading(false);
         }
-    }
-    // CONFETTI TRIGGER: Listen to global flag, trigger once, and RESET immediately.
+    }, [t]);
+
     useEffect(() => {
-        if (showConfetti) {
-            console.log('[Profile] Success flag detected, triggering confetti!');
+        fetchProfileData();
+    }, [fetchProfileData]);
 
-            // 1. Consume the event immediately (Global Reset)
-            setShowConfetti(false);
-
-            // 2. Local feedback
-            setConfettiTrigger(prev => prev + 1);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
-    }, [showConfetti]);
-
-    // SUCCESS DATA FEEDBACK: Handle Toast and Profile Updates
+    // 🔄 Sync subscription status on focus (Handles background expiry/refunds)
+    useFocusEffect(
+        useCallback(() => {
+            fetchProfileData(true); // silent refresh
+        }, [fetchProfileData])
+    );
+    // FINAL SUCCESS HANDLER: Idempotent event consumption using local ref Set
     useEffect(() => {
-        if (lastPurchaseSuccess?.productId) {
-            console.log('[Profile] Success data detected, showing feedback');
+        const txId = lastPurchaseSuccess?.transactionId;
 
-            Toast.show({
-                type: 'success',
-                text1: t('app.success', 'Success!'),
-                text2: t('app.purchase_success_msg', 'Your purchase was successful!'),
-            });
+        if (!txId) return;
 
+        // UI-Side Deduplication: Prevent double confetti in race conditions
+        if (handledTx.current.has(txId)) return;
+        handledTx.current.add(txId);
+
+        // Skip UI feedback for silent restore/startup events
+        if (lastPurchaseSuccess.isSilent) {
+            console.log('[Profile] 🤫 Silent success data received for tx:', txId);
+            // update profile if provided
             if (lastPurchaseSuccess.profile) {
                 setProfile(lastPurchaseSuccess.profile);
             }
-            fetchProfileData(true);
-            clearLastPurchaseSuccess();
+            // Always consume the event
+            setTimeout(() => clearLastPurchaseSuccess(), 0);
+            return;
         }
-    }, [lastPurchaseSuccess?.transactionId]);
+
+        console.log('[Profile] 🎊 First-time celebration for tx:', txId);
+
+        // 🎉 UI feedback (Local consumption)
+        setConfettiTrigger(prev => prev + 1);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        Toast.show({
+            type: 'success',
+            text1: t('app.success', 'Success!'),
+            text2: t('app.purchase_success_msg', 'Your purchase was successful!'),
+        });
+
+        // update profile
+        if (lastPurchaseSuccess.profile) {
+            setProfile(lastPurchaseSuccess.profile);
+        }
+
+        fetchProfileData(true);
+
+        // Always consume the event via microtask separation
+        setTimeout(() => clearLastPurchaseSuccess(), 0);
+
+    }, [lastPurchaseSuccess?.transactionId, lastPurchaseSuccess?.isSilent]);
 
     const handlePurchase = async (productId: string) => {
         Haptics.selectionAsync();
@@ -148,15 +163,19 @@ export default function ProfileScreen({ navigation }: any) {
         let offerToken;
         if (Platform.OS === 'android' && 'subscriptionOffers' in item) {
             const sub = item as any;
-            offerToken = sub.subscriptionOffers?.[0]?.offerTokenAndroid
-                || sub.subscriptionOfferDetailsAndroid?.[0]?.offerToken
-                || undefined;
+            
+            // 💎 Architect Pick: Try to find a Free Trial offer first
+            const freeTrialOffer = sub.subscriptionOffers?.find((o: any) => 
+                o.pricingPhases?.pricingPhaseList?.some((p: any) => p.formattedPrice === 'FREE' || p.priceAmountMicros === '0')
+            );
+            
+            const offer = freeTrialOffer || sub.subscriptionOffers?.[0];
+            offerToken = offer?.offerToken || offer?.offerTokenAndroid || sub.subscriptionOfferDetailsAndroid?.[0]?.offerToken;
         }
 
         try {
-            // Await so the native payment sheet appears and errors are caught.
             // Success is NOT handled here — it comes through lastPurchaseSuccess listener.
-            await purchasePackage(productId, offerToken);
+            purchasePackage(productId, offerToken);
         } catch (err: any) {
             let errorText = t('app.purchase_failed', 'Purchase failed.');
             if (err && err.message && err.message !== 'undefined') {
@@ -398,16 +417,18 @@ export default function ProfileScreen({ navigation }: any) {
                         Haptics.selectionAsync();
                         setIsRestoring(true);
                         try {
-                            const { success, error } = await restorePurchases();
+                            const { success, restoredCount, error } = await restorePurchases();
                             if (success) {
-                                setConfettiTrigger(prev => prev + 1);
-                                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                                Toast.show({ type: 'success', text1: t('app.restore_complete'), text2: t('app.restore_success_msg') });
-                                fetchProfileData();
+                                if (restoredCount && restoredCount > 0) {
+                                    setConfettiTrigger(prev => prev + 1);
+                                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                                    Toast.show({ type: 'success', text1: t('app.restore_complete'), text2: t('app.restore_success_msg') });
+                                } else {
+                                    Toast.show({ type: 'info', text1: t('app.restore_purchases'), text2: t('app.already_restored') });
+                                }
+                                fetchProfileData(true);
                             } else if (error === 'no_purchases') {
                                 Toast.show({ type: 'info', text1: t('app.restore_purchases'), text2: t('app.no_purchases_found') });
-                            } else if (error === 'already_restored') {
-                                Toast.show({ type: 'info', text1: t('app.restore_purchases'), text2: t('app.already_restored') });
                             } else {
                                 Toast.show({ type: 'error', text1: t('app.error'), text2: error || t('app.restore_failed') });
                             }
