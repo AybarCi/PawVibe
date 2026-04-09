@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/Users';
+import AnalysesPage from './pages/Analyses';
 import PurchasesPage from './pages/Purchases';
 import SubscriptionsPage from './pages/Subscriptions';
 import { supabase } from './lib/supabase';
@@ -103,6 +104,7 @@ function App() {
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
       case 'users': return <UsersPage />;
+      case 'analyses': return <AnalysesPage />;
       case 'purchases': return <PurchasesPage />;
       case 'subscriptions': return <SubscriptionsPage />;
       default: return <Dashboard />;

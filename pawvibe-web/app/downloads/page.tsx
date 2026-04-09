@@ -39,16 +39,19 @@ export default function DownloadsPage() {
                     </a>
 
                     {/* Android */}
-                    <div
-                        className="gradient-border rounded-2xl p-8 text-center opacity-60 cursor-default"
+                    <a
+                        href="https://play.google.com/store/apps/details?id=com.setifera.pawvibe&hl=tr"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="gradient-border rounded-2xl p-8 text-center hover:scale-[1.03] transition-transform group"
                     >
                         <div className="text-5xl mb-4">🤖</div>
                         <h3 className="text-2xl font-bold text-white mb-2">Android</h3>
                         <p className="text-[#8B7BA8] mb-6">Phones & Tablets</p>
-                        <div className="bg-[#6A4C93] text-white font-bold py-3 px-6 rounded-full">
-                            Coming Soon
+                        <div className="bg-[#4CAF50] group-hover:bg-[#66BB6A] text-white font-bold py-3 px-6 rounded-full transition-colors glow-green">
+                            Play Store
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 {/* What's Included */}

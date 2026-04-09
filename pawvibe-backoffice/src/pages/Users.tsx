@@ -67,6 +67,7 @@ const UsersPage: React.FC = () => {
                                 <th className="px-6 py-4">Account Link Status</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Credits</th>
+                                <th className="px-6 py-4 text-center">Created At</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -100,9 +101,21 @@ const UsersPage: React.FC = () => {
                                                 <span className="text-sm text-pink-200">{user.email_change}</span>
                                             </div>
                                         ) : (
-                                            <span className="text-xs text-gray-500 italic">
-                                                {user.email ? 'Connected' : 'henüz hesabını bağlamamış'}
-                                            </span>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.providers && user.providers.filter((p: string) => p !== 'anonymous').length > 0 ? (
+                                                    user.providers
+                                                        .filter((p: string) => p !== 'anonymous')
+                                                        .map((p: string) => (
+                                                            <span key={p} className="px-2 py-0.5 rounded-full bg-[#FFD700]/10 text-[9px] text-[#FFD700] border border-[#FFD700]/20 font-black uppercase tracking-wider shadow-[0_0_10px_rgba(255,215,0,0.1)]">
+                                                                {p}
+                                                            </span>
+                                                        ))
+                                                ) : (
+                                                    <span className="px-2 py-0.5 rounded-full bg-gray-500/10 text-[9px] text-gray-500 border border-gray-500/20 font-black uppercase tracking-wider">
+                                                        {user.is_anonymous ? 'Guest / Anon' : 'Email Only'}
+                                                    </span>
+                                                )}
+                                            </div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4">

@@ -35,3 +35,13 @@ body {
 .tremor-chart-override .recharts-tooltip-cursor {
   stroke: rgba(255, 0, 127, 0.2) !important;
 }
+
+.tremor-chart-override .recharts-area-curve {
+  stroke: #FF007F !important;
+  stroke-width: 2px !important;
+}
+
+.tremor-chart-override .recharts-area-active-dot circle {
+  fill: #FF007F !important;
+  stroke: #15002C !important;
+}

@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req: Request) => {
@@ -44,15 +45,24 @@ serve(async (req: Request) => {
       console.log("[get-paged-users] User[0] new_email:", (users[0] as any).new_email);
     }
 
-    // 3. Process & Filter (Handling email_change for linked accounts)
-    let processedUsers = users.map(u => ({
-      id: u.id,
-      email: u.email || null,
-      // Bazı GoTrue sürümlerinde 'new_email' olarak da gelebilir
-      email_change: u.email_change || (u as any).new_email || null,
-      created_at: u.created_at,
-      last_login: u.last_sign_in_at
-    }));
+    // 3. Process & Filter
+    let processedUsers = users.map(u => {
+      // Get providers from multiple places (app_metadata is most reliable in list view)
+      const providers = [
+        ...(u.app_metadata?.providers || []),
+        ...(u.identities?.map(i => i.provider) || [])
+      ].filter((v, i, a) => a.indexOf(v) === i); // Unique
+
+      return {
+        id: u.id,
+        email: u.email || null,
+        email_change: u.email_change || (u as any).new_email || null,
+        created_at: u.created_at,
+        last_login: u.last_sign_in_at,
+        providers: providers,
+        is_anonymous: providers.length === 0 || providers.includes('anonymous')
+      };
+    });
 
     if (search) {
       const s = search.toLowerCase();

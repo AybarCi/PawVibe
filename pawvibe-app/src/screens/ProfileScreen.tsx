@@ -217,7 +217,7 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.headerTitle}>{t('app.profile_title')}</Text>
                 {profile?.username && (
                     <View style={styles.usernameContainer}>
-                        <Text style={styles.usernameText}>@{profile.username}</Text>
+                        <Text style={styles.usernameText} numberOfLines={1}>@{profile.username}</Text>
                     </View>
                 )}
             </View>
@@ -273,6 +273,26 @@ export default function ProfileScreen({ navigation }: any) {
                                 <Text style={styles.creditLabel}>{t('app.purchased_scans')}</Text>
                                 <Text style={styles.creditValue}>{profile.purchased_credits}</Text>
                             </View>
+
+                            {/* Weekly credit refresh info banner */}
+                            {!isPremiumUser && (
+                                <View style={{
+                                    marginTop: 12,
+                                    backgroundColor: 'rgba(106, 76, 147, 0.15)',
+                                    borderRadius: 10,
+                                    padding: 12,
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(106, 76, 147, 0.3)',
+                                    flexDirection: 'row',
+                                    alignItems: 'flex-start',
+                                    gap: 8,
+                                }}>
+                                    <Ionicons name="information-circle-outline" size={18} color="#6A4C93" style={{ marginTop: 1 }} />
+                                    <Text style={{ color: '#9B8BB4', fontSize: 12, flex: 1, lineHeight: 18 }}>
+                                        {t('app.weekly_refresh_info', 'Your 5 free weekly scans refresh automatically when you take your next scan after 7 days. No action needed!')}
+                                    </Text>
+                                </View>
+                            )}
 
                             {products.length === 0 ? (
                                 <View style={[styles.purchaseContainer, { alignItems: 'center', paddingVertical: 30 }]}>
@@ -469,8 +489,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A001A' },
     header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 10 : 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     title: { fontSize: 32, fontWeight: '900', color: '#fff' },
-    usernameContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 0, 127, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, borderWidth: 1, borderColor: '#FF007F' },
-    usernameText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
+    usernameContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 0, 127, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, borderWidth: 1, borderColor: '#FF007F', maxWidth: '50%' },
+    usernameText: { color: 'white', fontSize: 14, fontWeight: 'bold', flexShrink: 1 },
     scrollContent: { padding: 20, paddingBottom: 40 },
     centerContainer: { flex: 1, backgroundColor: '#0A001A', justifyContent: 'center', alignItems: 'center' },
     headerTitle: { color: '#FFD700', fontSize: 32, fontWeight: '900', marginBottom: 10, marginTop: 10, textShadowColor: '#FF007F', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
@@ -478,7 +498,7 @@ const styles = StyleSheet.create({
     card: { backgroundColor: '#1A0B2E', padding: 20, borderRadius: 15, marginBottom: 30, borderWidth: 1, borderColor: '#FF007F' },
     cardTitle: { color: '#FF007F', fontSize: 22, fontWeight: '900', marginBottom: 15 },
     creditRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#2a3b5e' },
-    creditLabel: { color: '#ccc', fontSize: 16 },
+    creditLabel: { color: '#ccc', fontSize: 16, flexShrink: 1 },
     creditValue: { color: '#FFD700', fontSize: 18, fontWeight: 'bold' },
 
     // Tabs
@@ -494,8 +514,8 @@ const styles = StyleSheet.create({
     purchaseBtn: { backgroundColor: '#2a3b5e', padding: 15, borderRadius: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     gradientContainer: { marginBottom: 10, borderRadius: 10, overflow: 'hidden', shadowColor: '#FF007F', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 10 },
     gradientBtn: { padding: 15, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    purchaseBtnText: { color: 'white', fontWeight: 'bold', fontSize: 15 },
-    purchasePrice: { color: '#FFD700', fontWeight: 'bold' },
+    purchaseBtnText: { color: 'white', fontWeight: 'bold', fontSize: 15, flexShrink: 1 },
+    purchasePrice: { color: '#FFD700', fontWeight: 'bold', marginLeft: 8 },
     premiumBtnText: { color: 'white', fontWeight: '900', fontSize: 16 },
     premiumPrice: { color: 'white', fontWeight: 'bold' },
     premiumActiveBox: { backgroundColor: 'rgba(255, 215, 0, 0.2)', padding: 15, borderRadius: 10, marginTop: 20, alignItems: 'center', borderWidth: 1, borderColor: '#FFD700' },

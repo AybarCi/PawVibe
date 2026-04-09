@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.4.9",
+    "version": "1.5.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -88,7 +88,7 @@
           }
         ]
       },
-      "buildNumber": "33",
+      "buildNumber": "35",
       "usesAppleSignIn": true
     },
     "android": {
@@ -98,7 +98,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.setifera.pawvibe",
-      "versionCode": 9
+      "versionCode": 13
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -129,7 +129,12 @@
       ],
       "./plugins/withDisableExtraTranslationLint",
       "expo-apple-authentication",
-      "@react-native-google-signin/google-signin"
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.805364395142-esbqqr3j5c7f0fi8hafifvs43jb6f64t"
+        }
+      ]
     ],
     "extra": {
       "eas": {

@@ -17,6 +17,7 @@ import { supabase } from '../../lib/supabase';
 import { logMetaPurchase, logMetaEvent } from '../../lib/metaTracking';
 import { IAP_PRODUCTS, itemSkus, subSkus } from '../../lib/iap';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import i18n from 'i18next';
 
 // Only mock IAP in Expo Go development environment
 // ExecutionEnvironment.StoreClient covers BOTH Expo Go AND real App Store builds, so we must NOT use it here
@@ -412,7 +413,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                         console.error('[IAP] Backend Verification Failed:', errorDetail);
 
                         if (wasUserInitiated) {
-                            Toast.show({ type: 'error', text1: 'Satın Alma Hatası', text2: `Doğrulama hatası: ${errorDetail}` });
+                            Toast.show({ type: 'error', text1: i18n.t('app.purchase_failed'), text2: `${i18n.t('app.verification_error', 'Verification error')}: ${errorDetail}` });
                         }
                         
                         // If OS replay failed, finish it to stop retries
@@ -454,7 +455,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     }
 
                     if (wasUserInitiated) {
-                        Toast.show({ type: 'error', text1: 'Doğrulama Bekleyen İşlem', text2: 'İnternet/Zaman aşımı nedeniyle işleminiz kuyruğa alındı, arka planda tamamlanacak.' });
+                        Toast.show({ type: 'error', text1: i18n.t('app.pending_verification', 'Pending Verification'), text2: i18n.t('app.pending_verification_msg', 'Your purchase is queued and will be completed in the background.') });
                     }
                 }
             } catch (e) {
@@ -473,8 +474,8 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (hasActiveInitiation) {
                 Toast.show({
                     type: 'error',
-                    text1: 'Satın alma başarısız',
-                    text2: error.message || 'Bir hata oluştu.',
+                    text1: i18n.t('app.purchase_failed'),
+                    text2: error.message || i18n.t('app.error'),
                 });
             }
 
@@ -545,7 +546,7 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
 
             if (err.code !== 'E_USER_CANCELLED' && err.code !== 'ERR_USER_CANCELLED') {
-                Toast.show({ type: 'error', text1: 'Hata', text2: err.message || 'Satın alma başlatılamadı.' });
+                Toast.show({ type: 'error', text1: i18n.t('app.error'), text2: err.message || i18n.t('app.purchase_failed') });
             }
         }
     };

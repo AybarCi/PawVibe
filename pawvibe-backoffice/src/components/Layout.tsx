@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, Shield, ShoppingBag, Settings, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, ShoppingBag, Settings, LogOut, Menu, X, Activity } from 'lucide-react';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -73,6 +73,12 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
                         label="User Management"
                         active={activeTab === 'users'}
                         onClick={() => handleTabChange('users')}
+                    />
+                    <NavItem
+                        icon={<Activity size={20} />}
+                        label="Analyses"
+                        active={activeTab === 'analyses'}
+                        onClick={() => handleTabChange('analyses')}
                     />
                     <NavItem
                         icon={<ShoppingBag size={20} />}
