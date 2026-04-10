@@ -129,15 +129,15 @@ export default function App() {
                     console.log('[App] Existing session found:', session.user.id);
                 }
 
+                // Initialize Meta Tracking as early as possible for best attribution results
+                initMetaTracking();
+
                 // Minimum wait to show off the splash screen beautifully
                 await new Promise(resolve => setTimeout(resolve, 2500));
             } catch (e) {
                 console.warn('[App] Startup error:', e);
             } finally {
                 await SplashScreen.hideAsync();
-                
-                // Initialize Meta Tracking after splash screen
-                initMetaTracking();
             }
         }
         prepare();

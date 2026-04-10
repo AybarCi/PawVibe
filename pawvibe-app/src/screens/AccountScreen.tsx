@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
 import { signInWithApple, signInWithGoogle } from '../../lib/socialAuth';
 import { LinearGradient } from 'expo-linear-gradient';
+import { setMetaUserData } from '../../lib/metaTracking';
 
 export default function AccountScreen({ navigation }: any) {
     const { t } = useTranslation();
@@ -109,6 +110,11 @@ export default function AccountScreen({ navigation }: any) {
                 if (profileData) {
                     setProfile(profileData);
                     setNewUsername(profileData.username || '');
+                }
+
+                // Meta Advanced Auto Matching: send hashed email if available
+                if (currentSession.user.email && !currentSession.user.is_anonymous) {
+                    setMetaUserData(currentSession.user.email);
                 }
             }
         } catch (e) {

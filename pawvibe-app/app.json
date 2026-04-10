@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -19,7 +19,8 @@
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.805364395142-esbqqr3j5c7f0fi8hafifvs43jb6f64t"
+              "com.googleusercontent.apps.805364395142-esbqqr3j5c7f0fi8hafifvs43jb6f64t",
+              "fb957695596607763"
             ]
           }
         ],
@@ -42,10 +43,10 @@
             "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
           },
           {
-            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
+            "SKAdNetworkIdentifier": "4fzdc2evr5.skadnetwork"
           },
           {
-            "SKAdNetworkIdentifier": "4fzdc2evr5.skadnetwork"
+            "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
           },
           {
             "SKAdNetworkIdentifier": "2fnua5tdw4.skadnetwork"
@@ -85,11 +86,172 @@
           },
           {
             "SKAdNetworkIdentifier": "4dzt52r2t5.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "578prtvx9j.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "4468km3ulz.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "9rd848q2bz.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "7ug5zh24hu.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "m8dbw4sv7c.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "4pfyvq9l8r.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "7rz58n8akl.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "tl55sbb4fm.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "wzmmz9fp6w.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "mlmmfzh3r3.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "klf5c3l5u5.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "9t245vhmpl.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "2u9pt9hc89.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "8s468mfl3y.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "uw77j35x4d.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "5l3tpt7t6e.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "3rd42ekr43.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "cg4yq2srnc.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "hs6bdukanm.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "av6w8kgt66.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "yclnxrl5pm.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "t38b2kh725.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "737z793b9f.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "up8m7hx5qz.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "97r2b46745.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "47vhws6wlr.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "kbd757ywx3.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "9nlqeag3gk.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "22mmun2rn5.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "44jx6755aq.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "k674qkevps.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "238da6jt44.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "488r3q3dtu.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "glqzh8vgby.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "f73kdq92p3.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "6xz35gr7jh.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "32z4fx6l9h.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "523jb4ptr3.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "54nzkbh89y.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "9b89h5y424.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "prcb7njmu6.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "7953jerfzd.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "5LM926Q7H.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "dzg6xy7pwj.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "f38h382jlk.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "hdw39hrw9y.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "mj797d8u6f.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "v79kvwwj4g.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "584y63pi6n.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "8c4e2ghe7u.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "zq492l623r.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "3qcr597p9d.skadnetwork"
           }
-        ]
+        ],
+        "FacebookAppID": "957695596607763",
+        "FacebookDisplayName": "PawVibe",
+        "FacebookAdvertiserIDCollectionEnabled": true,
+        "FacebookAutoLogAppEventsEnabled": true
       },
-      "buildNumber": "35",
-      "usesAppleSignIn": true
+      "buildNumber": "36",
+      "usesAppleSignIn": true,
+      "appleAppId": "6759780429"
     },
     "android": {
       "adaptiveIcon": {
