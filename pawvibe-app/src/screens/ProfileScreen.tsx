@@ -14,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { LinearGradient } from 'expo-linear-gradient';
+import { logMetaEvent } from '../../lib/metaTracking';
 
 export default function ProfileScreen({ navigation }: any) {
     const { t } = useTranslation();
@@ -244,7 +245,10 @@ export default function ProfileScreen({ navigation }: any) {
                 <View style={styles.tabContainer}>
                     <TouchableOpacity
                         style={[styles.tabButton, activeTab === 'Credits' && styles.activeTab]}
-                        onPress={() => setActiveTab('Credits')}
+                        onPress={() => {
+                            setActiveTab('Credits');
+                            logMetaEvent('fb_mobile_add_to_cart', { content_type: 'credits_paywall' });
+                        }}
                     >
                         <Text style={[styles.tabText, activeTab === 'Credits' && styles.activeTabText]}>
                             {t('app.tab_credits', 'Credits')}
@@ -252,7 +256,10 @@ export default function ProfileScreen({ navigation }: any) {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.tabButton, activeTab === 'Subscription' && styles.activeTab]}
-                        onPress={() => setActiveTab('Subscription')}
+                        onPress={() => {
+                            setActiveTab('Subscription');
+                            logMetaEvent('fb_mobile_add_to_cart', { content_type: 'subscription_paywall' });
+                        }}
                     >
                         <Text style={[styles.tabText, activeTab === 'Subscription' && styles.activeTabText]}>
                             {t('app.tab_subscription', 'Subscription')}

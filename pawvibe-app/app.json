@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.setifera.pawvibe",
+      "deploymentTarget": "16.0",
       "infoPlist": {
         "CFBundleURLTypes": [
           {
@@ -249,7 +250,7 @@
         "FacebookAdvertiserIDCollectionEnabled": true,
         "FacebookAutoLogAppEventsEnabled": true
       },
-      "buildNumber": "36",
+      "buildNumber": "37",
       "usesAppleSignIn": true,
       "appleAppId": "6759780429"
     },
@@ -260,7 +261,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.setifera.pawvibe",
-      "versionCode": 13
+      "versionCode": 14
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -290,6 +291,7 @@
         }
       ],
       "./plugins/withDisableExtraTranslationLint",
+      "./plugins/withNitroIapBuildFix",
       "expo-apple-authentication",
       [
         "@react-native-google-signin/google-signin",

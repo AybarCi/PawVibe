@@ -16,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
 import { useIAPContext } from '../context/IAPContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { logMetaEvent } from '../../lib/metaTracking';
 
 interface AnalysisResult {
     mood_title?: string;
@@ -228,6 +229,7 @@ export default function CameraScreen({ navigation }: any) {
 
             if (!photo) throw new Error("Could not capture photo.");
             setPhotoUri(photo.uri);
+            logMetaEvent('photo_captured', { source: 'camera' });
 
             // 2. Resize and Compress Image
             const manipResult = await ImageManipulator.manipulateAsync(
@@ -239,6 +241,7 @@ export default function CameraScreen({ navigation }: any) {
             if (!manipResult.base64) throw new Error("Could not compress photo.");
 
             // 3. Call Edge Function
+            logMetaEvent('ai_analysis_started');
             const { data, error } = await supabase.functions.invoke('analyze-pet-vibe', {
                 body: {
                     user_id: authSession.user.id,
@@ -260,6 +263,7 @@ export default function CameraScreen({ navigation }: any) {
 
             // 4. Set Result
             setResult(data);
+            logMetaEvent('fb_mobile_content_view', { content_type: 'vibe_result' });
 
         } catch (error) {
             console.error("Analysis Error:", error);
@@ -276,6 +280,7 @@ export default function CameraScreen({ navigation }: any) {
                 const uri = await viewShotRef.current.capture();
                 setShareImageUri(uri);
                 setShowShareModal(true);
+                logMetaEvent('fb_mobile_share', { content_type: 'vibe_card' });
             }
         } catch (error) {
             console.error(error);

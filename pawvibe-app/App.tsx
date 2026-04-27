@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import * as Haptics from 'expo-haptics';
 import Toast, { BaseToast, ErrorToast, ToastConfigParams } from 'react-native-toast-message';
 import { initMetaTracking } from './lib/metaTracking';
+import { requestTrackingPermissionsAsync, getTrackingPermissionsAsync } from 'expo-tracking-transparency';
 
 // Import screens
 import CameraScreen from './src/screens/CameraScreen';
@@ -117,9 +118,20 @@ export default function App() {
     const { t } = useTranslation();
 
     useEffect(() => {
+        let isMounted = true;
+
         async function prepare() {
             try {
-                // Ensure anonymous session exists before anything else
+                // 1. Strictly await ATT before configuring Meta and Auth
+                let trackingGranted = false;
+                if (Platform.OS === 'ios') {
+                    const { status } = await requestTrackingPermissionsAsync();
+                    trackingGranted = status === 'granted';
+                } else {
+                    trackingGranted = true;
+                }
+
+                // 2. Ensure anonymous session exists (IDENTITY LAYER)
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
                     console.log('[App] No session found, signing in anonymously...');
@@ -129,18 +141,42 @@ export default function App() {
                     console.log('[App] Existing session found:', session.user.id);
                 }
 
-                // Initialize Meta Tracking as early as possible for best attribution results
-                initMetaTracking();
+                // 3. Configure Meta Tracking (EVENT GRAPH START)
+                initMetaTracking(trackingGranted);
 
                 // Minimum wait to show off the splash screen beautifully
                 await new Promise(resolve => setTimeout(resolve, 2500));
             } catch (e) {
                 console.warn('[App] Startup error:', e);
             } finally {
-                await SplashScreen.hideAsync();
+                if (isMounted) {
+                    await SplashScreen.hideAsync();
+                }
             }
         }
         prepare();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    // Meta Tracking: AppState Re-Sync (Handle runtime permission changes from Settings)
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', async (nextAppState) => {
+            if (nextAppState === 'active' && Platform.OS === 'ios') {
+                try {
+                    // Use GET instead of REQUEST to avoid aggressive re-prompting
+                    const { status } = await getTrackingPermissionsAsync();
+                    initMetaTracking(status === 'granted');
+                } catch (e) {
+                    console.warn('[App] ATT AppState Re-sync error:', e);
+                }
+            }
+        });
+        return () => {
+            subscription.remove();
+        };
     }, []);
 
     return (
