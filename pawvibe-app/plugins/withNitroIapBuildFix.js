@@ -38,12 +38,17 @@ module.exports = function withNitroIapBuildFix(config) {
     end
 `;
 
-      if (!podfileContent.includes('NitroModules') && !podfileContent.includes('NitroIap')) {
-        podfileContent = podfileContent.replace(
-          /post_install do \|installer\|/,
-          `post_install do |installer|${postInstallSnippet}`
-        );
-      }
+      // Remove any previously injected instances of this block to avoid double injection
+      podfileContent = podfileContent.replace(
+        /installer\.pods_project\.targets\.each do \|target\|[\s\S]*?# Force all targets to iOS 16\.0 deployment target[\s\S]*?end\s*end/g,
+        ""
+      );
+
+      // Inject the snippet at the start of post_install
+      podfileContent = podfileContent.replace(
+        /post_install do \|installer\|/,
+        `post_install do |installer|${postInstallSnippet}`
+      );
       fs.writeFileSync(podfilePath, podfileContent);
 
       // Force IPHONEOS_DEPLOYMENT_TARGET in project.pbxproj to 16.0
