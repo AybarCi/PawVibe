@@ -46,6 +46,17 @@ module.exports = function withNitroIapBuildFix(config) {
       }
       fs.writeFileSync(podfilePath, podfileContent);
 
+      // Force IPHONEOS_DEPLOYMENT_TARGET in project.pbxproj to 16.0
+      const pbxprojPath = path.join(config.modRequest.platformProjectRoot, 'PawVibe.xcodeproj', 'project.pbxproj');
+      if (fs.existsSync(pbxprojPath)) {
+        let pbxprojContent = fs.readFileSync(pbxprojPath, 'utf-8');
+        pbxprojContent = pbxprojContent.replace(
+          /IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/g,
+          "IPHONEOS_DEPLOYMENT_TARGET = 16.0;"
+        );
+        fs.writeFileSync(pbxprojPath, pbxprojContent);
+      }
+
       return config;
     },
   ]);
