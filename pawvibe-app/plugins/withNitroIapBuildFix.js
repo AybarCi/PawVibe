@@ -13,12 +13,20 @@ module.exports = function withNitroIapBuildFix(config) {
       const podfilePath = path.join(config.modRequest.platformProjectRoot, 'Podfile');
       let podfileContent = fs.readFileSync(podfilePath, 'utf-8');
 
+      // Force platform version to 16.0
+      podfileContent = podfileContent.replace(
+        /platform :ios, podfile_properties\['ios\.deploymentTarget'\] \|\| '[0-9.]+'/,
+        "platform :ios, '16.0'"
+      );
+
       const postInstallSnippet = `
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
+        # Force all targets to iOS 16.0 deployment target
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+
         if ['NitroModules', 'NitroIap'].include?(target.name)
           config.build_settings['SWIFT_VERSION'] = '5.10'
-          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
           if target.name == 'NitroIap'
             config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-O'
             config.build_settings['SWIFT_COMPILATION_MODE'] = 'wholemodule'
@@ -35,8 +43,8 @@ module.exports = function withNitroIapBuildFix(config) {
           /post_install do \|installer\|/,
           `post_install do |installer|${postInstallSnippet}`
         );
-        fs.writeFileSync(podfilePath, podfileContent);
       }
+      fs.writeFileSync(podfilePath, podfileContent);
 
       return config;
     },
