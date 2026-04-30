@@ -100,6 +100,7 @@ const ScanningGlyphs = () => {
 
 // Sub-component for SEQUENTIAL data callouts
 const DataCallouts = ({ isVisible }: { isVisible: boolean }) => {
+    const { t } = useTranslation();
     const c1 = useSharedValue(0);
     const c2 = useSharedValue(0);
     const c3 = useSharedValue(0);
@@ -129,22 +130,22 @@ const DataCallouts = ({ isVisible }: { isVisible: boolean }) => {
         <Animated.View style={StyleSheet.absoluteFill} pointerEvents="none">
             <Animated.View style={[styles.callout, { top: '15%', left: '5%' }, getStyle(c1)]}>
                 <View style={styles.calloutLineH} />
-                <View style={styles.calloutBox}><Text style={styles.calloutText}>BIO_SIG: DETECTED</Text></View>
+                <View style={styles.calloutBox}><Text style={styles.calloutText}>{t('app.bio_sig', 'BIO_SIG: DETECTED')}</Text></View>
             </Animated.View>
 
             <Animated.View style={[styles.callout, { top: '35%', right: '5%', flexDirection: 'row-reverse' }, getStyleR(c2)]}>
                 <View style={styles.calloutLineH} />
-                <View style={styles.calloutBox}><Text style={styles.calloutText}>KAOS_MATRIX: SYNC</Text></View>
+                <View style={styles.calloutBox}><Text style={styles.calloutText}>{t('app.kaos_matrix', 'KAOS_MATRIX: SYNC')}</Text></View>
             </Animated.View>
 
             <Animated.View style={[styles.callout, { bottom: '30%', left: '8%' }, getStyle(c3)]}>
                 <View style={styles.calloutLineH} />
-                <View style={styles.calloutBox}><Text style={styles.calloutText}>VIBE_LVL: CALCULATING</Text></View>
+                <View style={styles.calloutBox}><Text style={styles.calloutText}>{t('app.vibe_res', 'VIBE_RES: CALCULATING')}</Text></View>
             </Animated.View>
 
             <Animated.View style={[styles.callout, { bottom: '15%', right: '8%', flexDirection: 'row-reverse' }, getStyleR(c4)]}>
                 <View style={styles.calloutLineH} />
-                <View style={styles.calloutBox}><Text style={styles.calloutText}>CUTE_ERR: 0.00%</Text></View>
+                <View style={styles.calloutBox}><Text style={styles.calloutText}>{t('app.cute_err', 'CUTE_ERR: 0.00%')}</Text></View>
             </Animated.View>
         </Animated.View>
     );
@@ -453,7 +454,7 @@ export default function CameraScreen({ navigation }: any) {
                                 
                                 <View style={styles.posterHeader}>
                                     <Text style={styles.posterTitle}>PAWVIBE</Text>
-                                    <Text style={styles.posterSubtitle}>COSMIC ANALYSIS REPORT</Text>
+                                    <Text style={styles.posterSubtitle}>{t('app.cosmic_report', 'COSMIC ANALYSIS REPORT')}</Text>
                                 </View>
 
                                 <View style={styles.posterImageContainer}>
