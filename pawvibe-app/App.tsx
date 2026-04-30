@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import './lib/i18n'; // Initialize i18n
 import { useTranslation } from 'react-i18next';
 import { supabase } from './lib/supabase';
@@ -180,92 +181,94 @@ export default function App() {
     }, []);
 
     return (
-        <SafeAreaProvider>
-            <IAPProvider>
-                <NavigationContainer theme={DarkPurpleTheme}>
-                    <Tab.Navigator
-                        id="RootTab"
-                        screenOptions={({ route }) => ({
-                            tabBarIcon: ({ focused, color, size }) => {
-                                let iconSource;
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaProvider>
+                <IAPProvider>
+                    <NavigationContainer theme={DarkPurpleTheme}>
+                        <Tab.Navigator
+                            id="RootTab"
+                            screenOptions={({ route }) => ({
+                                tabBarIcon: ({ focused, color, size }) => {
+                                    let iconSource;
 
-                                if (route.name === 'Scan') {
-                                    iconSource = require('./assets/tab-scan.png');
-                                } else if (route.name === 'MyScans') {
-                                    iconSource = require('./assets/tab-myscans.png');
-                                } else if (route.name === 'Profile') {
-                                    iconSource = require('./assets/tab-profile.png');
-                                }
+                                    if (route.name === 'Scan') {
+                                        iconSource = require('./assets/tab-scan.png');
+                                    } else if (route.name === 'MyScans') {
+                                        iconSource = require('./assets/tab-myscans.png');
+                                    } else if (route.name === 'Profile') {
+                                        iconSource = require('./assets/tab-profile.png');
+                                    }
 
-                                // Use opacity to indicate focus state since we are using static images
-                                return (
-                                    <Image
-                                        source={iconSource}
-                                        style={{
-                                            width: 77, // Increased from 32
-                                            height: 77, // Increased from 32
-                                            opacity: focused ? 1 : 0.4,
-                                            marginTop: Platform.OS === 'ios' ? 32 : 20 // Push down slightly to center vertically without labels
-                                        }}
-                                        resizeMode="contain"
-                                    />
-                                );
-                            },
-                            tabBarActiveTintColor: '#FF007F', // Neon Pink
-                            tabBarInactiveTintColor: '#6A4C93', // Muted Purple
-                            tabBarShowLabel: false, // Hides the text labels
-                            tabBarStyle: {
-                                backgroundColor: '#0A001A', // Deep dark purple background
-                                borderTopColor: '#FF007F', // Neon pink top border
-                                borderTopWidth: 1, // Add defined width for retro glow feel
-                                height: Platform.OS === 'ios' ? 90 : 80, // Keep height for safe area
-                                paddingBottom: Platform.OS === 'ios' ? 30 : 10, // Adjust bottom padding on Android
-                                paddingTop: Platform.OS === 'ios' ? 0 : 5, // Add top padding on Android to separate from line
-                            },
-                            headerStyle: {
-                                backgroundColor: '#0A001A',
-                            },
-                            headerTintColor: '#fff',
-                            headerTitleStyle: {
-                                fontWeight: '900',
-                                color: '#FFD700', // Neon Yellow Header Title
-                            },
-                        })}
-                    >
-                        <Tab.Screen
-                            name="Scan"
-                            component={CameraScreen}
-                            options={{ headerShown: false, tabBarLabel: t('app.tab_scan') }}
-                            listeners={({ navigation, route }) => ({
-                                tabPress: (e) => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    // Use opacity to indicate focus state since we are using static images
+                                    return (
+                                        <Image
+                                            source={iconSource}
+                                            style={{
+                                                width: 77, // Increased from 32
+                                                height: 77, // Increased from 32
+                                                opacity: focused ? 1 : 0.4,
+                                                marginTop: Platform.OS === 'ios' ? 32 : 20 // Push down slightly to center vertically without labels
+                                            }}
+                                            resizeMode="contain"
+                                        />
+                                    );
+                                },
+                                tabBarActiveTintColor: '#FF007F', // Neon Pink
+                                tabBarInactiveTintColor: '#6A4C93', // Muted Purple
+                                tabBarShowLabel: false, // Hides the text labels
+                                tabBarStyle: {
+                                    backgroundColor: '#0A001A', // Deep dark purple background
+                                    borderTopColor: '#FF007F', // Neon pink top border
+                                    borderTopWidth: 1, // Add defined width for retro glow feel
+                                    height: Platform.OS === 'ios' ? 90 : 80, // Keep height for safe area
+                                    paddingBottom: Platform.OS === 'ios' ? 30 : 10, // Adjust bottom padding on Android
+                                    paddingTop: Platform.OS === 'ios' ? 0 : 5, // Add top padding on Android to separate from line
+                                },
+                                headerStyle: {
+                                    backgroundColor: '#0A001A',
+                                },
+                                headerTintColor: '#fff',
+                                headerTitleStyle: {
+                                    fontWeight: '900',
+                                    color: '#FFD700', // Neon Yellow Header Title
                                 },
                             })}
-                        />
-                        <Tab.Screen
-                            name="MyScans"
-                            component={MyScansScreen}
-                            options={{ headerShown: false, tabBarLabel: t('app.tab_scans') }}
-                            listeners={({ navigation, route }) => ({
-                                tabPress: (e) => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                },
-                            })}
-                        />
-                        <Tab.Screen
-                            name="Profile"
-                            component={ProfileStackScreen}
-                            options={{ headerShown: false, tabBarLabel: t('app.tab_profile') }}
-                            listeners={({ navigation, route }) => ({
-                                tabPress: (e) => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                },
-                            })}
-                        />
-                    </Tab.Navigator>
-                </NavigationContainer>
-            </IAPProvider>
-            <Toast config={toastConfig} />
-        </SafeAreaProvider >
+                        >
+                            <Tab.Screen
+                                name="Scan"
+                                component={CameraScreen}
+                                options={{ headerShown: false, tabBarLabel: t('app.tab_scan') }}
+                                listeners={({ navigation, route }) => ({
+                                    tabPress: (e) => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    },
+                                })}
+                            />
+                            <Tab.Screen
+                                name="MyScans"
+                                component={MyScansScreen}
+                                options={{ headerShown: false, tabBarLabel: t('app.tab_scans') }}
+                                listeners={({ navigation, route }) => ({
+                                    tabPress: (e) => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    },
+                                })}
+                            />
+                            <Tab.Screen
+                                name="Profile"
+                                component={ProfileStackScreen}
+                                options={{ headerShown: false, tabBarLabel: t('app.tab_profile') }}
+                                listeners={({ navigation, route }) => ({
+                                    tabPress: (e) => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    },
+                                })}
+                            />
+                        </Tab.Navigator>
+                    </NavigationContainer>
+                </IAPProvider>
+                <Toast config={toastConfig} />
+            </SafeAreaProvider >
+        </GestureHandlerRootView>
     );
 }
