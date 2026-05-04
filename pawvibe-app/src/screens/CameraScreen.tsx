@@ -10,13 +10,13 @@ import * as Sharing from 'expo-sharing';
 import ShareModal from '../components/ShareModal';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { 
-    useSharedValue, 
-    useAnimatedStyle, 
-    withRepeat, 
-    withTiming, 
-    Easing, 
-    withSequence, 
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withRepeat,
+    withTiming,
+    Easing,
+    withSequence,
     withDelay,
     interpolate,
     Extrapolate,
@@ -105,7 +105,7 @@ const DataCallouts = ({ isVisible }: { isVisible: boolean }) => {
     const c2 = useSharedValue(0);
     const c3 = useSharedValue(0);
     const c4 = useSharedValue(0);
-    
+
     useEffect(() => {
         if (isVisible) {
             c1.value = withDelay(200, withTiming(1, { duration: 600 }));
@@ -173,7 +173,7 @@ const ScanningLaser = ({ progress }: { progress: SharedValue<number> }) => {
 };
 
 // Sub-component for animated stat pills
-const StatPill = ({ label, score, emoji, color, delay = 0 }: { label: string, score: number, emoji: string, color: string, delay?: number }) => {
+const StatPill = ({ label, score, emoji, color, delay = 0, isPoster = false }: { label: string, score: number, emoji: string, color: string, delay?: number, isPoster?: boolean }) => {
     const animatedWidth = useSharedValue(0);
 
     useEffect(() => {
@@ -192,13 +192,13 @@ const StatPill = ({ label, score, emoji, color, delay = 0 }: { label: string, sc
     }));
 
     return (
-        <View style={styles.cuteStatPill}>
-            <View style={styles.pillHeader}>
-                <Text style={styles.pillEmoji}>{emoji}</Text>
-                <Text style={styles.pillLabel} numberOfLines={1}>{label}</Text>
-                <Text style={styles.pillScore}>{score}</Text>
+        <View style={[styles.cuteStatPill, isPoster && { paddingVertical: 10, marginBottom: 10, borderRadius: 15 }]}>
+            <View style={[styles.pillHeader, isPoster && { marginBottom: 4 }]}>
+                <Text style={[styles.pillEmoji, isPoster && { fontSize: 16 }]}>{emoji}</Text>
+                <Text style={[styles.pillLabel, isPoster && { fontSize: 11 }]} numberOfLines={1}>{label}</Text>
+                <Text style={[styles.pillScore, isPoster && { fontSize: 14 }]}>{score}</Text>
             </View>
-            <View style={styles.progressBarBg}>
+            <View style={[styles.progressBarBg, isPoster && { height: 5 }]}>
                 <Animated.View style={[styles.progressBarFill, animatedStyle]} />
             </View>
         </View>
@@ -227,7 +227,7 @@ export default function CameraScreen({ navigation }: any) {
 
     // Scanner Animation
     const scanProgress = useSharedValue(0);
-    
+
     // UI Feedback States
     const [isScrollable, setIsScrollable] = useState(false);
     const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
@@ -451,7 +451,7 @@ export default function CameraScreen({ navigation }: any) {
                         <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 0.9 }}>
                             <View style={styles.shareablePoster}>
                                 <LinearGradient colors={['#1A0B2E', '#0A001A']} style={StyleSheet.absoluteFill} />
-                                
+
                                 <View style={styles.posterHeader}>
                                     <Text style={styles.posterTitle}>PAWVIBE</Text>
                                     <Text style={styles.posterSubtitle}>{t('app.cosmic_report', 'COSMIC ANALYSIS REPORT')}</Text>
@@ -467,18 +467,18 @@ export default function CameraScreen({ navigation }: any) {
 
                                 <View style={styles.posterContent}>
                                     <Text style={styles.posterMoodTitle} numberOfLines={2} adjustsFontSizeToFit>{result.mood_title}</Text>
-                                    
+
                                     {result.is_pet !== false && (
                                         <View style={styles.posterStatsGrid}>
                                             <View style={styles.statColumn}>
-                                                <StatPill label={t('app.chaos')} score={result.chaos_score ?? 0} emoji="🌪️" color="#FF007F" delay={300} />
-                                                <StatPill label={t('app.energy')} score={result.energy_level ?? 0} emoji="⚡" color="#FFD700" delay={500} />
-                                                <StatPill label={t('app.sweetness')} score={result.sweetness_score ?? 0} emoji="🍬" color="#00FFFF" delay={700} />
+                                                <StatPill label={t('app.chaos')} score={result.chaos_score ?? 0} emoji="🌪️" color="#FF007F" delay={300} isPoster />
+                                                <StatPill label={t('app.energy')} score={result.energy_level ?? 0} emoji="⚡" color="#FFD700" delay={500} isPoster />
+                                                <StatPill label={t('app.sweetness')} score={result.sweetness_score ?? 0} emoji="🍬" color="#00FFFF" delay={700} isPoster />
                                             </View>
                                             <View style={styles.statColumn}>
-                                                <StatPill label={t('app.judgment')} score={result.judgment_level ?? 0} emoji="😒" color="#FF4500" delay={400} />
-                                                <StatPill label={t('app.cuddle')} score={result.cuddle_o_meter ?? 0} emoji="🤗" color="#FF1493" delay={600} />
-                                                <StatPill label={t('app.derp')} score={result.derp_factor ?? 0} emoji="🤪" color="#32CD32" delay={800} />
+                                                <StatPill label={t('app.judgment')} score={result.judgment_level ?? 0} emoji="😒" color="#FF4500" delay={400} isPoster />
+                                                <StatPill label={t('app.cuddle')} score={result.cuddle_o_meter ?? 0} emoji="🤗" color="#FF1493" delay={600} isPoster />
+                                                <StatPill label={t('app.derp')} score={result.derp_factor ?? 0} emoji="🤪" color="#32CD32" delay={800} isPoster />
                                             </View>
                                         </View>
                                     )}
@@ -487,19 +487,15 @@ export default function CameraScreen({ navigation }: any) {
                                         <Text style={styles.funnyExplanation}>{result.explanation}</Text>
                                     )}
                                 </View>
-
-                                <View style={styles.posterFooter}>
-                                    <Text style={styles.watermark}>WWW.PAWVIBE.APP</Text>
-                                </View>
                             </View>
                         </ViewShot>
 
                         <View style={styles.actionButtons}>
-                            <TouchableOpacity 
-                                style={[styles.btn, { flex: 1, marginRight: 10 }]} 
-                                onPress={() => { 
-                                    Haptics.selectionAsync(); 
-                                    setResult(null); 
+                            <TouchableOpacity
+                                style={[styles.btn, { flex: 1, marginRight: 10 }]}
+                                onPress={() => {
+                                    Haptics.selectionAsync();
+                                    setResult(null);
                                     zoom.value = 0; // Reset Zoom
                                 }}
                             >
@@ -523,21 +519,21 @@ export default function CameraScreen({ navigation }: any) {
                     )}
                 </View>
             ) : (
-            <GestureDetector gesture={pinchGesture}>
-                <View style={{ flex: 1, width: '100%' }}>
-                    {isAnalyzing && photoUri ? (
-                        <Image source={{ uri: photoUri }} style={styles.camera} resizeMode="cover" />
-                    ) : (
-                        <AnimatedCameraView 
-                            style={styles.camera} 
-                            facing="back" 
-                            ref={cameraRef}
-                            animatedProps={animatedZoomProps}
-                        />
-                    )}
+                <GestureDetector gesture={pinchGesture}>
+                    <View style={{ flex: 1, width: '100%' }}>
+                        {isAnalyzing && photoUri ? (
+                            <Image source={{ uri: photoUri }} style={styles.camera} resizeMode="cover" />
+                        ) : (
+                            <AnimatedCameraView
+                                style={styles.camera}
+                                facing="back"
+                                ref={cameraRef}
+                                animatedProps={animatedZoomProps}
+                            />
+                        )}
 
-                    {/* Scanner UI */}
-                    <View style={[StyleSheet.absoluteFill, styles.scannerUI]}>
+                        {/* Scanner UI */}
+                        <View style={[StyleSheet.absoluteFill, styles.scannerUI]}>
                             {/* Visual Guide Borders */}
                             <View style={styles.viewfinderContainer}>
                                 <View style={styles.scanBox}>
@@ -794,13 +790,13 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
     },
     posterImageContainer: {
-        width: '85%',
+        width: '75%',
         aspectRatio: 1,
         borderRadius: 15,
         overflow: 'hidden',
         borderWidth: 2,
         borderColor: 'rgba(255, 0, 127, 0.3)',
-        marginBottom: 20,
+        marginBottom: 15,
     },
     posterPetImage: {
         width: '100%',
@@ -813,10 +809,10 @@ const styles = StyleSheet.create({
     },
     posterMoodTitle: {
         color: '#FF007F',
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: '900',
         textAlign: 'center',
-        marginBottom: 15,
+        marginBottom: 12,
         textShadowColor: '#000',
         textShadowRadius: 4,
     },
@@ -824,10 +820,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
+        paddingBottom: 20,
     },
     posterFooter: {
-        marginTop: 10,
-        opacity: 0.6,
+        marginTop: 'auto',
+        paddingBottom: 10,
+        opacity: 0.5,
     },
     // Watermark/Common
     shareableCard: { width: '90%', backgroundColor: '#1A0B2E', borderRadius: 20, overflow: 'hidden', borderWidth: 2, borderColor: '#FF007F', shadowColor: '#FF007F', shadowOpacity: 0.8, shadowRadius: 15, marginBottom: 30 },

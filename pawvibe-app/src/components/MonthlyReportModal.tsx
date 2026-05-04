@@ -145,15 +145,15 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                                 <Ionicons name="share-social-outline" size={20} color="white" style={{ marginRight: 8 }} />
                                 <Text style={styles.shareBtnText}>{t('app.share', 'Share')} 🚀</Text>
                             </TouchableOpacity>
-
-                            <ShareModal
-                                visible={showShareModal}
-                                imageUri={shareImageUri}
-                                onClose={() => setShowShareModal(false)}
-                            />
                         </ScrollView>
                     ) : null}
 
+                    <ShareModal
+                        visible={showShareModal}
+                        imageUri={shareImageUri}
+                        onClose={() => setShowShareModal(false)}
+                        useNativeModal={false}
+                    />
                 </View>
             </BlurView>
         </Modal>

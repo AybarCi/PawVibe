@@ -24,6 +24,7 @@ interface ShareModalProps {
     visible: boolean;
     imageUri: string | null;
     onClose: () => void;
+    useNativeModal?: boolean; // New prop to control Modal vs View
 }
 
 interface ShareOption {
@@ -70,7 +71,7 @@ const SHARE_OPTIONS: ShareOption[] = [
     },
 ];
 
-export default function ShareModal({ visible, imageUri, onClose }: ShareModalProps) {
+export default function ShareModal({ visible, imageUri, onClose, useNativeModal = true }: ShareModalProps) {
     const { t } = useTranslation();
     const [appAvailability, setAppAvailability] = useState<Record<string, boolean>>({});
     const [savingToGallery, setSavingToGallery] = useState(false);
@@ -188,13 +189,10 @@ export default function ShareModal({ visible, imageUri, onClose }: ShareModalPro
         onClose();
     };
 
-    return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="slide"
-            onRequestClose={onClose}
-        >
+    if (!visible) return null;
+
+    const Content = (
+        <View style={useNativeModal ? { flex: 1 } : StyleSheet.absoluteFill}>
             <TouchableOpacity
                 style={styles.overlay}
                 activeOpacity={1}
@@ -284,6 +282,19 @@ export default function ShareModal({ visible, imageUri, onClose }: ShareModalPro
                     </TouchableOpacity>
                 </LinearGradient>
             </View>
+        </View>
+    );
+
+    if (!useNativeModal) return Content;
+
+    return (
+        <Modal
+            visible={visible}
+            transparent
+            animationType="slide"
+            onRequestClose={onClose}
+        >
+            {Content}
         </Modal>
     );
 }
