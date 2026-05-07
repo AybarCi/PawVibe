@@ -142,7 +142,7 @@ const DataCallouts = ({ isVisible }: { isVisible: boolean }) => {
 
             <Animated.View style={[styles.callout, { top: '35%', right: '5%', flexDirection: 'row-reverse' }, getStyleR(c2)]}>
                 <View style={styles.calloutLineH} />
-                <View style={styles.calloutBox}><Text style={styles.calloutText}>{t('app.kaos_matrix', 'KAOS_MATRIX: SYNC')}</Text></View>
+                <View style={styles.calloutBox}><Text style={styles.calloutText}>{t('app.kaos_matrix', 'CHAOS_MATRIX: SYNC')}</Text></View>
             </Animated.View>
 
             <Animated.View style={[styles.callout, { bottom: '30%', left: '8%' }, getStyle(c3)]}>
@@ -318,7 +318,7 @@ export default function CameraScreen({ navigation }: any) {
 
     const getScanningText = () => {
         switch (scanningTextIndex) {
-            case 0: return t('app.analyzing_aura', 'Analyzing Aura Katmanları...');
+            case 0: return t('app.analyzing_aura', 'Analyzing Aura Layers...');
             case 1: return t('app.calculating_chaos', 'Calculating Chaos Matrix...');
             default: return t('app.summoning_energy', 'Summoning Cosmic Energy...');
         }

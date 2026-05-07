@@ -47,26 +47,40 @@ serve(async (req) => {
         }
 
         // 2. Check if report already exists for this month
-        const targetMonth = currentMonthYear || new Date().toISOString().slice(0, 7) // fallback to current YYYY-MM
+        const targetMonth = currentMonthYear || new Date().toISOString().slice(0, 7)
         const { data: existingReport } = await supabase
             .from('monthly_reports')
             .select('*')
             .eq('user_id', user.id)
             .eq('month_year', targetMonth)
-            .single()
+            .maybeSingle()
 
+        // Cache logic: Compare requested language with report's language
+        const reqLangCode = String(language || 'en').split('-')[0].toLowerCase();
+        
         if (existingReport && existingReport.report) {
-            return new Response(JSON.stringify({ data: existingReport.report }), {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 200,
-            })
+            const storedLangCode = existingReport.report.lang || 'en'; // Default to 'en' if missing
+            
+            if (storedLangCode === reqLangCode) {
+                return new Response(JSON.stringify({ data: existingReport.report }), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 200,
+                });
+            }
+            // If languages differ (e.g., requested 'fr' but stored 'en'), fall through to regenerate
         }
 
         // 3. Fetch all scans for this user in the target month
-        const startOfMonth = new Date(`${targetMonth}-01T00:00:00Z`).toISOString()
-        const endOfMonthDate = new Date(`${targetMonth}-01T00:00:00Z`)
-        endOfMonthDate.setMonth(endOfMonthDate.getMonth() + 1)
-        const endOfMonth = endOfMonthDate.toISOString()
+        let startOfMonth, endOfMonth;
+        try {
+            startOfMonth = new Date(`${targetMonth}-01T00:00:00Z`).toISOString()
+            const endOfMonthDate = new Date(`${targetMonth}-01T00:00:00Z`)
+            endOfMonthDate.setMonth(endOfMonthDate.getMonth() + 1)
+            endOfMonth = endOfMonthDate.toISOString()
+        } catch (e) {
+            console.error('Date parsing error for targetMonth:', targetMonth);
+            throw new Error(`Invalid month format: ${targetMonth}`);
+        }
 
         const { data: scans, error: scansError } = await supabase
             .from('scans')
@@ -93,16 +107,30 @@ serve(async (req) => {
         const avgJudge = scans.reduce((acc, s) => acc + (s.judgment_level || 0), 0) / scans.length;
         const avgCuddle = scans.reduce((acc, s) => acc + (s.cuddle_o_meter || 0), 0) / scans.length;
         const avgDerp = scans.reduce((acc, s) => acc + (s.derp_factor || 0), 0) / scans.length;
-        const mostCommonMood = scans.map(s => s.mood_title).sort((a, b) => 
-            scans.filter(v => v.mood_title === a).length - scans.filter(v => v.mood_title === b).length
-        ).pop()
+        const moodTitles = scans.map(s => s.mood_title).filter(Boolean);
+        const mostCommonMood = moodTitles.length > 0 
+            ? moodTitles.sort((a, b) => moodTitles.filter(v => v === a).length - moodTitles.filter(v => v === b).length).pop() 
+            : 'Unknown';
 
         // 4. Setup OpenAI Fetch Request
         const apiKey = Deno.env.get('OPENAI_API_KEY');
         if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
 
+        // Normalize language for OpenAI safely
+        const langMap: Record<string, string> = {
+            'tr': 'Turkish',
+            'en': 'English',
+            'es': 'Spanish',
+            'fr': 'French',
+            'de': 'German',
+            'pt': 'Portuguese',
+            'ru': 'Russian'
+        };
+        const targetLang = langMap[reqLangCode] || 'English';
+
         // 5. Prompt for Monthly Report
-        const prompt = `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
+        const prompt = `CRITICAL: ALL YOUR RESPONSES MUST BE IN ${targetLang.toUpperCase()}. 
+DO NOT USE ENGLISH UNLESS ${targetLang.toUpperCase()} IS ENGLISH.
 
 You are a Chief Veterinary Behaviorist for PawVibe. 
 I am providing you with the aggregated behavioral data of a pet over the last 30 days. 
@@ -117,19 +145,20 @@ Aggregated Monthly Data:
 - Average Cuddle-o-Meter/Affection Level: ${avgCuddle.toFixed(1)}/100
 - Average Derp Factor/Unconventional Behavior: ${avgDerp.toFixed(1)}/100
 
-Generate a professional, analytical, and insightful "Monthly Behavioral Assessment Report" in ${language}. 
-- The tone should be authoritative yet supportive, similar to a professional veterinary diagnosis.
-- Focus on what the trends (highest/lowest scores) suggest about the pet's psychological well-being.
-- Avoid sarcasm or overly casual jokes. Provide genuine behavioral insights in ${language}.
+TASK: Generate a professional, analytical, and insightful "Monthly Behavioral Assessment Report" in ${targetLang}. 
+- Tone: Authoritative, clinical, supportive (Veterinary Behavioral Specialist style).
+- Content: Focus on trends and psychological well-being based on the scores.
+- Language: USE ONLY ${targetLang}.
 
 Return ONLY a valid JSON object with this structure:
 {
-  "title": "String (A professional diagnostic title in ${language})",
-  "executive_summary": "String (A professional 2-3 sentence overview in ${language})",
-  "behavioral_analysis": "String (An in-depth analysis in ${language})",
-  "recommendation_for_owner": "String (Expert behavioral advice in ${language})"
+  "lang": "${reqLangCode}",
+  "title": "A professional diagnostic title in ${targetLang}",
+  "executive_summary": "A professional 2-3 sentence overview in ${targetLang}",
+  "behavioral_analysis": "An in-depth analysis in ${targetLang}",
+  "recommendation_for_owner": "Expert behavioral advice in ${targetLang}"
 }
-CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
+FINAL CHECK: Is every single word in ${targetLang}? If not, translate it now. Include the "lang" field with value "${reqLangCode}".`
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -139,10 +168,19 @@ CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
             },
             body: JSON.stringify({
                 model: 'gpt-4o-mini',
-                temperature: 0.8,
-                max_tokens: 350,
+                temperature: 0.7,
+                max_tokens: 600,
                 response_format: { type: 'json_object' },
-                messages: [{ role: 'user', content: prompt }]
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: `You are a Chief Veterinary Behaviorist. You must respond ONLY with a valid JSON object in ${targetLang}. No other text.` 
+                    },
+                    { 
+                        role: 'user', 
+                        content: prompt 
+                    }
+                ]
             })
         });
 
@@ -152,16 +190,28 @@ CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
         }
         
         const openAiData = await response.json();
-        const content = openAiData.choices[0].message?.content;
+        let content = openAiData.choices[0].message?.content;
 
         if (!content) {
             throw new Error('No content returned from OpenAI')
         }
 
-        const reportJSON = JSON.parse(content)
+        // Extremely robust JSON extraction: find the first { and the last }
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            content = content.substring(firstBrace, lastBrace + 1);
+        }
 
-        // 6. Save to DB using Service Role Key to bypass RLS for updates or upserts if needed
-        // Monthly reports uses RLS with insert allowed, but using service role is safer for backend operations.
+        let reportJSON;
+        try {
+            reportJSON = JSON.parse(content);
+        } catch (e) {
+            console.error('JSON Parse Error. Content snippet:', content.substring(0, 100));
+            throw new Error(`Failed to parse AI response as JSON. Content starts with: ${content.substring(0, 30)}`);
+        }
+
+        // 6. Save to DB using Service Role Key
         const adminClient = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -173,10 +223,11 @@ CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
                 user_id: user.id, 
                 month_year: targetMonth, 
                 report: reportJSON 
-            })
+            }, { onConflict: 'user_id,month_year' })
 
         if (insertError) {
-            console.error('Error saving report to DB:', insertError)
+            console.error('Error saving report to DB:', insertError);
+            // We still return the report even if saving fails, to avoid 500
         }
 
         return new Response(JSON.stringify({ data: reportJSON }), {

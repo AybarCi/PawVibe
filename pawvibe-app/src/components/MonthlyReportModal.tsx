@@ -118,11 +118,6 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                     ) : reportData ? (
                         <ScrollView style={{ width: '100%', marginTop: 20 }} showsVerticalScrollIndicator={false}>
                             <ViewShot ref={viewShotRef} options={{ format: 'jpg', quality: 0.9 }} style={{ backgroundColor: '#1A0B2E', padding: 15, borderRadius: 10 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 15 }}>
-                                    <Image source={require('../../assets/icon-monthly-report.png')} style={{ width: 24, height: 24, marginRight: 8, borderRadius: 5 }} />
-                                    <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#FF007F' }}>PawVibe Monthly Report</Text>
-                                </View>
-
                                 <Text style={styles.reportMainTitle}>{reportData.title}</Text>
 
                                 <View style={styles.card}>
