@@ -72,6 +72,7 @@ const resources = {
         "kaos_matrix": "CHAOS_MATRIX: SYNC",
         "vibe_res": "VIBE_RES: CALCULATING",
         "cute_err": "CUTE_ERR: 0.00%",
+        "cosmic_report": "COSMIC ANALYSIS REPORT",
         "pinch_to_zoom": "Pinch to Zoom",
         "sharing_unavailable": "Sharing Unavailable",
         "sharing_not_supported": "Sharing is not supported on this device.",
@@ -151,7 +152,25 @@ const resources = {
         "share_gallery_permission": "Please grant gallery access to save photos.",
         "picked_for_your_pet": "PICKED FOR YOUR PET",
         "buy_now": "BUY NOW",
-        "monthly_report_title": "PawVibe Monthly Report"
+        "monthly_report_title": "PawVibe Monthly Report",
+        "tab_vaccines": "Vaccines",
+        "vaccine_tracker_title": "Vaccine Tracker 💉",
+        "add_vaccine": "Add New Vaccine",
+        "next_dose": "Next Dose",
+        "last_dose": "Last Dose",
+        "no_vaccines": "No vaccines recorded yet.",
+        "pet_name": "Pet Name",
+        "vaccine_name": "Vaccine Name",
+        "date_administered": "Administration Date",
+        "save_vaccine": "Save Vaccine",
+        "upcoming_vaccines": "Upcoming",
+        "completed_vaccines": "History",
+        "select_date": "Select Date",
+        "vaccine_limit_reached": "Limit Reached",
+        "vaccine_limit_msg": "Free users can add up to 3 vaccines. Upgrade to Premium for unlimited access!",
+        "auth_required_title": "Account Required",
+        "auth_required_msg": "Please secure your account to save vaccination records and never lose them.",
+        "go_to_profile": "Go to Profile"
       }
     }
   },
@@ -224,6 +243,7 @@ const resources = {
         "kaos_matrix": "KAOS_MATRİSİ: SENKRON",
         "vibe_res": "MOD_SONUÇ: HESAPLANIYOR",
         "cute_err": "TATLI_HATA: %0.00",
+        "cosmic_report": "KOZMİK ANALİZ RAPORU",
         "pinch_to_zoom": "Yakınlaştırmak için kaydır",
         "sharing_unavailable": "Paylaşım Kullanılamıyor",
         "sharing_not_supported": "Bu cihazda paylaşım desteklenmiyor.",
@@ -303,7 +323,25 @@ const resources = {
         "share_gallery_permission": "Fotoğraf kaydetmek için galeri erişimi verin.",
         "picked_for_your_pet": "PETİN İÇİN SEÇTİKLERİMİZ",
         "buy_now": "SATIN AL",
-        "monthly_report_title": "PawVibe Aylık Rapor"
+        "monthly_report_title": "PawVibe Aylık Rapor",
+        "tab_vaccines": "Aşılar",
+        "vaccine_tracker_title": "Aşı Takibi 💉",
+        "add_vaccine": "Yeni Aşı Ekle",
+        "next_dose": "Gelecek Doz",
+        "last_dose": "Yapılan Tarih",
+        "no_vaccines": "Henüz aşı kaydı yok.",
+        "pet_name": "Pet Adı",
+        "vaccine_name": "Aşı Adı",
+        "date_administered": "Aşı Tarihi",
+        "save_vaccine": "Aşıyı Kaydet",
+        "upcoming_vaccines": "Yaklaşanlar",
+        "completed_vaccines": "Geçmiş",
+        "select_date": "Tarih Seç",
+        "vaccine_limit_reached": "Sınıra Ulaşıldı",
+        "vaccine_limit_msg": "Ücretsiz sürümde en fazla 3 aşı ekleyebilirsin. Sınırsız kayıt için Premium'a yükselt!",
+        "auth_required_title": "Hesap Gerekli",
+        "auth_required_msg": "Aşı kayıtlarının kaybolmaması için lütfen önce hesabını bağla.",
+        "go_to_profile": "Profile Git"
       }
     }
   },
@@ -376,6 +414,7 @@ const resources = {
         "kaos_matrix": "MATRIZ_CAOS: SINCR",
         "vibe_res": "RES_MODO: CALCULANDO",
         "cute_err": "ERR_TIERNO: 0.00%",
+        "cosmic_report": "REPORTE DE ANÁLISIS CÓSMICO",
         "pinch_to_zoom": "Pellizcar para ampliar",
         "sharing_unavailable": "Compartir no disponible",
         "sharing_not_supported": "No se puede compartir en este dispositivo.",
@@ -440,7 +479,8 @@ const resources = {
         "share_saved_to_gallery": "¡Foto guardada en la galería!",
         "share_gallery_permission": "Por favor, concede acceso a la galería para guardar fotos.",
         "picked_for_your_pet": "ELEGIDO PARA TU MASCOTA",
-        "buy_now": "COMPRAR AHORA"
+        "buy_now": "COMPRAR AHORA",
+        "select_date": "Seleccionar fecha"
       }
     }
   },
@@ -513,6 +553,7 @@ const resources = {
         "kaos_matrix": "МАТРИЦА_ХАОСА: СИНХР",
         "vibe_res": "РЕЗ_ВАЙБА: РАСЧЕТ",
         "cute_err": "ОШИБКА_МИЛОТЫ: 0.00%",
+        "cosmic_report": "ОТЧЕТ О КОСМИЧЕСКОМ АНАЛИЗЕ",
         "pinch_to_zoom": "Ущипните для масштаба",
         "sharing_unavailable": "Поделиться недоступно",
         "sharing_not_supported": "Общий доступ не поддерживается на этом устройстве.",
@@ -577,7 +618,8 @@ const resources = {
         "share_saved_to_gallery": "Фото сохранено в галерею!",
         "share_gallery_permission": "Пожалуйста, предоставьте доступ к галерее для сохранения фотографий.",
         "picked_for_your_pet": "ВЫБРАНО ДЛЯ ВАШЕГО ПИТОМЦА",
-        "buy_now": "КУПИТЬ СЕЙЧАС"
+        "buy_now": "КУПИТЬ СЕЙЧAS",
+        "select_date": "Выбрать дату"
       }
     }
   },
@@ -650,6 +692,7 @@ const resources = {
         "kaos_matrix": "MATRICE_CHAOS: SYNC",
         "vibe_res": "RES_VIBE: CALCUL",
         "cute_err": "ERR_MIGNON: 0.00%",
+        "cosmic_report": "RAPPORT D'ANALYSE COSMIQUE",
         "pinch_to_zoom": "Pincer pour zoomer",
         "sharing_unavailable": "Partage indisponible",
         "sharing_not_supported": "Le partage n'est pas pris en charge sur cet appareil.",
@@ -714,7 +757,8 @@ const resources = {
         "share_saved_to_gallery": "Photo enregistrée dans la galerie !",
         "share_gallery_permission": "Veuillez accorder l'accès à la galerie pour sauvegarder les photos.",
         "picked_for_your_pet": "CHOISI POUR VOTRE ANIMAL",
-        "buy_now": "ACHETER MAINTENANT"
+        "buy_now": "ACHETER MAINTENANT",
+        "select_date": "Choisir une date"
       }
     }
   },
@@ -787,6 +831,7 @@ const resources = {
         "kaos_matrix": "MATRIZ_CAOS: SINCR",
         "vibe_res": "RES_VIBE: CALCULANDO",
         "cute_err": "ERR_FOFO: 0.00%",
+        "cosmic_report": "RELATÓRIO DE ANÁLISE CÓSMICA",
         "pinch_to_zoom": "Pince para zoom",
         "sharing_unavailable": "Compartilhamento indisponível",
         "sharing_not_supported": "O compartilhamento não é suportado neste dispositivo.",
@@ -851,7 +896,8 @@ const resources = {
         "share_saved_to_gallery": "Foto salva na galeria!",
         "share_gallery_permission": "Conceda acesso à galeria para salvar fotos.",
         "picked_for_your_pet": "ESCOLHIDO PARA O SEU PET",
-        "buy_now": "COMPRAR AGORA"
+        "buy_now": "COMPRAR AGORA",
+        "select_date": "Selecionar data"
       }
     }
   },
@@ -924,6 +970,8 @@ const resources = {
         "kaos_matrix": "CHAOS_MATRIX: SYNC",
         "vibe_res": "VIBE_RES: BERECHNUNG",
         "cute_err": "SÜSS_FEHLER: 0.00%",
+        "cosmic_report": "KOSMISCHER ANALYSEBERICHT",
+        "monthly_report_title": "PawVibe Monatsbericht",
         "pinch_to_zoom": "Zoomen durch Auf- und Zuziehen",
         "sharing_unavailable": "Teilen nicht verfügbar",
         "sharing_not_supported": "Teilen wird auf diesem Gerät nicht unterstützt.",
@@ -988,7 +1036,20 @@ const resources = {
         "share_saved_to_gallery": "Foto in der Galerie gespeichert!",
         "share_gallery_permission": "Bitte gewähre Zugriff auf die Galerie, um Fotos zu speichern.",
         "picked_for_your_pet": "FÜR DEIN HAUSTIER AUSGEWÄHLT",
-        "buy_now": "JETZT KAUFEN"
+        "buy_now": "JETZT KAUFEN",
+        "tab_vaccines": "Impfungen",
+        "vaccine_tracker_title": "Impfpass 💉",
+        "add_vaccine": "Neue Impfung",
+        "next_dose": "Nächste Dosis",
+        "last_dose": "Letzte Dosis",
+        "no_vaccines": "Noch keine Impfungen eingetragen.",
+        "pet_name": "Tiername",
+        "vaccine_name": "Impfstoff",
+        "date_administered": "Datum",
+        "save_vaccine": "Speichern",
+        "upcoming_vaccines": "Anstehend",
+        "completed_vaccines": "Verlauf",
+        "select_date": "Datum auswählen"
       }
     }
   }

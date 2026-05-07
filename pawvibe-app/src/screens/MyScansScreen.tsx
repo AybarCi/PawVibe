@@ -116,14 +116,7 @@ export default function MyScansScreen() {
                     <Text style={styles.emptyText}>{t('app.no_scans')}</Text>
                 ) : (
                     scans.map((scan) => {
-                        const isRealPet = scan.is_pet !== false && !(
-                            scan.chaos_score === 0 &&
-                            scan.energy_level === 0 &&
-                            scan.sweetness_score === 0 &&
-                            scan.judgment_level === 0 &&
-                            scan.cuddle_o_meter === 0 &&
-                            scan.derp_factor === 0
-                        );
+                        const isRealPet = scan.is_pet !== false;
 
                         return (
                             <View key={scan.id} style={styles.scanCard}>

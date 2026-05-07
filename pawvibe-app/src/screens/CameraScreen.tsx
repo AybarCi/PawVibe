@@ -514,14 +514,9 @@ export default function CameraScreen({ navigation }: any) {
                             </TouchableOpacity>
                         </View>
 
-                        <ProductRecommendations recommendations={(result.recommendations && result.recommendations.length > 0) ? result.recommendations : [
-                            {
-                                name: "Test Product",
-                                description: "If you see this, the UI is working!",
-                                image_url: "https://images.unsplash.com/photo-1576201836106-db1758fd1c97",
-                                affiliate_url: "https://amazon.com"
-                            }
-                        ]} />
+                        {result.is_pet !== false && result.recommendations && result.recommendations.length > 0 && (
+                            <ProductRecommendations recommendations={result.recommendations} />
+                        )}
 
                         <ShareModal visible={showShareModal} imageUri={shareImageUri} onClose={() => setShowShareModal(false)} />
                     </ScrollView>

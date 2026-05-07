@@ -21,6 +21,7 @@ import CameraScreen from './src/screens/CameraScreen';
 import MyScansScreen from './src/screens/MyScansScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AccountScreen from './src/screens/AccountScreen';
+import VaccineTrackerScreen from './src/screens/VaccineTrackerScreen';
 import { IAPProvider } from './src/context/IAPContext';
 
 // Keep the splash screen visible while we fetch resources
@@ -195,6 +196,8 @@ export default function App() {
                                         iconSource = require('./assets/tab-scan.png');
                                     } else if (route.name === 'MyScans') {
                                         iconSource = require('./assets/tab-myscans.png');
+                                    } else if (route.name === 'Vaccines') {
+                                        iconSource = require('./assets/tab-vaccines.png');
                                     } else if (route.name === 'Profile') {
                                         iconSource = require('./assets/tab-profile.png');
                                     }
@@ -248,6 +251,16 @@ export default function App() {
                                 name="MyScans"
                                 component={MyScansScreen}
                                 options={{ headerShown: false, tabBarLabel: t('app.tab_scans') }}
+                                listeners={({ navigation, route }) => ({
+                                    tabPress: (e) => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    },
+                                })}
+                            />
+                            <Tab.Screen
+                                name="Vaccines"
+                                component={VaccineTrackerScreen}
+                                options={{ headerShown: false, tabBarLabel: t('app.tab_vaccines') }}
                                 listeners={({ navigation, route }) => ({
                                     tabPress: (e) => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

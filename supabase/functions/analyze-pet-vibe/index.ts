@@ -213,7 +213,9 @@ serve(async (req) => {
     const { error: insertError } = await supabase.from('scans').insert([{
       user_id,
       mood_title: moodResult.mood_title || 'Unknown Vibe',
-      confidence: moodResult.confidence ?? 1.0,  // It might be omitted by AI for inanimate objects
+      confidence: moodResult.confidence ?? 1.0,
+      is_pet: moodResult.is_pet ?? true,
+      explanation: moodResult.explanation || null,
       chaos_score: moodResult.chaos_score ?? 0,
       energy_level: moodResult.energy_level ?? 0,
       sweetness_score: moodResult.sweetness_score ?? 0,

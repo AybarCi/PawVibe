@@ -86,6 +86,7 @@ serve(async (req) => {
             .from('scans')
             .select('*')
             .eq('user_id', user.id)
+            .eq('is_pet', true) // Only include actual pets in the monthly report
             .gte('created_at', startOfMonth)
             .lt('created_at', endOfMonth)
 
