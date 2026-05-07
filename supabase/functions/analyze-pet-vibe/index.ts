@@ -56,10 +56,10 @@ serve(async (req) => {
       if ((now.getTime() - new Date(profile.last_reset_date).getTime()) / (1000 * 60 * 60 * 24) >= 7) {
         await supabase
           .from('profiles')
-          .update({ weekly_credits: 5, last_reset_date: now.toISOString() })
+          .update({ weekly_credits: 2, last_reset_date: now.toISOString() })
           .eq('id', user_id);
         
-        profile.weekly_credits = 5;
+        profile.weekly_credits = 2;
       }
 
       const totalCredits = (profile.weekly_credits || 0) + (profile.purchased_credits || 0);
@@ -87,18 +87,36 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `You are a professional pet mood analyzer with a witty personality. 
-              Output MUST be a single, valid JSON object. 
-              Language for 'mood_title' and 'explanation': ${language}.
+              content: `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
+
+              You are an expert Pet Behaviorist and Psychologist. Your task is to provide a highly accurate, insightful, and professional behavioral assessment of the pet in the image. 
+
+              - Tone: Observant, expert, and empathetic. Avoid overly casual jokes. 
+              - Analysis focus: Posture, facial expressions, ear position, and gaze.
+              - Mood Title: Should sound like a professional behavioral summary in ${language}.
+              - Explanation: Provide a brief but deep behavioral insight in ${language} based on what you see in the photo.
+              - Output: MUST be a single, valid JSON object. 
               
-              Required keys: is_pet (bool), mood_title (string), confidence (float 0-1), explanation (string), chaos_score (int 0-100), energy_level (int 0-100), sweetness_score (int 0-100), judgment_level (int 0-100), cuddle_o_meter (int 0-100), derp_factor (int 0-100).
+              Required JSON keys: 
+              is_pet (bool), 
+              pet_type (string: 'cat'|'dog'|'other'), 
+              mood_title (string), 
+              confidence (float 0-1), 
+              explanation (string), 
+              chaos_score (int 0-100), 
+              energy_level (int 0-100), 
+              sweetness_score (int 0-100), 
+              judgment_level (int 0-100), 
+              cuddle_o_meter (int 0-100), 
+              derp_factor (int 0-100).
               
-              If no pet is found, set is_pet to false, playfully roast the user, and set all 6 numeric scores to 0.`
+              If no pet is found:
+              Set is_pet to false, pet_type to 'other', and provide a professional explanation in ${language} that no clear animal subject was identified for assessment. All numeric scores must be 0.`
             },
             {
               role: 'user',
               content: [
-                { type: 'text', text: "Analyze pet vive." },
+                { type: 'text', text: "Perform a professional behavioral analysis on this pet." },
                 { type: 'image_url', image_url: { url: `data:image/webp;base64,${image_base64}` } }
               ]
             }
@@ -115,6 +133,27 @@ serve(async (req) => {
       // Robust parsing
       const rawContent = openAiData.choices[0].message.content.trim();
       moodResult = JSON.parse(rawContent);
+
+      // 4. Fetch Product Recommendations
+      if (moodResult.is_pet) {
+        // Force lowercase to match DB
+        const petType = (moodResult.pet_type || 'both').toLowerCase();
+        
+        const { data: recs, error: recsError } = await supabase
+          .from('recommendations')
+          .select('name, description, image_url, affiliate_url')
+          .eq('is_active', true)
+          .or(`pet_type.eq.${petType},pet_type.eq.both`)
+          .lte('min_energy', moodResult.energy_level || 0)
+          .lte('min_chaos', moodResult.chaos_score || 0)
+          .lte('min_sweetness', moodResult.sweetness_score || 0)
+          .limit(3);
+        
+        if (recsError) console.error("Recommendations Fetch Error:", recsError);
+        moodResult.recommendations = recs || [];
+      } else {
+        moodResult.recommendations = [];
+      }
 
     } catch (parseError) {
       console.error("Critical AI Response Error:", parseError);

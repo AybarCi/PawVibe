@@ -102,26 +102,34 @@ serve(async (req) => {
         if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
 
         // 5. Prompt for Monthly Report
-        const prompt = `You are a highly qualified, slightly eccentric "Pet Psychologist" for a mobile app called PawVibe. 
-I am providing you with the aggregated vibe scan results of a pet over the last month.
-Total Scans this month: ${scans.length}
-Aggregated Data:
-- Most Common Mood: ${mostCommonMood}
-- Average Chaos Score: ${avgChaos.toFixed(1)}/100
-- Average Energy Level: ${avgEnergy.toFixed(1)}/100
-- Average Sweetness Score: ${avgSweet.toFixed(1)}/100
-- Average Judgment Level: ${avgJudge.toFixed(1)}/100
-- Average Cuddle-o-Meter: ${avgCuddle.toFixed(1)}/100
-- Average Derp Factor: ${avgDerp.toFixed(1)}/100
+        const prompt = `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
 
-Generate a funny, insightful, and slightly sarcastic "Monthly Psychologist Report" for the pet's owner. Return ONLY a valid JSON object with the following structure:
+You are a Chief Veterinary Behaviorist for PawVibe. 
+I am providing you with the aggregated behavioral data of a pet over the last 30 days. 
+Total Scans Analyzed: ${scans.length}
+
+Aggregated Monthly Data:
+- Predominant Emotional State: ${mostCommonMood}
+- Average Chaos/Reactivity Score: ${avgChaos.toFixed(1)}/100
+- Average Energy/Activity Level: ${avgEnergy.toFixed(1)}/100
+- Average Sweetness/Socialization Score: ${avgSweet.toFixed(1)}/100
+- Average Judgment/Observation Level: ${avgJudge.toFixed(1)}/100
+- Average Cuddle-o-Meter/Affection Level: ${avgCuddle.toFixed(1)}/100
+- Average Derp Factor/Unconventional Behavior: ${avgDerp.toFixed(1)}/100
+
+Generate a professional, analytical, and insightful "Monthly Behavioral Assessment Report" in ${language}. 
+- The tone should be authoritative yet supportive, similar to a professional veterinary diagnosis.
+- Focus on what the trends (highest/lowest scores) suggest about the pet's psychological well-being.
+- Avoid sarcasm or overly casual jokes. Provide genuine behavioral insights in ${language}.
+
+Return ONLY a valid JSON object with this structure:
 {
-  "title": "String (e.g., 'The Month of Infinite Derp', 'A Period of High Judgment')",
-  "executive_summary": "String (A witty 2-3 sentence overview of the month)",
-  "behavioral_analysis": "String (A funny analysis of their highest and lowest averages)",
-  "recommendation_for_owner": "String (Sarcastic advice on how the owner should adapt to their pet's needs next month)"
+  "title": "String (A professional diagnostic title in ${language})",
+  "executive_summary": "String (A professional 2-3 sentence overview in ${language})",
+  "behavioral_analysis": "String (An in-depth analysis in ${language})",
+  "recommendation_for_owner": "String (Expert behavioral advice in ${language})"
 }
-CRITICAL: ALL string values inside the JSON MUST be localized and written in this ISO language code: ${language}.`
+CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',

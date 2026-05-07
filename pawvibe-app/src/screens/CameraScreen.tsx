@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../lib/i18n';
 import * as Sharing from 'expo-sharing';
 import ShareModal from '../components/ShareModal';
+import ProductRecommendations from '../components/ProductRecommendations';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -50,6 +51,12 @@ interface AnalysisResult {
     derp_factor?: number;
     is_pet?: boolean;
     explanation?: string;
+    recommendations?: Array<{
+        name: string;
+        description: string;
+        image_url: string;
+        affiliate_url: string;
+    }>;
 }
 
 // Sub-component for holographic scanning grid
@@ -408,6 +415,7 @@ export default function CameraScreen({ navigation }: any) {
                 return;
             }
 
+            console.log('[CameraScreen] Analysis Result:', JSON.stringify(data, null, 2));
             setResult(data);
             logMetaEvent('fb_mobile_content_view', { content_type: 'vibe_result' });
 
@@ -505,6 +513,15 @@ export default function CameraScreen({ navigation }: any) {
                                 <Text style={styles.btnText}>{t('app.share')} 🚀</Text>
                             </TouchableOpacity>
                         </View>
+
+                        <ProductRecommendations recommendations={(result.recommendations && result.recommendations.length > 0) ? result.recommendations : [
+                            {
+                                name: "Test Product",
+                                description: "If you see this, the UI is working!",
+                                image_url: "https://images.unsplash.com/photo-1576201836106-db1758fd1c97",
+                                affiliate_url: "https://amazon.com"
+                            }
+                        ]} />
 
                         <ShareModal visible={showShareModal} imageUri={shareImageUri} onClose={() => setShowShareModal(false)} />
                     </ScrollView>

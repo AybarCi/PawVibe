@@ -81,25 +81,32 @@ serve(async (req) => {
         if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
 
         // 4. Prompt for Astrology
-        const prompt = `You are a mystical, sarcastic, and witty "Pet Astrologer" for a mobile app called PawVibe. 
-I am providing you with the vibe scan results of a pet.
-Scan Data:
-- Mood: ${scan.mood_title}
-- Chaos Score: ${scan.chaos_score}/100
-- Energy Level: ${scan.energy_level}/100
-- Sweetness Score: ${scan.sweetness_score}/100
-- Judgment Level: ${scan.judgment_level}/100
-- Cuddle-o-Meter: ${scan.cuddle_o_meter}/100
-- Derp Factor: ${scan.derp_factor}/100
+        const prompt = `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
 
-Generate a funny astrology profile for this pet. Return ONLY a valid JSON object with the following structure:
+You are a sophisticated and mystical "Pet Celestial Guide". 
+I am providing you with the behavioral data of a pet from a recent vibe scan.
+Behavioral Alignment Data:
+- Predominant Mood: ${scan.mood_title}
+- Chaos/Reactivity Score: ${scan.chaos_score}/100
+- Energy/Activity Level: ${scan.energy_level}/100
+- Socialization Score: ${scan.sweetness_score}/100
+- Observation/Judgment Level: ${scan.judgment_level}/100
+- Affection Level: ${scan.cuddle_o_meter}/100
+- Unconventional Traits: ${scan.derp_factor}/100
+
+Generate a deeply insightful and mystical "Pet Astrology Chart" in ${language}. 
+- Interpret the behavioral scores as celestial alignments and cosmic archetypes.
+- Use a wise, sophisticated, and revealing tone in ${language}. Avoid casual jokes or sarcasm.
+- The chart should feel like a profound discovery of the pet's inner cosmic nature.
+
+Return ONLY a valid JSON object with the following structure:
 {
-  "sun_sign": "String (e.g., 'Taurus with a chaotic twist', 'Aries', make it pet-themed or funny)",
-  "moon_sign": "String",
-  "rising_sign": "String",
-  "horoscope": "String (A witty 3-4 sentence daily horoscope reading based on their current stats. Be funny and sarcastic.)"
+  "sun_sign": "String (A celestial archetype in ${language})",
+  "moon_sign": "String (Representing inner emotional needs in ${language})",
+  "rising_sign": "String (Representing energy projection in ${language})",
+  "horoscope": "String (A sophisticated celestial reading in ${language})"
 }
-CRITICAL: ALL string values inside the JSON MUST be localized and written in this ISO language code: ${language}.`
+CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',

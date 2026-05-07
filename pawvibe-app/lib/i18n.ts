@@ -29,7 +29,7 @@ const resources = {
         "profile_title": "My Profile 🐾",
         "my_credits": "My Credits ⚡",
         "weekly_free": "Weekly Free Scans (Resets weekly)",
-        "weekly_refresh_info": "Your 5 free weekly scans refresh automatically when you take your next scan after 7 days. No action needed!",
+        "weekly_refresh_info": "Your 2 free weekly scans refresh automatically when you take your next scan after 7 days. No action needed!",
         "purchased_scans": "Purchased Scans",
         "buy_snack_pack": "Want more? Buy a Snack Pack! 🍖",
         "recent_scans": "Recent Scans",
@@ -143,7 +143,9 @@ const resources = {
         "share_save_gallery": "Save to Gallery",
         "share_other": "More Options",
         "share_saved_to_gallery": "Photo saved to gallery!",
-        "share_gallery_permission": "Please grant gallery access to save photos."
+        "share_gallery_permission": "Please grant gallery access to save photos.",
+        "picked_for_your_pet": "PICKED FOR YOUR PET",
+        "buy_now": "BUY NOW"
       }
     }
   },
@@ -173,7 +175,7 @@ const resources = {
         "profile_title": "Profilim 🐾",
         "my_credits": "Kredilerim ⚡",
         "weekly_free": "Haftalık Bedava (Her hafta yenilenir)",
-        "weekly_refresh_info": "Haftalık 5 ücretsiz hakkınız, 7 gün sonra yeni bir analiz yaptığınızda otomatik olarak yenilenir. Ekstra bir işlem gerekmez!",
+        "weekly_refresh_info": "Haftalık 2 ücretsiz hakkınız, 7 gün sonra yeni bir analiz yaptığınızda otomatik olarak yenilenir. Ekstra bir işlem gerekmez!",
         "purchased_scans": "Satın Alınanlar",
         "buy_snack_pack": "Daha fazla hak mı? Paket Satın Al! 🍖",
         "recent_scans": "Son Analizler",
@@ -287,7 +289,9 @@ const resources = {
         "share_save_gallery": "Galeriye Kaydet",
         "share_other": "Diğer Seçenekler",
         "share_saved_to_gallery": "Fotoğraf galeriye kaydedildi!",
-        "share_gallery_permission": "Fotoğraf kaydetmek için galeri erişimi verin."
+        "share_gallery_permission": "Fotoğraf kaydetmek için galeri erişimi verin.",
+        "picked_for_your_pet": "PETİN İÇİN SEÇTİKLERİMİZ",
+        "buy_now": "SATIN AL"
       }
     }
   },
@@ -317,7 +321,7 @@ const resources = {
         "profile_title": "Mi perfil 🐾",
         "my_credits": "Mis créditos ⚡",
         "weekly_free": "Escaneos gratis semanales (Se reinicia cada semana)",
-        "weekly_refresh_info": "Tus 5 escaneos semanales gratis se renuevan automáticamente cuando realices tu siguiente escaneo después de 7 días. ¡No necesitas hacer nada!",
+        "weekly_refresh_info": "Tus 2 escaneos semanales gratis se renuevan automáticamente cuando realices tu siguiente escaneo después de 7 días. ¡No necesitas hacer nada!",
         "purchased_scans": "Escaneos comprados",
         "buy_snack_pack": "¿Quieres más? ¡Compra un paquete de snacks! 🍖",
         "recent_scans": "Escaneos recientes",
@@ -417,7 +421,9 @@ const resources = {
         "share_save_gallery": "Guardar en galería",
         "share_other": "Más opciones",
         "share_saved_to_gallery": "¡Foto guardada en la galería!",
-        "share_gallery_permission": "Por favor, concede acceso a la galería para guardar fotos."
+        "share_gallery_permission": "Por favor, concede acceso a la galería para guardar fotos.",
+        "picked_for_your_pet": "ELEGIDO PARA TU MASCOTA",
+        "buy_now": "COMPRAR AHORA"
       }
     }
   },
@@ -447,7 +453,7 @@ const resources = {
         "profile_title": "Мой профиль 🐾",
         "my_credits": "Мои кредиты ⚡",
         "weekly_free": "Еженедельные бесплатные сканирования (обновляется еженедельно)",
-        "weekly_refresh_info": "Ваши 5 бесплатных сканирований обновляются автоматически при следующем сканировании через 7 дней. Никаких действий не требуется!",
+        "weekly_refresh_info": "Ваши 2 бесплатных сканирования обновляются автоматически при следующем сканировании через 7 дней. Никаких действий не требуется!",
         "purchased_scans": "Купленные сканирования",
         "buy_snack_pack": "Хотите больше? Купите набор вкусняшек! 🍖",
         "recent_scans": "Последние сканирования",
@@ -547,7 +553,9 @@ const resources = {
         "share_save_gallery": "Сохранить в галерею",
         "share_other": "Другие варианты",
         "share_saved_to_gallery": "Фото сохранено в галерею!",
-        "share_gallery_permission": "Пожалуйста, предоставьте доступ к галерее для сохранения фотографий."
+        "share_gallery_permission": "Пожалуйста, предоставьте доступ к галерее для сохранения фотографий.",
+        "picked_for_your_pet": "ВЫБРАНО ДЛЯ ВАШЕГО ПИТОМЦА",
+        "buy_now": "КУПИТЬ СЕЙЧАС"
       }
     }
   },
@@ -577,7 +585,7 @@ const resources = {
         "profile_title": "Mon Profil 🐾",
         "my_credits": "Mes Crédits ⚡",
         "weekly_free": "Analyses gratuites (Réinitialisation hebd.)",
-        "weekly_refresh_info": "Vos 5 analyses gratuites se renouvellent automatiquement lors de votre prochaine analyse après 7 jours. Aucune action requise !",
+        "weekly_refresh_info": "Vos 2 analyses gratuites se renouvellent automatiquement lors de votre prochaine analyse après 7 jours. Aucune action requise !",
         "purchased_scans": "Analyses achetées",
         "buy_snack_pack": "Vous en voulez plus ? Achetez un Snack Pack ! 🍖",
         "recent_scans": "Analyses récentes",
@@ -677,7 +685,9 @@ const resources = {
         "share_save_gallery": "Enregistrer dans la galerie",
         "share_other": "Plus d'options",
         "share_saved_to_gallery": "Photo enregistrée dans la galerie !",
-        "share_gallery_permission": "Veuillez accorder l'accès à la galerie pour sauvegarder les photos."
+        "share_gallery_permission": "Veuillez accorder l'accès à la galerie pour sauvegarder les photos.",
+        "picked_for_your_pet": "CHOISI POUR VOTRE ANIMAL",
+        "buy_now": "ACHETER MAINTENANT"
       }
     }
   },
@@ -707,7 +717,7 @@ const resources = {
         "profile_title": "Meu Perfil 🐾",
         "my_credits": "Meus Créditos ⚡",
         "weekly_free": "Grátis por Semana (Reinicia semanalmente)",
-        "weekly_refresh_info": "Seus 5 escaneamentos gratuitos semanais são renovados automaticamente ao fazer o próximo escaneamento após 7 dias. Nenhuma ação necessária!",
+        "weekly_refresh_info": "Seus 2 escaneamentos gratuitos semanais são renovados automaticamente ao fazer o próximo escaneamento após 7 dias. Nenhuma ação necessária!",
         "purchased_scans": "Escaneamentos Comprados",
         "buy_snack_pack": "Quer mais? Compre um Pacote de Petiscos! 🍖",
         "recent_scans": "Escaneamentos Recentes",
@@ -807,7 +817,9 @@ const resources = {
         "share_save_gallery": "Salvar na galeria",
         "share_other": "Mais opções",
         "share_saved_to_gallery": "Foto salva na galeria!",
-        "share_gallery_permission": "Conceda acesso à galeria para salvar fotos."
+        "share_gallery_permission": "Conceda acesso à galeria para salvar fotos.",
+        "picked_for_your_pet": "ESCOLHIDO PARA O SEU PET",
+        "buy_now": "COMPRAR AGORA"
       }
     }
   },
@@ -837,7 +849,7 @@ const resources = {
         "profile_title": "Mein Profil 🐾",
         "my_credits": "Meine Credits ⚡",
         "weekly_free": "Wöchentlich kostenlos (Wird wöchentlich zurückgesetzt)",
-        "weekly_refresh_info": "Deine 5 kostenlosen wöchentlichen Scans werden automatisch erneuert, wenn du nach 7 Tagen deinen nächsten Scan machst. Kein Handlungsbedarf!",
+        "weekly_refresh_info": "Deine 2 kostenlosen wöchentlichen Scans werden automatisch erneuert, wenn du nach 7 Tagen deinen nächsten Scan machst. Kein Handlungsbedarf!",
         "purchased_scans": "Gekaufte Scans",
         "buy_snack_pack": "Willst du mehr? Kauf ein Snack-Paket! 🍖",
         "recent_scans": "Letzte Scans",
@@ -937,7 +949,9 @@ const resources = {
         "share_save_gallery": "In Galerie speichern",
         "share_other": "Weitere Optionen",
         "share_saved_to_gallery": "Foto in der Galerie gespeichert!",
-        "share_gallery_permission": "Bitte gewähre Zugriff auf die Galerie, um Fotos zu speichern."
+        "share_gallery_permission": "Bitte gewähre Zugriff auf die Galerie, um Fotos zu speichern.",
+        "picked_for_your_pet": "FÜR DEIN HAUSTIER AUSGEWÄHLT",
+        "buy_now": "JETZT KAUFEN"
       }
     }
   }

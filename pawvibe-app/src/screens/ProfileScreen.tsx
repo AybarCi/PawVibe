@@ -296,7 +296,7 @@ export default function ProfileScreen({ navigation }: any) {
                                 }}>
                                     <Ionicons name="information-circle-outline" size={18} color="#6A4C93" style={{ marginTop: 1 }} />
                                     <Text style={{ color: '#9B8BB4', fontSize: 12, flex: 1, lineHeight: 18 }}>
-                                        {t('app.weekly_refresh_info', 'Your 5 free weekly scans refresh automatically when you take your next scan after 7 days. No action needed!')}
+                                        {t('app.weekly_refresh_info', 'Your 2 free weekly scans refresh automatically when you take your next scan after 7 days. No action needed!')}
                                     </Text>
                                 </View>
                             )}

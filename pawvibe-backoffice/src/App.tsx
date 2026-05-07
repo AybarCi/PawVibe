@@ -6,6 +6,7 @@ import UsersPage from './pages/Users';
 import AnalysesPage from './pages/Analyses';
 import PurchasesPage from './pages/Purchases';
 import SubscriptionsPage from './pages/Subscriptions';
+import RecommendationsPage from './pages/Recommendations';
 import { supabase } from './lib/supabase';
 import { LogIn } from 'lucide-react';
 
@@ -107,6 +108,7 @@ function App() {
       case 'analyses': return <AnalysesPage />;
       case 'purchases': return <PurchasesPage />;
       case 'subscriptions': return <SubscriptionsPage />;
+      case 'recommendations': return <RecommendationsPage />;
       default: return <Dashboard />;
     }
   };
