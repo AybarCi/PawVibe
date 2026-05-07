@@ -100,6 +100,10 @@ serve(async (req) => {
               Required JSON keys: 
               is_pet (bool), 
               pet_type (string: 'cat'|'dog'|'other'), 
+              breed_size (string: 'small'|'medium'|'large'),
+              life_stage (string: 'puppy'|'adult'|'senior'),
+               estimated_breed (string, if not sure use "Mixed / Unique"),
+              detected_colors (array of strings),
               mood_title (string), 
               confidence (float 0-1), 
               explanation (string), 
@@ -111,7 +115,7 @@ serve(async (req) => {
               derp_factor (int 0-100).
               
               If no pet is found:
-              Set is_pet to false, pet_type to 'other', and provide a professional explanation in ${language} that no clear animal subject was identified for assessment. All numeric scores must be 0.`
+              Set is_pet to false, pet_type to 'other', breed_size to 'medium', life_stage to 'adult', estimated_breed to 'none', detected_colors to [], and provide a professional explanation in ${language} that no clear animal subject was identified for assessment. All numeric scores must be 0.`
             },
             {
               role: 'user',
@@ -134,19 +138,20 @@ serve(async (req) => {
       const rawContent = openAiData.choices[0].message.content.trim();
       moodResult = JSON.parse(rawContent);
 
-      // 4. Fetch Product Recommendations
+      // 4. Fetch Smart Product Recommendations
       if (moodResult.is_pet) {
-        // Force lowercase to match DB
         const petType = (moodResult.pet_type || 'both').toLowerCase();
+        const size = moodResult.breed_size || 'medium';
+        const stage = moodResult.life_stage || 'adult';
         
+        // Smarter query: matches specific type/size/stage OR 'both'/'all' fallbacks
         const { data: recs, error: recsError } = await supabase
           .from('recommendations')
           .select('name, description, image_url, affiliate_url')
           .eq('is_active', true)
           .or(`pet_type.eq.${petType},pet_type.eq.both`)
-          .lte('min_energy', moodResult.energy_level || 0)
-          .lte('min_chaos', moodResult.chaos_score || 0)
-          .lte('min_sweetness', moodResult.sweetness_score || 0)
+          .or(`target_size.eq.${size},target_size.eq.all`)
+          .or(`target_stage.eq.${stage},target_stage.eq.all`)
           .limit(3);
         
         if (recsError) console.error("Recommendations Fetch Error:", recsError);
@@ -221,7 +226,11 @@ serve(async (req) => {
       sweetness_score: moodResult.sweetness_score ?? 0,
       judgment_level: moodResult.judgment_level ?? 0,
       cuddle_o_meter: moodResult.cuddle_o_meter ?? 0,
-      derp_factor: moodResult.derp_factor ?? 0
+      derp_factor: moodResult.derp_factor ?? 0,
+      breed_size: moodResult.breed_size,
+      life_stage: moodResult.life_stage,
+      estimated_breed: moodResult.estimated_breed,
+      detected_colors: moodResult.detected_colors
     }]);
 
     if (insertError) {

@@ -175,7 +175,14 @@ const resources = {
         "notif_remind_body": "Tomorrow is {{vaccineName}} vaccination day for {{petName}}. Don't forget! 🐾",
         "notif_day_title": "Vaccination Day: {{petName}}",
         "notif_day_body": "Today is {{vaccineName}} vaccination day for {{petName}}. 🦴",
-        "notification_hint": "We'll remind you 24h before and on the morning of the dose. 🔔"
+        "notification_hint": "We'll remind you 24h before and on the morning of the dose. 🔔",
+        "size_small": "Small Breed",
+        "size_medium": "Medium Breed",
+        "size_large": "Large Breed",
+        "stage_puppy": "Puppy / Kitten",
+        "stage_adult": "Adult",
+        "stage_senior": "Senior",
+        "mysterious_friend": "Mysterious Friend"
       }
     }
   },
@@ -351,7 +358,14 @@ const resources = {
         "notif_remind_body": "Yarın {{petName}} için {{vaccineName}} aşısı yapılacak. Unutmayın! 🐾",
         "notif_day_title": "Aşı Günü: {{petName}}",
         "notif_day_body": "Bugün {{petName}} için {{vaccineName}} aşısı günü. 🦴",
-        "notification_hint": "Aşıdan 24 saat önce ve aşı sabahı size hatırlatacağız. 🔔"
+        "notification_hint": "Aşıdan 24 saat önce ve aşı sabahı size hatırlatacağız. 🔔",
+        "size_small": "Küçük Irk",
+        "size_medium": "Orta Irk",
+        "size_large": "Büyük Irk",
+        "stage_puppy": "Yavru",
+        "stage_adult": "Yetişkin",
+        "stage_senior": "Yaşlı",
+        "mysterious_friend": "Gizemli Dost"
       }
     }
   },
@@ -490,7 +504,14 @@ const resources = {
         "share_gallery_permission": "Por favor, concede acceso a la galería para guardar fotos.",
         "picked_for_your_pet": "ELEGIDO PARA TU MASCOTA",
         "buy_now": "COMPRAR AHORA",
-        "select_date": "Seleccionar fecha"
+        "select_date": "Seleccionar fecha",
+        "size_small": "Raza Pequeña",
+        "size_medium": "Raza Mediana",
+        "size_large": "Raza Grande",
+        "stage_puppy": "Cachorro",
+        "stage_adult": "Adulto",
+        "stage_senior": "Senior",
+        "mysterious_friend": "Amigo Misterioso"
       }
     }
   },
@@ -629,7 +650,14 @@ const resources = {
         "share_gallery_permission": "Пожалуйста, предоставьте доступ к галерее для сохранения фотографий.",
         "picked_for_your_pet": "ВЫБРАНО ДЛЯ ВАШЕГО ПИТОМЦА",
         "buy_now": "КУПИТЬ СЕЙЧAS",
-        "select_date": "Выбрать дату"
+        "select_date": "Выбрать дату",
+        "size_small": "Маленькая порода",
+        "size_medium": "Средняя порода",
+        "size_large": "Крупная порода",
+        "stage_puppy": "Щенок",
+        "stage_adult": "Взрослый",
+        "stage_senior": "Пожилой",
+        "mysterious_friend": "Таинственный друг"
       }
     }
   },
@@ -768,7 +796,14 @@ const resources = {
         "share_gallery_permission": "Veuillez accorder l'accès à la galerie pour sauvegarder les photos.",
         "picked_for_your_pet": "CHOISI POUR VOTRE ANIMAL",
         "buy_now": "ACHETER MAINTENANT",
-        "select_date": "Choisir une date"
+        "select_date": "Choisir une date",
+        "size_small": "Petite race",
+        "size_medium": "Race moyenne",
+        "size_large": "Grande race",
+        "stage_puppy": "Chiot / Chaton",
+        "stage_adult": "Adulte",
+        "stage_senior": "Sénior",
+        "mysterious_friend": "Ami Mystérieux"
       }
     }
   },
@@ -907,7 +942,14 @@ const resources = {
         "share_gallery_permission": "Conceda acesso à galeria para salvar fotos.",
         "picked_for_your_pet": "ESCOLHIDO PARA O SEU PET",
         "buy_now": "COMPRAR AGORA",
-        "select_date": "Selecionar data"
+        "select_date": "Selecionar data",
+        "size_small": "Raça Pequena",
+        "size_medium": "Raça Média",
+        "size_large": "Raça Grande",
+        "stage_puppy": "Filhote",
+        "stage_adult": "Adulto",
+        "stage_senior": "Sénior",
+        "mysterious_friend": "Amigo Misterioso"
       }
     }
   },

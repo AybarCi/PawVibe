@@ -139,6 +139,19 @@ export default function MyScansScreen() {
                                 </View>
 
                                 {isRealPet && (
+                                    <View style={styles.scanBioRow}>
+                                        <Ionicons name="paw" size={12} color="#00FFFF" />
+                                        <Text style={styles.scanBioText}>
+                                            {(!scan.estimated_breed || 
+                                              scan.estimated_breed.toLowerCase() === 'none' || 
+                                              scan.estimated_breed.toLowerCase().includes('mixed')
+                                                ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') 
+                                                : scan.estimated_breed.toUpperCase())} • {t(`app.size_${scan.breed_size}`, scan.breed_size?.toUpperCase())} • {t(`app.stage_${scan.life_stage}`, scan.life_stage?.toUpperCase())}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {isRealPet && (
                                     <View style={styles.scanStats}>
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.chaos')}: {scan.chaos_score ?? 0} 🌪️</Text>
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.energy')}: {scan.energy_level ?? 0} ⚡</Text>
@@ -192,5 +205,7 @@ const styles = StyleSheet.create({
     astroBtnText: { color: '#FFD700', fontWeight: 'bold', fontSize: 12 },
 
     scanStats: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 10, borderTopWidth: 1, borderTopColor: '#2a3b5e', paddingTop: 10 },
-    scanStatText: { color: '#FF007F', fontSize: 13, fontWeight: '600', width: '48%', marginBottom: 5 }
+    scanStatText: { color: '#FF007F', fontSize: 13, fontWeight: '600', width: '48%', marginBottom: 5 },
+    scanBioRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0, 255, 255, 0.05)', padding: 8, borderRadius: 8, gap: 6, marginBottom: 5 },
+    scanBioText: { color: '#00FFFF', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 }
 });

@@ -10,6 +10,8 @@ interface Recommendation {
     description: string;
     image_url: string;
     affiliate_url: string;
+    target_size?: string;
+    target_stage?: string;
 }
 
 interface ProductRecommendationsProps {
@@ -59,6 +61,16 @@ const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recomme
                                 style={styles.productImage}
                                 resizeMode="cover"
                             />
+
+                            {((item.target_size && item.target_size !== 'all') || (item.target_stage && item.target_stage !== 'all')) && (
+                                <View style={styles.targetTagContainer}>
+                                    <Text style={styles.targetTagText}>
+                                        {item.target_size !== 'all' ? t(`app.size_${item.target_size}`, item.target_size?.toUpperCase()) : ''} 
+                                        {item.target_size !== 'all' && item.target_stage !== 'all' ? ' • ' : ''}
+                                        {item.target_stage !== 'all' ? t(`app.stage_${item.target_stage}`, item.target_stage?.toUpperCase()) : ''}
+                                    </Text>
+                                </View>
+                            )}
                             
                             <View style={styles.cardContent}>
                                 <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
@@ -187,6 +199,23 @@ const styles = StyleSheet.create({
         borderBottomWidth: 2,
         borderRightWidth: 2,
         borderColor: '#00FFFF',
+    },
+    targetTagContainer: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        backgroundColor: 'rgba(26, 11, 46, 0.8)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#FF007F',
+    },
+    targetTagText: {
+        color: '#FF007F',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 1,
     }
 });
 

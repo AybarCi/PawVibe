@@ -50,6 +50,11 @@ interface AnalysisResult {
     cuddle_o_meter?: number;
     derp_factor?: number;
     is_pet?: boolean;
+    pet_type?: string;
+    breed_size?: string;
+    life_stage?: string;
+    estimated_breed?: string;
+    detected_colors?: string[];
     explanation?: string;
     recommendations?: Array<{
         name: string;
@@ -494,6 +499,39 @@ export default function CameraScreen({ navigation }: any) {
                                     {result.is_pet === false && result.explanation && (
                                         <Text style={styles.funnyExplanation}>{result.explanation}</Text>
                                     )}
+
+                                    {result.is_pet !== false && (
+                                        <View style={styles.bioTagsContainer}>
+                                            <View style={styles.bioTag}>
+                                                <MaterialCommunityIcons name="dog-side" size={14} color="#00FFFF" />
+                                                <Text style={styles.bioTagText}>
+                                                    {!result.estimated_breed || 
+                                                     result.estimated_breed.toLowerCase() === 'none' || 
+                                                     result.estimated_breed.toLowerCase().includes('mixed') 
+                                                        ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') 
+                                                        : result.estimated_breed.toUpperCase()}
+                                                </Text>
+                                            </View>
+                                            <View style={styles.bioTag}>
+                                                <MaterialCommunityIcons name="resize" size={14} color="#00FFFF" />
+                                                <Text style={styles.bioTagText}>{t(`app.size_${result.breed_size}`, result.breed_size?.toUpperCase())}</Text>
+                                            </View>
+                                            <View style={styles.bioTag}>
+                                                <MaterialCommunityIcons name="clock-outline" size={14} color="#00FFFF" />
+                                                <Text style={styles.bioTagText}>{t(`app.stage_${result.life_stage}`, result.life_stage?.toUpperCase())}</Text>
+                                            </View>
+                                            {result.detected_colors && result.detected_colors.length > 0 && (
+                                                <View style={styles.bioTag}>
+                                                    <View style={styles.colorDots}>
+                                                        {result.detected_colors.map((c, i) => (
+                                                            <View key={i} style={[styles.colorDot, { backgroundColor: c.toLowerCase() }]} />
+                                                        ))}
+                                                    </View>
+                                                    <Text style={styles.bioTagText}>{result.detected_colors.join(', ').toUpperCase()}</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         </ViewShot>
@@ -858,6 +896,42 @@ const styles = StyleSheet.create({
     neonGlowText: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', letterSpacing: 3, textShadowColor: '#FF007F', textShadowRadius: 8, marginTop: 2 },
     watermark: { paddingTop: 10, color: '#6A4C93', fontSize: 12, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase' },
     actionButtons: { flexDirection: 'row', width: '90%', justifyContent: 'space-between' },
+    bioTagsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 8,
+        marginTop: 5,
+        marginBottom: 15,
+    },
+    bioTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 255, 255, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 255, 255, 0.3)',
+        gap: 5,
+    },
+    bioTagText: {
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 0.5,
+    },
+    colorDots: {
+        flexDirection: 'row',
+        gap: 3,
+    },
+    colorDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.5)',
+    },
     cornerTL: { position: 'absolute', top: 0, left: 0, width: 20, height: 20, borderTopWidth: 3, borderLeftWidth: 3, borderColor: '#FF007F', borderTopLeftRadius: 20 },
     cornerTR: { position: 'absolute', top: 0, right: 0, width: 20, height: 20, borderTopWidth: 3, borderRightWidth: 3, borderColor: '#FF007F', borderTopRightRadius: 20 },
     cornerBL: { position: 'absolute', bottom: 0, left: 0, width: 20, height: 20, borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#FF007F', borderBottomLeftRadius: 20 },

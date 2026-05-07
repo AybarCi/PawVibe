@@ -12,6 +12,8 @@ interface Recommendation {
   min_energy: number;
   min_chaos: number;
   min_sweetness: number;
+  target_size: 'small' | 'medium' | 'large' | 'all';
+  target_stage: 'puppy' | 'adult' | 'senior' | 'all';
   is_active: boolean;
 }
 
@@ -157,7 +159,7 @@ export default function Recommendations() {
           <p className="text-gray-500 mt-2 font-medium">Manage AI-driven product suggestions for pets</p>
         </div>
         <button 
-          onClick={() => { setEditingItem({ pet_type: 'both', is_active: true, min_energy: 0, min_chaos: 0, min_sweetness: 0 }); setIsModalOpen(true); }}
+          onClick={() => { setEditingItem({ pet_type: 'both', is_active: true, min_energy: 0, min_chaos: 0, min_sweetness: 0, target_size: 'all', target_stage: 'all' }); setIsModalOpen(true); }}
           className="bg-[#FF007F] hover:bg-[#FF007F]/80 text-white px-6 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,0,127,0.3)] transition-all transform hover:scale-105"
         >
           <Plus size={20} />
@@ -192,6 +194,9 @@ export default function Recommendations() {
                     item.pet_type === 'dog' ? 'bg-blue-500/20 text-blue-500' : 'bg-purple-500/20 text-purple-500'
                   }`}>
                     {item.pet_type}
+                  </span>
+                  <span className="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    {item.target_size} / {item.target_stage}
                   </span>
                   {!item.is_active && (
                     <span className="bg-red-500/20 text-red-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Inactive</span>
@@ -265,6 +270,35 @@ export default function Recommendations() {
                       <option value="both">Both (Cat & Dog)</option>
                       <option value="cat">Only Cats</option>
                       <option value="dog">Only Dogs</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Target Size</label>
+                    <select 
+                      className="w-full bg-[#0A001A] border border-[#2D005A] rounded-2xl px-5 py-4 focus:outline-none focus:border-[#FF007F] text-white appearance-none"
+                      value={editingItem?.target_size || 'all'}
+                      onChange={e => setEditingItem({ ...editingItem, target_size: e.target.value as any })}
+                    >
+                      <option value="all">All Sizes</option>
+                      <option value="small">Small Breed</option>
+                      <option value="medium">Medium Breed</option>
+                      <option value="large">Large Breed</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Life Stage</label>
+                    <select 
+                      className="w-full bg-[#0A001A] border border-[#2D005A] rounded-2xl px-5 py-4 focus:outline-none focus:border-[#FF007F] text-white appearance-none"
+                      value={editingItem?.target_stage || 'all'}
+                      onChange={e => setEditingItem({ ...editingItem, target_stage: e.target.value as any })}
+                    >
+                      <option value="all">All Stages</option>
+                      <option value="puppy">Puppy / Kitten</option>
+                      <option value="adult">Adult</option>
+                      <option value="senior">Senior</option>
                     </select>
                   </div>
                 </div>
