@@ -170,7 +170,12 @@ const resources = {
         "vaccine_limit_msg": "Free users can add up to 3 vaccines. Upgrade to Premium for unlimited access!",
         "auth_required_title": "Account Required",
         "auth_required_msg": "Please secure your account to save vaccination records and never lose them.",
-        "go_to_profile": "Go to Profile"
+        "go_to_profile": "Go to Profile",
+        "notif_remind_title": "Vaccination Reminder: {{petName}}",
+        "notif_remind_body": "Tomorrow is {{vaccineName}} vaccination day for {{petName}}. Don't forget! 🐾",
+        "notif_day_title": "Vaccination Day: {{petName}}",
+        "notif_day_body": "Today is {{vaccineName}} vaccination day for {{petName}}. 🦴",
+        "notification_hint": "We'll remind you 24h before and on the morning of the dose. 🔔"
       }
     }
   },
@@ -341,7 +346,12 @@ const resources = {
         "vaccine_limit_msg": "Ücretsiz sürümde en fazla 3 aşı ekleyebilirsin. Sınırsız kayıt için Premium'a yükselt!",
         "auth_required_title": "Hesap Gerekli",
         "auth_required_msg": "Aşı kayıtlarının kaybolmaması için lütfen önce hesabını bağla.",
-        "go_to_profile": "Profile Git"
+        "go_to_profile": "Profile Git",
+        "notif_remind_title": "Aşı Hatırlatması: {{petName}}",
+        "notif_remind_body": "Yarın {{petName}} için {{vaccineName}} aşısı yapılacak. Unutmayın! 🐾",
+        "notif_day_title": "Aşı Günü: {{petName}}",
+        "notif_day_body": "Bugün {{petName}} için {{vaccineName}} aşısı günü. 🦴",
+        "notification_hint": "Aşıdan 24 saat önce ve aşı sabahı size hatırlatacağız. 🔔"
       }
     }
   },
@@ -1049,7 +1059,17 @@ const resources = {
         "save_vaccine": "Speichern",
         "upcoming_vaccines": "Anstehend",
         "completed_vaccines": "Verlauf",
-        "select_date": "Datum auswählen"
+        "select_date": "Datum auswählen",
+        "vaccine_limit_reached": "Limit erreicht",
+        "vaccine_limit_msg": "Kostenlose Nutzer können bis zu 3 Impfungen hinzufügen. Upgrade auf Premium für unbegrenzten Zugriff!",
+        "auth_required_title": "Konto erforderlich",
+        "auth_required_msg": "Bitte sichere dein Konto, um Impfpass-Daten dauerhaft zu speichern.",
+        "go_to_profile": "Zum Profil",
+        "notif_remind_title": "Impf-Erinnerung: {{petName}}",
+        "notif_remind_body": "Morgen ist Impftermin für {{vaccineName}} bei {{petName}}. Nicht vergessen! 🐾",
+        "notif_day_title": "Impftermin: {{petName}}",
+        "notif_day_body": "Heute ist Impftermin für {{vaccineName}} bei {{petName}}. 🦴",
+        "notification_hint": "Wir erinnern dich 24h vorher und am Morgen der Impfung. 🔔"
       }
     }
   }

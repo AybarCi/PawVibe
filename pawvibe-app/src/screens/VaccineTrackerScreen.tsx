@@ -23,6 +23,11 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { 
+    requestNotificationPermissions, 
+    scheduleVaccineReminder, 
+    cancelVaccineReminders 
+} from '../services/notificationService';
 
 interface Vaccination {
     id: string;
@@ -32,6 +37,7 @@ interface Vaccination {
     next_due_date: string | null;
     is_completed: boolean;
     notes: string | null;
+    notification_ids?: string[];
 }
 
 export default function VaccineTrackerScreen() {
@@ -111,6 +117,26 @@ export default function VaccineTrackerScreen() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
+            // Schedule notification if next due date exists
+            let notificationIds: string[] = [];
+            if (nextDueDate) {
+                const hasPermission = await requestNotificationPermissions();
+                if (hasPermission) {
+                    const remindTitle = t('app.notif_remind_title', { petName });
+                    const remindBody = t('app.notif_remind_body', { petName, vaccineName });
+                    const dayOfTitle = t('app.notif_day_title', { petName });
+                    const dayOfBody = t('app.notif_day_body', { petName, vaccineName });
+
+                    notificationIds = await scheduleVaccineReminder(
+                        remindTitle,
+                        remindBody,
+                        dayOfTitle,
+                        dayOfBody,
+                        nextDueDate.toISOString()
+                    );
+                }
+            }
+
             const { error } = await supabase
                 .from('vaccinations')
                 .insert([{
@@ -120,7 +146,8 @@ export default function VaccineTrackerScreen() {
                     date_administered: dateAdministered.toISOString().split('T')[0],
                     next_due_date: nextDueDate ? nextDueDate.toISOString().split('T')[0] : null,
                     notes: notes || null,
-                    is_completed: true
+                    is_completed: true,
+                    notification_ids: notificationIds
                 }]);
 
             if (error) throw error;
@@ -146,6 +173,12 @@ export default function VaccineTrackerScreen() {
                     text: t('app.delete_confirm_btn'),
                     style: 'destructive',
                     onPress: async () => {
+                        // Cancel scheduled notifications first
+                        const vaccineToDelete = vaccinations.find(v => v.id === id);
+                        if (vaccineToDelete && vaccineToDelete.notification_ids) {
+                            await cancelVaccineReminders(vaccineToDelete.notification_ids);
+                        }
+
                         const { error } = await supabase
                             .from('vaccinations')
                             .delete()
@@ -326,6 +359,8 @@ export default function VaccineTrackerScreen() {
                                 </View>
                             </View>
 
+                            <Text style={styles.hintText}>{t('app.notification_hint')}</Text>
+
                             <Text style={styles.inputLabel}>{t('app.notes', 'Notes')}</Text>
                             <TextInput
                                 style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
@@ -482,6 +517,13 @@ const styles = StyleSheet.create({
         marginTop: 5
     },
     dateText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
+    hintText: { 
+        color: 'rgba(0, 255, 255, 0.6)', 
+        fontSize: 12, 
+        fontStyle: 'italic',
+        marginBottom: 15,
+        textAlign: 'center'
+    },
     saveBtn: { marginTop: 20, borderRadius: 12, overflow: 'hidden' },
     saveBtnGradient: { padding: 15, alignItems: 'center' },
     saveBtnText: { color: 'white', fontSize: 18, fontWeight: '900' },

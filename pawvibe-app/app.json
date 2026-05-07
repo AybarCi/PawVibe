@@ -29,6 +29,7 @@
         "NSCameraUsageDescription": "PawVibe needs access to your camera to take photos of your pets for the AI vibe analysis.",
         "NSPhotoLibraryUsageDescription": "PawVibe needs access to your photo library so you can select existing photos of your pets for the AI vibe analysis.",
         "NSPhotoLibraryAddUsageDescription": "PawVibe needs permission to save your pet's vibe card to your photo library.",
+        "NSUserNotificationUsageDescription": "PawVibe needs to send you notifications for your pet's upcoming vaccinations.",
         "LSApplicationQueriesSchemes": [
           "instagram-stories",
           "instagram",
@@ -302,6 +303,7 @@
           "iosUrlScheme": "com.googleusercontent.apps.805364395142-esbqqr3j5c7f0fi8hafifvs43jb6f64t"
         }
       ],
+      "expo-notifications",
       [
         "expo-build-properties",
         {
