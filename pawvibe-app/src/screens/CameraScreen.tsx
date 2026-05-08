@@ -42,6 +42,9 @@ const POSTER_HEIGHT = POSTER_WIDTH * (16 / 9);
 const AnimatedCameraView = Animated.createAnimatedComponent(CameraView);
 
 interface AnalysisResult {
+    id?: string;
+    is_pet: boolean;
+    pet_type: 'cat' | 'dog' | 'other';
     mood_title?: string;
     chaos_score?: number;
     energy_level?: number;
@@ -49,14 +52,13 @@ interface AnalysisResult {
     judgment_level?: number;
     cuddle_o_meter?: number;
     derp_factor?: number;
-    is_pet?: boolean;
-    pet_type?: string;
     breed_size?: string;
     life_stage?: string;
     estimated_breed?: string;
     detected_colors?: string[];
     explanation?: string;
     recommendations?: Array<{
+        id: string;
         name: string;
         description: string;
         image_url: string;
@@ -553,7 +555,10 @@ export default function CameraScreen({ navigation }: any) {
                         </View>
 
                         {result.is_pet !== false && result.recommendations && result.recommendations.length > 0 && (
-                            <ProductRecommendations recommendations={result.recommendations} />
+                            <ProductRecommendations 
+                                recommendations={result.recommendations} 
+                                scanId={result.id}
+                            />
                         )}
 
                         <ShareModal visible={showShareModal} imageUri={shareImageUri} onClose={() => setShowShareModal(false)} />

@@ -2,7 +2,7 @@
   "expo": {
     "name": "PawVibe",
     "slug": "pawvibe",
-    "version": "1.5.5",
+    "version": "1.5.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -251,7 +251,7 @@
         "FacebookAdvertiserIDCollectionEnabled": true,
         "FacebookAutoLogAppEventsEnabled": true
       },
-      "buildNumber": "40",
+      "buildNumber": "41",
       "usesAppleSignIn": true,
       "appleAppId": "6759780429"
     },
@@ -262,7 +262,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.setifera.pawvibe",
-      "versionCode": 16
+      "versionCode": 17
     },
     "web": {
       "favicon": "./assets/favicon.png"

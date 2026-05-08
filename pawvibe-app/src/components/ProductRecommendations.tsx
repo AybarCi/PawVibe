@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Dimensions, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { supabase } from '../../lib/supabase';
+import { logMetaEvent } from '../../lib/metaTracking';
 
 interface Recommendation {
     name: string;
@@ -16,19 +17,48 @@ interface Recommendation {
 
 interface ProductRecommendationsProps {
     recommendations: Recommendation[];
+    scanId?: string;
 }
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
 
-const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recommendations }) => {
+const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recommendations, scanId }) => {
     const { t } = useTranslation();
 
     if (!recommendations || recommendations.length === 0) return null;
 
-    const handleBuyNow = (url: string) => {
+    const handleProductClick = async (item: any) => {
+        if (!item.affiliate_url) return;
+
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+
+        try {
+            // 1. Log to Meta Ads for attribution
+            logMetaEvent('fb_mobile_add_to_cart', {
+                content_id: item.id || item.name,
+                content_type: 'product',
+                value: 0,
+                currency: 'USD'
+            });
+
+            // 2. Track in Supabase for internal analytics
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                // We use maybeSingle/insert to just fire and forget the analytics
+                await supabase.from('recommendation_clicks').insert({
+                    user_id: session.user.id,
+                    product_id: item.id, // Assuming item has id from DB
+                    scan_id: scanId,
+                    platform: Platform.OS
+                });
+            }
+        } catch (error) {
+            console.error('Error tracking click:', error);
+        } finally {
+            // 3. Always open URL regardless of tracking success
+            Linking.openURL(item.affiliate_url).catch(err => console.error("Couldn't load page", err));
+        }
     };
 
     return (
@@ -49,7 +79,7 @@ const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recomme
                     <TouchableOpacity 
                         key={index} 
                         activeOpacity={0.9}
-                        onPress={() => handleBuyNow(item.affiliate_url)}
+                        onPress={() => handleProductClick(item)}
                         style={styles.card}
                     >
                         <LinearGradient
@@ -78,7 +108,7 @@ const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recomme
                                 
                                 <TouchableOpacity 
                                     style={styles.buyButton}
-                                    onPress={() => handleBuyNow(item.affiliate_url)}
+                                    onPress={() => handleProductClick(item)}
                                 >
                                     <LinearGradient
                                         colors={['#FF007F', '#6A4C93']}

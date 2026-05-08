@@ -300,8 +300,16 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                                 continue;
                             }
 
-                            const { data: { session } } = await supabase.auth.getSession();
-                            if (!session) continue; // Skip to next purchase instead of breaking the entire loop
+                            let session = null;
+                            for (let i = 0; i < 20; i++) {
+                                const { data } = await supabase.auth.getSession();
+                                if (data.session) {
+                                    session = data.session;
+                                    break;
+                                }
+                                await new Promise(res => setTimeout(res, 250));
+                            }
+                            if (!session) continue; // Skip to next purchase instead of breaking
 
                             const { error, data } = await supabase.functions.invoke('verify-receipt', {
                                 body: { receipt, productId: pid, platform: Platform.OS, transactionId: txId }
@@ -380,8 +388,23 @@ export const IAPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     return;
                 }
 
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) throw new Error("User not authenticated.");
+                // 2. 🛡️ AUTH GUARD: Wait for session if not immediately available
+                // This handles the race condition where IAP fires before App.tsx finishes auth.
+                let session = null;
+                for (let i = 0; i < 20; i++) { // Wait up to 5 seconds (20 * 250ms)
+                    const { data } = await supabase.auth.getSession();
+                    if (data.session) {
+                        session = data.session;
+                        break;
+                    }
+                    console.log('[IAP] Waiting for auth session (attempt ' + (i + 1) + ')...');
+                    await new Promise(res => setTimeout(res, 250));
+                }
+
+                if (!session) {
+                    console.error('[IAP] No session found after waiting. Abandoning transaction for now.');
+                    return; // Exit silently, it will be picked up by processPendingVerifications later
+                }
 
                 // 3. ⚙️ PRODUCTION HARDENING: Timeout protection
                 const timeout = new Promise((_, reject) =>
