@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-    StyleSheet, Text, View, SafeAreaView, TouchableOpacity, 
-    Image, ActivityIndicator, Dimensions, Animated, PanResponder, Alert 
+import {
+    StyleSheet, Text, View, TouchableOpacity,
+    Image, ActivityIndicator, Dimensions, Animated, PanResponder, Alert
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -32,12 +33,13 @@ interface DiscoveryPet {
 export default function DiscoveryScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(true);
     const [locationError, setLocationError] = useState<string | null>(null);
     const [queue, setQueue] = useState<DiscoveryPet[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [myPet, setMyPet] = useState<any>(null);
-    
+
     // Match Modal State
     const [showMatch, setShowMatch] = useState(false);
     const [matchedPet, setMatchedPet] = useState<DiscoveryPet | null>(null);
@@ -104,7 +106,7 @@ export default function DiscoveryScreen() {
                 .select('*')
                 .eq('owner_id', user.id)
                 .eq('is_searching', true);
-            
+
             if (!myPets || myPets.length === 0) {
                 setMyPet(null);
                 setLoading(false);
@@ -118,7 +120,7 @@ export default function DiscoveryScreen() {
                 .from('matches')
                 .select('pet_to')
                 .eq('pet_from', activePet.id);
-            
+
             const excludedIds = seenPets?.map(s => s.pet_to) || [];
             excludedIds.push(activePet.id);
 
@@ -214,7 +216,7 @@ export default function DiscoveryScreen() {
                     setMatchedPet(targetPet);
                     setShowMatch(true);
                     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    
+
                     // Update match status in DB for both
                     await supabase.from('matches').update({ status: 'match' }).match({ pet_from: myPet.id, pet_to: targetPet.id });
                     await supabase.from('matches').update({ status: 'match' }).match({ pet_from: targetPet.id, pet_to: myPet.id });
@@ -247,28 +249,30 @@ export default function DiscoveryScreen() {
         } : {};
 
         return (
-            <Animated.View 
-                key={item.id} 
+            <Animated.View
+                key={item.id}
                 style={[styles.card, animatedStyle, { zIndex: queue.length - index }]}
                 {...(isCurrent ? panResponder.panHandlers : {})}
             >
-                <Image 
-                    source={item.image_url ? { uri: item.image_url } : require('../../assets/icon.png')} 
-                    style={styles.cardImage} 
+                <Image
+                    source={item.image_url ? { uri: item.image_url } : require('../../assets/icon.png')}
+                    style={styles.cardImage}
                 />
-                
-                <LinearGradient 
-                    colors={['transparent', 'rgba(10,0,26,0.9)']} 
-                    style={styles.cardOverlay}
+
+                <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.9)']}
+                    style={styles.cardGradient}
                 >
                     <View style={styles.cardInfo}>
                         <View style={styles.nameRow}>
                             <Text style={styles.cardName}>{item.name}</Text>
-                            <View style={styles.verifiedBadge}>
-                                <Ionicons name="shield-checkmark" size={16} color="#00FFFF" />
-                            </View>
+                            <Ionicons
+                                name={item.gender === 'male' ? 'male' : 'female'}
+                                size={20}
+                                color="white"
+                            />
                         </View>
-                        <Text style={styles.cardBreed}>{item.breed || 'Unknown Breed'}</Text>
+                        <Text style={styles.cardBreed}>{item.breed || t('app.unknown_breed', 'Unknown Breed')}</Text>
                         <View style={styles.vibeTag}>
                             <MaterialCommunityIcons name="auto-fix" size={14} color="#FFD700" />
                             <Text style={styles.vibeText}>ENERGETIC VIBE</Text>
@@ -290,94 +294,81 @@ export default function DiscoveryScreen() {
         );
     };
 
-    if (!myPet && !loading) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>PAWMATCH</Text>
+    return (
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                    <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>{t('pawmatch.discovery_title', 'DISCOVERY')}</Text>
+                <View style={{ width: 45 }} />
+            </View>
+
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#FF007F" />
                 </View>
+            ) : !myPet ? (
                 <View style={styles.emptyContainer}>
                     <MaterialCommunityIcons name="heart-off-outline" size={80} color="#1A0B2E" />
                     <Text style={styles.emptyTitle}>{t('pawmatch.no_active_pet', 'No Active Pet')}</Text>
                     <Text style={styles.emptyDesc}>
                         {t('pawmatch.no_active_pet_desc', 'You need to activate at least one pet to start discovering matches.')}
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.emptyActionBtn}
                         onPress={() => navigation.navigate('MyPets')}
                     >
                         <Text style={styles.actionBtnText}>{t('pawmatch.go_to_my_pets', 'Go to My Pets')}</Text>
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
-        );
-    }
+            ) : queue.length === 0 || currentIndex >= queue.length ? (
+                <View style={styles.emptyContainer}>
+                    <MaterialCommunityIcons name="paw-outline" size={80} color="#1A0B2E" />
+                    <Text style={styles.emptyTitle}>{t('pawmatch.no_more_pets', 'No More Pets')}</Text>
+                    <Text style={styles.emptyDesc}>
+                        {t('pawmatch.no_more_pets_desc', 'Try expanding your search distance or check back later.')}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.emptyActionBtn}
+                        onPress={() => setupLocationAndFetch()}
+                    >
+                        <Text style={styles.actionBtnText}>{t('pawmatch.refresh_queue', 'Refresh List')}</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                <View style={styles.content}>
+                    <View style={styles.cardContainer}>
+                        {queue.map((item, i) => renderCard(item, i)).reverse()}
+                    </View>
+                    <View style={styles.bottomActions}>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => forceSwipe('left')}>
+                            <Ionicons name="close" size={30} color="#FF007F" />
+                        </TouchableOpacity>
 
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FF007F" />
-            </View>
-        );
-    }
+                        <TouchableOpacity style={[styles.actionBtn, styles.superBtn]}>
+                            <Ionicons name="star" size={25} color="#00FFFF" />
+                        </TouchableOpacity>
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>{t('pawmatch.discovery_title', 'DISCOVERY')}</Text>
-                <TouchableOpacity style={styles.filterBtn}>
-                    <Ionicons name="options" size={24} color="#FFD700" />
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.cardContainer}>
-                {currentIndex >= queue.length ? (
-                    <View style={styles.emptyState}>
-                        <MaterialCommunityIcons name="heart-broken" size={80} color="#1A0B2E" />
-                        <Text style={styles.emptyTitle}>{t('pawmatch.no_more_pets', 'NO MORE PETS')}</Text>
-                        <Text style={styles.emptyDesc}>{t('pawmatch.no_more_pets_desc', 'Try expanding your search distance or checking back later.')}</Text>
-                        <TouchableOpacity style={styles.refreshBtn} onPress={() => {
-                            setCurrentIndex(0);
-                            fetchQueue();
-                        }}>
-                            <Text style={styles.refreshBtnText}>{t('pawmatch.refresh_queue', 'REFRESH QUEUE')}</Text>
+                        <TouchableOpacity style={styles.actionBtn} onPress={() => forceSwipe('right')}>
+                            <Ionicons name="heart" size={30} color="#00FF00" />
                         </TouchableOpacity>
                     </View>
-                ) : (
-                    queue.map((item, i) => renderCard(item, i)).reverse()
-                )}
-            </View>
-
-            {/* Bottom Buttons */}
-            {currentIndex < queue.length && (
-                <View style={styles.bottomActions}>
-                    <TouchableOpacity style={[styles.actionBtn, styles.dislikeBtn]} onPress={() => forceSwipe('left')}>
-                        <Ionicons name="close" size={30} color="#FF007F" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, styles.superBtn]}>
-                        <Ionicons name="star" size={25} color="#00FFFF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, styles.likeBtn]} onPress={() => forceSwipe('right')}>
-                        <Ionicons name="heart" size={30} color="#00FF00" />
-                    </TouchableOpacity>
                 </View>
             )}
 
-            <MatchModal 
+            <MatchModal
                 visible={showMatch}
                 onClose={() => setShowMatch(false)}
                 onMessage={() => {
-                    const matchIdToOpen = matchedPet?.id; // Actually we need the match.id from DB
                     setShowMatch(false);
-                    // Since we need the actual match.id (UUID), we should fetch it or pass it.
-                    // For now, redirecting to the list is safer, or we fetch it.
                     navigation.navigate('MatchesList');
                 }}
                 myPetImage={myPet?.image_url}
                 targetPetImage={matchedPet?.image_url}
                 targetPetName={matchedPet?.name || ''}
             />
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -387,17 +378,32 @@ const styles = StyleSheet.create({
         backgroundColor: '#0A001A',
     },
     header: {
+        height: 60,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingHorizontal: 15,
+        backgroundColor: 'transparent',
+        zIndex: 100,
+    },
+    backBtn: {
+        width: 45,
+        height: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(26, 11, 46, 0.6)',
+        borderRadius: 23,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
     },
     headerTitle: {
-        color: '#FFD700',
         fontSize: 22,
         fontWeight: '900',
+        color: 'white',
         letterSpacing: 2,
+    },
+    content: {
+        flex: 1,
     },
     filterBtn: {
         padding: 8,
@@ -428,7 +434,7 @@ const styles = StyleSheet.create({
         height: '100%',
         resizeMode: 'cover',
     },
-    cardOverlay: {
+    cardGradient: {
         position: 'absolute',
         left: 0,
         right: 0,

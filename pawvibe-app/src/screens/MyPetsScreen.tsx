@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-    StyleSheet, Text, View, SafeAreaView, TouchableOpacity, 
+    StyleSheet, Text, View, TouchableOpacity, 
     FlatList, Image, ActivityIndicator, RefreshControl 
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
