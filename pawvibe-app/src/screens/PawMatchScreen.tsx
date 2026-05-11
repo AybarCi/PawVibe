@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase';
 import PawMatchGate from '../components/PawMatchGate';
@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 export default function PawMatchScreen() {
     const { t } = useTranslation();
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(true);
     const [isPremium, setIsPremium] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(true);
@@ -56,14 +57,6 @@ export default function PawMatchScreen() {
         }, [checkStatus])
     );
 
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FF007F" />
-            </View>
-        );
-    }
-
     return (
         <PawMatchGate
             isPremium={isPremium}
@@ -72,6 +65,7 @@ export default function PawMatchScreen() {
             onLinkAccount={() => navigation.navigate('Profile', { screen: 'Account' })}
         >
             <SafeAreaView style={styles.container}>
+                {/* Header - Always Static */}
                 <View style={styles.header}>
                     <Text style={styles.headerText}>PawMatch</Text>
                     {pets.length > 0 && (
@@ -87,43 +81,49 @@ export default function PawMatchScreen() {
                     )}
                 </View>
 
-                <View style={styles.content}>
-                    <Ionicons name="heart-circle" size={100} color="#FF007F" style={{ marginBottom: 20 }} />
-                    <Text style={styles.placeholderText}>
-                        {pets.length > 0 ? t('pawmatch.ready', 'Ready for Matching!') : t('pawmatch.welcome', 'Welcome to PawMatch!')}
-                    </Text>
-                    <Text style={styles.subText}>
-                        {pets.length > 0 
-                            ? t('pawmatch.ready_desc', 'You have pets ready for matching. Start discovering local pets now.')
-                            : t('pawmatch.no_pets_desc', 'To start matching, you first need to add your personal pet profile.')
-                        }
-                    </Text>
-
-                    <TouchableOpacity 
-                        style={styles.manageBtn}
-                        onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            navigation.navigate('MyPets');
-                        }}
-                    >
-                        <Text style={styles.manageBtnText}>
-                            {pets.length > 0 ? t('pawmatch.manage_pets', 'Manage My Pets') : t('pawmatch.add_pet_now', 'Add My Pet Now')}
+                {loading && pets.length === 0 ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#FF007F" />
+                    </View>
+                ) : (
+                    <View style={styles.content}>
+                        <Ionicons name="heart-circle" size={100} color="#FF007F" style={{ marginBottom: 20 }} />
+                        <Text style={styles.placeholderText}>
+                            {pets.length > 0 ? t('pawmatch.ready', 'Ready for Matching!') : t('pawmatch.welcome', 'Welcome to PawMatch!')}
                         </Text>
-                        <Ionicons name="paw" size={18} color="white" />
-                    </TouchableOpacity>
+                        <Text style={styles.subText}>
+                            {pets.length > 0 
+                                ? t('pawmatch.ready_desc', 'You have pets ready for matching. Start discovering local pets now.')
+                                : t('pawmatch.no_pets_desc', 'To start matching, you first need to add your personal pet profile.')
+                            }
+                        </Text>
 
-                    {pets.length > 0 && (
                         <TouchableOpacity 
-                            style={styles.discoverBtn}
+                            style={styles.manageBtn}
                             onPress={() => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                                navigation.navigate('Discovery');
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                navigation.navigate('MyPets');
                             }}
                         >
-                            <Text style={styles.discoverBtnText}>{t('pawmatch.start_discovery', 'Start Discovery')}</Text>
+                            <Text style={styles.manageBtnText}>
+                                {pets.length > 0 ? t('pawmatch.manage_pets', 'Manage My Pets') : t('pawmatch.add_pet_now', 'Add My Pet Now')}
+                            </Text>
+                            <Ionicons name="paw" size={18} color="white" />
                         </TouchableOpacity>
-                    )}
-                </View>
+
+                        {pets.length > 0 && (
+                            <TouchableOpacity 
+                                style={styles.discoverBtn}
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                                    navigation.navigate('Discovery');
+                                }}
+                            >
+                                <Text style={styles.discoverBtnText}>{t('pawmatch.start_discovery', 'Start Discovery')}</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
             </SafeAreaView>
         </PawMatchGate>
     );
@@ -135,20 +135,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#0A001A',
     },
     header: {
+        paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'ios' ? 10 : 20,
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 25,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#1A0B2E',
+        alignItems: 'center',
     },
     headerText: {
         color: '#FFD700',
-        fontSize: 20,
+        fontSize: 32,
         fontWeight: '900',
-        textTransform: 'uppercase',
-        letterSpacing: 2,
+        marginBottom: 10,
+        marginTop: 10,
+        textShadowColor: '#FF007F',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
     },
     matchesIcon: {
         padding: 5,

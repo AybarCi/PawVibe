@@ -164,12 +164,12 @@ export default function ProfileScreen({ navigation }: any) {
         let offerToken;
         if (Platform.OS === 'android' && 'subscriptionOffers' in item) {
             const sub = item as any;
-            
+
             // 💎 Architect Pick: Try to find a Free Trial offer first
-            const freeTrialOffer = sub.subscriptionOffers?.find((o: any) => 
+            const freeTrialOffer = sub.subscriptionOffers?.find((o: any) =>
                 o.pricingPhases?.pricingPhaseList?.some((p: any) => p.formattedPrice === 'FREE' || p.priceAmountMicros === '0')
             );
-            
+
             const offer = freeTrialOffer || sub.subscriptionOffers?.[0];
             offerToken = offer?.offerToken || offer?.offerTokenAndroid || sub.subscriptionOfferDetailsAndroid?.[0]?.offerToken;
         }

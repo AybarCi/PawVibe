@@ -261,7 +261,7 @@ export default function VaccineTrackerScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>{t('app.vaccine_tracker_title')}</Text>
+                <Text style={styles.title}>{t('app.vaccine_tracker_title', 'Vaccine Tracker')}</Text>
                 <TouchableOpacity 
                     style={styles.addButton} 
                     onPress={handleOpenModal}
@@ -446,15 +446,22 @@ export default function VaccineTrackerScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#0A001A' },
     header: { 
+        paddingHorizontal: 20, 
+        paddingTop: Platform.OS === 'ios' ? 10 : 20,
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 0, 127, 0.2)'
     },
-    title: { color: '#FFD700', fontSize: 24, fontWeight: '900', textShadowColor: '#FF007F', textShadowRadius: 10 },
+    title: { 
+        color: '#FFD700', 
+        fontSize: 32, 
+        fontWeight: '900', 
+        marginTop: 10,
+        marginBottom: 10,
+        textShadowColor: '#FF007F', 
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10 
+    },
     addButton: { padding: 5 },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     listContent: { padding: 20 },
