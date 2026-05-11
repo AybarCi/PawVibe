@@ -22,6 +22,13 @@ import MyScansScreen from './src/screens/MyScansScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AccountScreen from './src/screens/AccountScreen';
 import VaccineTrackerScreen from './src/screens/VaccineTrackerScreen';
+import PawMatchScreen from './src/screens/PawMatchScreen';
+import MyPetsScreen from './src/screens/MyPetsScreen';
+import AddPetScreen from './src/screens/AddPetScreen';
+import DiscoveryScreen from './src/screens/DiscoveryScreen';
+import MatchesListScreen from './src/screens/MatchesListScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import PetDetailsScreen from './src/screens/PetDetailsScreen';
 import { IAPProvider } from './src/context/IAPContext';
 
 // Keep the splash screen visible while we fetch resources
@@ -36,6 +43,22 @@ function ProfileStackScreen() {
             <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
             <ProfileStack.Screen name="Account" component={AccountScreen} />
         </ProfileStack.Navigator>
+    );
+}
+
+const PawMatchStack = createNativeStackNavigator();
+
+function PawMatchStackScreen() {
+    return (
+        <PawMatchStack.Navigator id="PawMatchStack" screenOptions={{ headerShown: false }}>
+            <PawMatchStack.Screen name="PawMatchMain" component={PawMatchScreen} />
+            <PawMatchStack.Screen name="MyPets" component={MyPetsScreen} />
+            <PawMatchStack.Screen name="AddPet" component={AddPetScreen} />
+            <PawMatchStack.Screen name="Discovery" component={DiscoveryScreen} />
+            <PawMatchStack.Screen name="MatchesList" component={MatchesListScreen} />
+            <PawMatchStack.Screen name="Chat" component={ChatScreen} />
+            <PawMatchStack.Screen name="PetDetails" component={PetDetailsScreen} />
+        </PawMatchStack.Navigator>
     );
 }
 
@@ -198,6 +221,8 @@ export default function App() {
                                         iconSource = require('./assets/tab-myscans.png');
                                     } else if (route.name === 'Vaccines') {
                                         iconSource = require('./assets/tab-vaccines.png');
+                                    } else if (route.name === 'PawMatch') {
+                                        iconSource = require('./assets/tab-match.png');
                                     } else if (route.name === 'Profile') {
                                         iconSource = require('./assets/tab-profile.png');
                                     }
@@ -260,10 +285,20 @@ export default function App() {
                             <Tab.Screen
                                 name="Vaccines"
                                 component={VaccineTrackerScreen}
-                                options={{ headerShown: false, tabBarLabel: t('app.tab_vaccines') }}
+                                options={{ title: t('app.tab_vaccines'), headerShown: false }}
                                 listeners={({ navigation, route }) => ({
                                     tabPress: (e) => {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    },
+                                })}
+                            />
+                             <Tab.Screen
+                                name="PawMatch"
+                                component={PawMatchStackScreen}
+                                options={{ title: 'PawMatch', headerShown: false }}
+                                listeners={({ navigation, route }) => ({
+                                    tabPress: (e) => {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                                     },
                                 })}
                             />

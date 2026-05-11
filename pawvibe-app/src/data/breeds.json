@@ -1,0 +1,41 @@
+{
+    "dogs": [
+        "Affenpinscher", "Afghan Hound", "Airedale Terrier", "Akita", "Alaskan Malamute",
+        "American Bulldog", "American Cocker Spaniel", "American Pit Bull Terrier", "American Staffordshire Terrier",
+        "Anatolian Shepherd Dog (Sivas Kangal)", "Australian Cattle Dog", "Australian Shepherd", "Basenji",
+        "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Belgian Malinois", "Belgian Shepherd",
+        "Bernese Mountain Dog", "Bichon Frise", "Bloodhound", "Border Collie", "Border Terrier", "Borzoi",
+        "Boston Terrier", "Boxer", "Brittany", "Bull Terrier", "Bulldog", "Bullmastiff", "Cairn Terrier",
+        "Cane Corso", "Cavalier King Charles Spaniel", "Chesapeake Bay Retriever", "Chihuahua", "Chinese Crested",
+        "Chinese Shar-Pei", "Chow Chow", "Clumber Spaniel", "Cocker Spaniel", "Collie", "Dachshund",
+        "Dalmatian", "Dandie Dinmont Terrier", "Doberman Pinscher", "Dogo Argentino", "English Bulldog",
+        "English Cocker Spaniel", "English Setter", "English Springer Spaniel", "Flat-Coated Retriever",
+        "French Bulldog", "German Shepherd Dog", "German Shorthaired Pointer", "Giant Schnauzer", "Golden Retriever",
+        "Gordon Setter", "Great Dane", "Great Pyrenees", "Greyhound", "Havanese", "Irish Setter", "Irish Water Spaniel",
+        "Irish Wolfhound", "Italian Greyhound", "Jack Russell Terrier", "Japanese Chin", "Keeshond", "Kerry Blue Terrier",
+        "Komondor", "Kuvasz", "Labrador Retriever", "Lakeland Terrier", "Lhasa Apso", "Maltese", "Manchester Terrier",
+        "Mastiff", "Miniature Pinscher", "Miniature Schnauzer", "Newfoundland", "Norfolk Terrier", "Norwegian Elkhound",
+        "Norwich Terrier", "Old English Sheepdog", "Papillon", "Pekingese", "Pembroke Welsh Corgi", "Pharaoh Hound",
+        "Pointer", "Pomeranian", "Poodle (Miniature)", "Poodle (Standard)", "Poodle (Toy)", "Portuguese Water Dog",
+        "Pug", "Puli", "Rhodesian Ridgeback", "Rottweiler", "Saint Bernard", "Saluki", "Samoyed", "Schipperke",
+        "Scottish Deerhound", "Scottish Terrier", "Sealyham Terrier", "Shetland Sheepdog", "Shiba Inu", "Shih Tzu",
+        "Siberian Husky", "Silky Terrier", "Skye Terrier", "Soft Coated Wheaten Terrier", "Staffordshire Bull Terrier",
+        "Standard Schnauzer", "Tibetan Terrier", "Vizsla", "Weimaraner", "Welsh Terrier", "West Highland White Terrier",
+        "Whippet", "Yorkshire Terrier", "Akbaş", "Kangal", "Mixed Breed (Dog)", "Other"
+    ],
+    "cats": [
+        "Abyssinian", "Aegean", "American Bobtail", "American Curl", "American Shorthair", "American Wirehair",
+        "Aphrodite Giant", "Arabian Mau", "Asian", "Asian Semi-longhair", "Australian Mist", "Balinese", "Bambino",
+        "Bengal", "Birman", "Bombay", "British Longhair", "British Shorthair", "Burmese", "Burmilla", "California Spangled",
+        "Chantilly-Tiffany", "Chartreux", "Chausie", "Cheetoh", "Colorpoint Shorthair", "Cornish Rex", "Cymric",
+        "Cyprus", "Devon Rex", "Donskoy", "Dragon Li", "Dwelf", "Egyptian Mau", "European Shorthair", "Exotic Shorthair",
+        "Foldex", "German Rex", "Havana Brown", "Highlander", "Himalayan", "Japanese Bobtail", "Javanese", "Khao Manee",
+        "Korfat", "Kurilian Bobtail", "LaPerm", "Lykoi", "Maine Coon", "Manx", "Mekong Bobtail", "Minskin", "Munchkin",
+        "Nebelung", "Napoleon", "Norwegian Forest Cat", "Ocicat", "Ojos Azules", "Oregon Rex", "Oriental Bicolor",
+        "Oriental Longhair", "Oriental Shorthair", "PerFold", "Persian (İran Kedisi)", "Peterbald", "Pixie-bob", "Ragamuffin",
+        "Ragdoll", "Raas", "Russian Blue", "Russian White", "Sam Sawet", "Savannah", "Scottish Fold", "Selkirk Rex",
+        "Serengeti", "Serrade Petit", "Siamese", "Siberian", "Singapura", "Snowshoe", "Somali", "Sphynx", "Suphalak",
+        "Thai", "Thai Lilac", "Tonkinese", "Toyger", "Turkish Angora (Ankara Kedisi)", "Turkish Van (Van Kedisi)",
+        "Ukrainian Levkoy", "York Chocolate", "Tabby (Tekir)", "Sarman", "Mixed Breed (Cat)", "Other"
+    ]
+}
