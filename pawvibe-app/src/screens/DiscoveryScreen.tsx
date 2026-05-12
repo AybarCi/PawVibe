@@ -118,42 +118,16 @@ export default function DiscoveryScreen() {
             const activePet = myPets[0];
             setMyPet(activePet);
 
-            // 2. Fetch swiped IDs
-            const { data: seenPets } = await supabase
-                .from('matches')
-                .select('pet_to')
-                .eq('pet_from', activePet.id);
-
-            const excludedIds = seenPets?.map(s => s.pet_to) || [];
-            excludedIds.push(activePet.id);
-
-            // 3. Fetch candidates with distance filter (Bounding Box)
-            let query = supabase
-                .from('pets')
-                .select('*')
-                .neq('owner_id', user.id)
-                .eq('species', activePet.species)
-                .eq('gender', activePet.gender === 'male' ? 'female' : 'male')
-                .eq('is_searching', true);
-
-            // Only apply exclusion if there are IDs to exclude
-            if (excludedIds.length > 0) {
-                query = query.not('id', 'in', `(${excludedIds.join(',')})`);
-            }
-
-            // Apply bounding box if we have location (roughly 50km)
-            if (userLat && userLng) {
-                const delta = 0.5; // ~50km range
-                query = query
-                    .gte('latitude', userLat - delta)
-                    .lte('latitude', userLat + delta)
-                    .gte('longitude', userLng - delta)
-                    .lte('longitude', userLng + delta);
-            }
-
-            const { data: candidates, error } = await query.limit(20);
+            // 2. Use the smart RPC function to fetch prioritized candidates
+            const { data: candidates, error } = await supabase.rpc('get_discovery_candidates', {
+                p_my_pet_id: activePet.id,
+                p_lat: userLat,
+                p_lng: userLng,
+                p_limit: 20
+            });
 
             if (error) throw error;
+            
             setQueue(candidates || []);
             setCurrentIndex(0);
         } catch (error: any) {

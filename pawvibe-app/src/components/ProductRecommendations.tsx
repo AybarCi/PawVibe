@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { logMetaEvent } from '../../lib/metaTracking';
 
 interface Recommendation {
+    id?: string; // Explicitly add ID
     name: string;
     description: string;
     image_url: string;
@@ -31,6 +32,12 @@ const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recomme
     const handleProductClick = async (item: any) => {
         if (!item.affiliate_url) return;
 
+        // DEBUG: See what we are sending to Supabase
+        console.log('[ProductClick] Tracking Item:', {
+            name: item.name,
+            id: item.id
+        });
+
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
         try {
@@ -45,13 +52,13 @@ const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({ recomme
             // 2. Track in Supabase for internal analytics
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
-                // We use maybeSingle/insert to just fire and forget the analytics
-                await supabase.from('recommendation_clicks').insert({
+                const { error } = await supabase.from('recommendation_clicks').insert({
                     user_id: session.user.id,
-                    product_id: item.id, // Assuming item has id from DB
-                    scan_id: scanId,
-                    platform: Platform.OS
+                    product_id: item.id, 
+                    platform: Platform.OS,
+                    scan_id: scanId
                 });
+                if (error) console.error('[ProductClick] Supabase Error:', error);
             }
         } catch (error) {
             console.error('Error tracking click:', error);

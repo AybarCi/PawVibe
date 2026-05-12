@@ -7,6 +7,8 @@ import AnalysesPage from './pages/Analyses';
 import PurchasesPage from './pages/Purchases';
 import SubscriptionsPage from './pages/Subscriptions';
 import RecommendationsPage from './pages/Recommendations';
+import ClicksPage from './pages/Clicks';
+import VaccinesPage from './pages/Vaccines';
 import { supabase } from './lib/supabase';
 import { LogIn } from 'lucide-react';
 
@@ -109,6 +111,8 @@ function App() {
       case 'purchases': return <PurchasesPage />;
       case 'subscriptions': return <SubscriptionsPage />;
       case 'recommendations': return <RecommendationsPage />;
+      case 'clicks': return <ClicksPage />;
+      case 'vaccines': return <VaccinesPage />;
       default: return <Dashboard />;
     }
   };

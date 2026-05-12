@@ -9,7 +9,7 @@ export const corsHeaders = {
 
 // Removed global supabase client, it will be instantiated per request with the auth header.
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -147,7 +147,7 @@ serve(async (req) => {
         // Smarter query: matches specific type/size/stage OR 'both'/'all' fallbacks
         const { data: recs, error: recsError } = await supabase
           .from('recommendations')
-          .select('name, description, image_url, affiliate_url')
+          .select('id, name, description, image_url, affiliate_url')
           .eq('is_active', true)
           .or(`pet_type.eq.${petType},pet_type.eq.both`)
           .or(`target_size.eq.${size},target_size.eq.all`)
@@ -215,7 +215,7 @@ serve(async (req) => {
     }
 
     // Save scan to database
-    const { error: insertError } = await supabase.from('scans').insert([{
+    const { data: scanData, error: insertError } = await supabase.from('scans').insert([{
       user_id,
       mood_title: moodResult.mood_title || 'Unknown Vibe',
       confidence: moodResult.confidence ?? 1.0,
@@ -231,7 +231,7 @@ serve(async (req) => {
       life_stage: moodResult.life_stage,
       estimated_breed: moodResult.estimated_breed,
       detected_colors: moodResult.detected_colors
-    }]);
+    }]).select('id').single();
 
     if (insertError) {
       console.error("Supabase Insert Error:", insertError);
@@ -239,7 +239,7 @@ serve(async (req) => {
     }
 
     // Return the result to the client
-    return new Response(JSON.stringify(moodResult), {
+    return new Response(JSON.stringify({ ...moodResult, id: scanData?.id }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
