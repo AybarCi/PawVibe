@@ -2,5 +2,6 @@
   "NSCameraUsageDescription": "PawVibe benötigt Zugriff auf Ihre Kamera, um Fotos Ihrer Haustiere für die KI-gestützte Stimmungsanalyse aufzunehmen.",
   "NSPhotoLibraryUsageDescription": "PawVibe benötigt Zugriff auf Ihre Fotobibliothek, um Haustierfotos für die KI-gestützte Stimmungsanalyse auszuwählen.",
   "NSPhotoLibraryAddUsageDescription": "PawVibe benötigt die Erlaubnis, die Stimmungs-Karte Ihres Haustieres in Ihrer Fotobibliothek zu speichern.",
-  "NSUserTrackingUsageDescription": "Dieser Identifikator wird verwendet, um Ihnen personalisierte Werbung zu liefern und Ihr Erlebnis zu verbessern."
+  "NSUserTrackingUsageDescription": "Dieser Identifikator wird verwendet, um Ihnen personalisierte Werbung zu liefern und Ihr Erlebnis zu verbessern.",
+  "NSLocationWhenInUseUsageDescription": "PawVibe benötigt Ihren Standort, um Ihnen zu helfen, Haustiere in Ihrer Nähe zu entdecken und Übereinstimmungen zu finden."
 }

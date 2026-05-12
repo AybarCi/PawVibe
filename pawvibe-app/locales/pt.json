@@ -2,5 +2,6 @@
   "NSCameraUsageDescription": "O PawVibe precisa de acesso à sua câmera para tirar fotos de seus pets para a análise de vibe por IA.",
   "NSPhotoLibraryUsageDescription": "O PawVibe precisa de acesso à sua biblioteca de fotos para selecionar fotos de pets para a análise de vibe por IA.",
   "NSPhotoLibraryAddUsageDescription": "O PawVibe precisa de permissão para salvar o cartão de vibe do seu pet na sua biblioteca de fotos.",
-  "NSUserTrackingUsageDescription": "Este identificador será usado para entregar anúncios personalizados a você e melhorar sua experiência."
+  "NSUserTrackingUsageDescription": "Este identificador será usado para entregar anúncios personalizados a você e melhorar sua experiência.",
+  "NSLocationWhenInUseUsageDescription": "O PawVibe precisa da sua localização para ajudar você a descobrir pets locais e encontrar matches próximos."
 }
