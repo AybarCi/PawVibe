@@ -30,6 +30,7 @@
         "NSPhotoLibraryUsageDescription": "PawVibe needs access to your photo library so you can select existing photos of your pets for the AI vibe analysis.",
         "NSPhotoLibraryAddUsageDescription": "PawVibe needs permission to save your pet's vibe card to your photo library.",
         "NSUserNotificationUsageDescription": "PawVibe needs to send you notifications for your pet's upcoming vaccinations.",
+        "NSLocationWhenInUseUsageDescription": "PawVibe needs your location to help you discover local pets and find matches nearby.",
         "LSApplicationQueriesSchemes": [
           "instagram-stories",
           "instagram",
@@ -262,12 +263,17 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.setifera.pawvibe",
-      "versionCode": 17
+      "versionCode": 17,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-location",
       "expo-asset",
       "expo-font",
       "expo-localization",

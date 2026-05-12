@@ -31,6 +31,8 @@ export default function ChatScreen() {
     const flatListRef = useRef<FlatList>(null);
 
     useEffect(() => {
+        let channel: any;
+
         const setupChat = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) setMyId(user.id);
@@ -46,7 +48,7 @@ export default function ChatScreen() {
             setLoading(false);
 
             // 2. Set up Realtime subscription
-            const channel = supabase
+            channel = supabase
                 .channel(`match_${matchId}`)
                 .on('postgres_changes', { 
                     event: 'INSERT', 
@@ -55,23 +57,40 @@ export default function ChatScreen() {
                     filter: `match_id=eq.${matchId}` 
                 }, (payload) => {
                     const newMessage = payload.new as Message;
-                    setMessages(prev => [...prev, newMessage]);
+                    // Only add if it's not our own optimistic message (or just rely on unique IDs)
+                    setMessages(prev => {
+                        if (prev.find(m => m.id === newMessage.id)) return prev;
+                        return [...prev, newMessage];
+                    });
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 })
                 .subscribe();
-
-            return () => {
-                supabase.removeChannel(channel);
-            };
         };
 
         setupChat();
+
+        return () => {
+            if (channel) {
+                supabase.removeChannel(channel);
+            }
+        };
     }, [matchId]);
 
     const sendMessage = async () => {
         if (!inputText.trim() || !myId) return;
 
         const textToSend = inputText.trim();
+        const tempId = Math.random().toString(); // Optimistic ID
+        
+        // Optimistic Update: Add message to UI immediately
+        const optimisticMessage: Message = {
+            id: tempId,
+            text: textToSend,
+            sender_id: myId,
+            created_at: new Date().toISOString()
+        };
+        
+        setMessages(prev => [...prev, optimisticMessage]);
         setInputText('');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
@@ -84,7 +103,11 @@ export default function ChatScreen() {
                     text: textToSend
                 }]);
 
-            if (error) throw error;
+            if (error) {
+                // If error, remove optimistic message or show error
+                setMessages(prev => prev.filter(m => m.id !== tempId));
+                throw error;
+            }
         } catch (error) {
             console.error('[Chat] Send error:', error);
         }

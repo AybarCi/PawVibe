@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-    StyleSheet, Text, View, SafeAreaView, TouchableOpacity, 
-    FlatList, Image, ActivityIndicator, RefreshControl 
+    StyleSheet, Text, View, TouchableOpacity, 
+    FlatList, Image, ActivityIndicator, RefreshControl, Platform 
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
@@ -42,7 +43,9 @@ export default function MatchesListScreen() {
                 return;
             }
 
-            // 2. Fetch matches involving my pets
+            // 2. Fetch matches where my pet is the "sender"
+            // Since every match has two rows (A->B and B->A), 
+            // fetching only one direction prevents duplicates.
             const { data, error } = await supabase
                 .from('matches')
                 .select(`
@@ -50,23 +53,18 @@ export default function MatchesListScreen() {
                     pet_from,
                     pet_to,
                     status,
-                    pet_from_info: pets!matches_pet_from_fkey (id, name, image_url, breed),
-                    pet_to_info: pets!matches_pet_to_fkey (id, name, image_url, breed)
+                    target_pet: pets!matches_pet_to_fkey (id, name, image_url, breed)
                 `)
                 .eq('status', 'match')
-                .or(`pet_from.in.(${myPetIds.join(',')}),pet_to.in.(${myPetIds.join(',')})`);
+                .in('pet_from', myPetIds);
 
             if (error) throw error;
 
-            // 3. Format matches to identify the "target" pet
-            const formattedMatches: Match[] = data.map(m => {
-                const isFromMyPet = myPetIds.includes(m.pet_from);
-                const targetPet = isFromMyPet ? m.pet_to_info : m.pet_from_info;
-                return {
-                    id: m.id,
-                    target_pet: targetPet as any
-                };
-            });
+            // 3. Format matches
+            const formattedMatches: Match[] = (data || []).map(m => ({
+                id: m.id,
+                target_pet: m.target_pet as any
+            }));
 
             setMatches(formattedMatches);
         } catch (error) {
@@ -155,13 +153,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#0A001A',
     },
     header: {
+        paddingHorizontal: 20,
+        paddingTop: Platform.OS === 'ios' ? 10 : 20,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#1A0B2E',
     },
     backBtn: {
         width: 40,
@@ -169,11 +165,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     headerTitle: {
-        fontSize: 20,
+        color: '#FFD700',
+        fontSize: 32,
         fontWeight: '900',
-        color: '#FF007F',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+        marginTop: 10,
+        marginBottom: 10,
+        textShadowColor: '#FF007F',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 10,
     },
     listContent: {
         padding: 20,

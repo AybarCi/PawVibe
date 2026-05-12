@@ -134,8 +134,12 @@ export default function DiscoveryScreen() {
                 .neq('owner_id', user.id)
                 .eq('species', activePet.species)
                 .eq('gender', activePet.gender === 'male' ? 'female' : 'male')
-                .eq('is_searching', true)
-                .not('id', 'in', `(${excludedIds.join(',')})`);
+                .eq('is_searching', true);
+
+            // Only apply exclusion if there are IDs to exclude
+            if (excludedIds.length > 0) {
+                query = query.not('id', 'in', `(${excludedIds.join(',')})`);
+            }
 
             // Apply bounding box if we have location (roughly 50km)
             if (userLat && userLng) {
@@ -193,37 +197,20 @@ export default function DiscoveryScreen() {
         const status = direction === 'right' ? 'like' : 'dislike';
 
         try {
-            // 1. Save swipe to DB
-            const { error } = await supabase
-                .from('matches')
-                .upsert({
-                    pet_from: myPet.id,
-                    pet_to: targetPet.id,
-                    status: status
-                });
+            // Call the atomic RPC function for swiping and match checking
+            const { data, error } = await supabase.rpc('handle_swipe', {
+                p_pet_from: myPet.id,
+                p_pet_to: targetPet.id,
+                p_status: status
+            });
 
             if (error) throw error;
 
-            // 2. If it was a 'like', check if it's a match!
-            if (status === 'like') {
-                const { data: otherSwipe } = await supabase
-                    .from('matches')
-                    .select('status')
-                    .eq('pet_from', targetPet.id)
-                    .eq('pet_to', myPet.id)
-                    .eq('status', 'like')
-                    .single();
-
-                if (otherSwipe) {
-                    // 🎉 IT'S A PAWMATCH!
-                    setMatchedPet(targetPet);
-                    setShowMatch(true);
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-                    // Update match status in DB for both
-                    await supabase.from('matches').update({ status: 'match' }).match({ pet_from: myPet.id, pet_to: targetPet.id });
-                    await supabase.from('matches').update({ status: 'match' }).match({ pet_from: targetPet.id, pet_to: myPet.id });
-                }
+            // If the RPC returned is_match: true, show the celebration modal!
+            if (data?.is_match) {
+                setMatchedPet(targetPet);
+                setShowMatch(true);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             }
 
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
