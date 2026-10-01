@@ -44,7 +44,7 @@ const AnimatedCameraView = Animated.createAnimatedComponent(CameraView);
 interface AnalysisResult {
     id?: string;
     is_pet: boolean;
-    pet_type: 'cat' | 'dog' | 'other';
+    pet_type?: string;
     mood_title?: string;
     chaos_score?: number;
     energy_level?: number;
@@ -65,6 +65,25 @@ interface AnalysisResult {
         affiliate_url: string;
     }>;
 }
+
+const getSpeciesIcon = (petType?: string, breed?: string): keyof typeof MaterialCommunityIcons.glyphMap => {
+    const type = (petType || '').toLowerCase();
+    const b = (breed || '').toLowerCase();
+
+    if (type === 'cat' || b.includes('cat') || b.includes('kedi')) return 'cat';
+    if (type === 'dog' || b.includes('dog') || b.includes('köpek')) return 'dog-side';
+    if (type === 'farm_animal' || b.includes('cow') || b.includes('inek') || b.includes('sığır') || b.includes('öküz') || b.includes('dana') || b.includes('bov') || b.includes('boğa')) return 'cow';
+    if (b.includes('sheep') || b.includes('koyun') || b.includes('koç') || b.includes('keçi') || b.includes('goat')) return 'sheep';
+    if (b.includes('horse') || b.includes('at') || b.includes('eşek') || b.includes('donkey')) return 'horse';
+    if (b.includes('duck') || b.includes('ördek') || b.includes('kaz')) return 'duck';
+    if (type === 'bird' || b.includes('bird') || b.includes('kuş') || b.includes('papağan') || b.includes('parrot') || b.includes('kanarya') || b.includes('canary') || b.includes('tavuk') || b.includes('chicken')) return 'bird';
+    if (type === 'fish' || b.includes('fish') || b.includes('balık') || b.includes('betta')) return 'fish';
+    if (b.includes('turtle') || b.includes('kaplumbağa') || b.includes('tortoise')) return 'tortoise';
+    if (type === 'reptile' || b.includes('snake') || b.includes('yılan') || b.includes('lizard') || b.includes('iguana') || b.includes('kertenkele') || b.includes('bukalemun') || b.includes('gecko')) return 'snake';
+    if (type === 'rodent' || b.includes('hamster') || b.includes('rabbit') || b.includes('tavşan') || b.includes('mouse') || b.includes('fare') || b.includes('guinea')) return 'rabbit';
+    if (type === 'other' || type === 'object') return 'creation';
+    return 'paw';
+};
 
 // Sub-component for holographic scanning grid
 const ScanningGrid = () => {
@@ -483,57 +502,61 @@ export default function CameraScreen({ navigation }: any) {
                                 <View style={styles.posterContent}>
                                     <Text style={styles.posterMoodTitle} numberOfLines={2} adjustsFontSizeToFit>{result.mood_title}</Text>
 
-                                    {result.is_pet !== false && (
-                                        <View style={styles.posterStatsGrid}>
-                                            <View style={styles.statColumn}>
-                                                <StatPill label={t('app.chaos')} score={result.chaos_score ?? 0} emoji="🌪️" color="#FF007F" delay={300} isPoster />
-                                                <StatPill label={t('app.energy')} score={result.energy_level ?? 0} emoji="⚡" color="#FFD700" delay={500} isPoster />
-                                                <StatPill label={t('app.sweetness')} score={result.sweetness_score ?? 0} emoji="🍬" color="#00FFFF" delay={700} isPoster />
-                                            </View>
-                                            <View style={styles.statColumn}>
-                                                <StatPill label={t('app.judgment')} score={result.judgment_level ?? 0} emoji="😒" color="#FF4500" delay={400} isPoster />
-                                                <StatPill label={t('app.cuddle')} score={result.cuddle_o_meter ?? 0} emoji="🤗" color="#FF1493" delay={600} isPoster />
-                                                <StatPill label={t('app.derp')} score={result.derp_factor ?? 0} emoji="🤪" color="#32CD32" delay={800} isPoster />
-                                            </View>
+                                    <View style={styles.posterStatsGrid}>
+                                        <View style={styles.statColumn}>
+                                            <StatPill label={t('app.chaos')} score={result.chaos_score ?? 0} emoji="🌪️" color="#FF007F" delay={300} isPoster />
+                                            <StatPill label={t('app.energy')} score={result.energy_level ?? 0} emoji="⚡" color="#FFD700" delay={500} isPoster />
+                                            <StatPill label={t('app.sweetness')} score={result.sweetness_score ?? 0} emoji="🍬" color="#00FFFF" delay={700} isPoster />
                                         </View>
-                                    )}
+                                        <View style={styles.statColumn}>
+                                            <StatPill label={t('app.judgment')} score={result.judgment_level ?? 0} emoji="😒" color="#FF4500" delay={400} isPoster />
+                                            <StatPill label={t('app.cuddle')} score={result.cuddle_o_meter ?? 0} emoji="🤗" color="#FF1493" delay={600} isPoster />
+                                            <StatPill label={t('app.derp')} score={result.derp_factor ?? 0} emoji="🤪" color="#32CD32" delay={800} isPoster />
+                                        </View>
+                                    </View>
 
-                                    {result.is_pet === false && result.explanation && (
-                                        <Text style={styles.funnyExplanation}>{result.explanation}</Text>
-                                    )}
-
-                                    {result.is_pet !== false && (
-                                        <View style={styles.bioTagsContainer}>
-                                            <View style={styles.bioTag}>
-                                                <MaterialCommunityIcons name="dog-side" size={14} color="#00FFFF" />
-                                                <Text style={styles.bioTagText}>
-                                                    {!result.estimated_breed || 
-                                                     result.estimated_breed.toLowerCase() === 'none' || 
-                                                     result.estimated_breed.toLowerCase().includes('mixed') 
-                                                        ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') 
-                                                        : result.estimated_breed.toUpperCase()}
-                                                </Text>
-                                            </View>
+                                    <View style={styles.bioTagsContainer}>
+                                        <View style={styles.bioTag}>
+                                            <MaterialCommunityIcons 
+                                                name={getSpeciesIcon(result.pet_type, result.estimated_breed)} 
+                                                size={14} 
+                                                color="#00FFFF" 
+                                            />
+                                            <Text style={styles.bioTagText}>
+                                                {!result.estimated_breed || 
+                                                 result.estimated_breed.toLowerCase() === 'none' || 
+                                                 result.estimated_breed.toLowerCase().includes('mixed') 
+                                                    ? (result.is_pet === false ? t('app.honorary_species', 'SPECIAL SCAN') : t('app.mysterious_friend', 'MYSTERIOUS FRIEND')) 
+                                                    : result.estimated_breed.toUpperCase()}
+                                            </Text>
+                                        </View>
+                                        {result.breed_size && (
                                             <View style={styles.bioTag}>
                                                 <MaterialCommunityIcons name="resize" size={14} color="#00FFFF" />
                                                 <Text style={styles.bioTagText}>{t(`app.size_${result.breed_size}`, result.breed_size?.toUpperCase())}</Text>
                                             </View>
+                                        )}
+                                        {result.life_stage && (
                                             <View style={styles.bioTag}>
                                                 <MaterialCommunityIcons name="clock-outline" size={14} color="#00FFFF" />
-                                                <Text style={styles.bioTagText}>{t(`app.stage_${result.life_stage}`, result.life_stage?.toUpperCase())}</Text>
+                                                <Text style={styles.bioTagText}>
+                                                    {result.is_pet === false 
+                                                        ? t('app.honorary_friend', 'SPECIAL VIBE') 
+                                                        : t(`app.stage_${result.life_stage}`, result.life_stage?.toUpperCase())}
+                                                </Text>
                                             </View>
-                                            {result.detected_colors && result.detected_colors.length > 0 && (
-                                                <View style={styles.bioTag}>
-                                                    <View style={styles.colorDots}>
-                                                        {result.detected_colors.map((c, i) => (
-                                                            <View key={i} style={[styles.colorDot, { backgroundColor: c.toLowerCase() }]} />
-                                                        ))}
-                                                    </View>
-                                                    <Text style={styles.bioTagText}>{result.detected_colors.join(', ').toUpperCase()}</Text>
+                                        )}
+                                        {result.detected_colors && result.detected_colors.length > 0 && (
+                                            <View style={styles.bioTag}>
+                                                <View style={styles.colorDots}>
+                                                    {result.detected_colors.map((c, i) => (
+                                                        <View key={i} style={[styles.colorDot, { backgroundColor: c.toLowerCase() }]} />
+                                                    ))}
                                                 </View>
-                                            )}
-                                        </View>
-                                    )}
+                                                <Text style={styles.bioTagText}>{result.detected_colors.join(', ').toUpperCase()}</Text>
+                                            </View>
+                                        )}
+                                    </View>
                                 </View>
                             </View>
                         </ViewShot>
@@ -553,6 +576,25 @@ export default function CameraScreen({ navigation }: any) {
                                 <Text style={styles.btnText}>{t('app.share')} 🚀</Text>
                             </TouchableOpacity>
                         </View>
+
+                        {result.explanation ? (
+                            <View style={styles.insightCard}>
+                                <View style={styles.insightHeader}>
+                                    <MaterialCommunityIcons 
+                                        name={result.is_pet !== false ? "brain" : "creation"} 
+                                        size={20} 
+                                        color="#00FFFF" 
+                                        style={{ marginRight: 8 }} 
+                                    />
+                                    <Text style={styles.insightHeaderTitle}>
+                                        {result.is_pet !== false 
+                                            ? t('app.behavioral_insight', 'BEHAVIORAL PSYCHOLOGY REPORT') 
+                                            : t('app.special_vibe_report', 'HONORARY VIBE ANALYSIS')}
+                                    </Text>
+                                </View>
+                                <Text style={styles.insightText}>{result.explanation}</Text>
+                            </View>
+                        ) : null}
 
                         {result.is_pet !== false && result.recommendations && result.recommendations.length > 0 && (
                             <ProductRecommendations 
@@ -817,6 +859,42 @@ const styles = StyleSheet.create({
     title: { color: '#FFD700', fontSize: 28, fontWeight: '900', marginBottom: 20, textShadowColor: '#FF007F', textShadowRadius: 10 },
     moodTitle: { color: '#FF007F', fontSize: 32, fontWeight: '900', textAlign: 'center', marginBottom: 20 },
     funnyExplanation: { color: 'white', fontSize: 16, fontStyle: 'italic', textAlign: 'center', marginTop: 10, paddingHorizontal: 15 },
+    insightCard: {
+        width: POSTER_WIDTH,
+        backgroundColor: 'rgba(26, 11, 46, 0.85)',
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: '#00FFFF',
+        padding: 16,
+        marginTop: 18,
+        shadowColor: '#00FFFF',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+        elevation: 6,
+    },
+    insightHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0, 255, 255, 0.25)',
+        paddingBottom: 8,
+    },
+    insightHeaderTitle: {
+        color: '#FFD700',
+        fontSize: 13,
+        fontWeight: '900',
+        letterSpacing: 1.5,
+        textTransform: 'uppercase',
+        flex: 1,
+    },
+    insightText: {
+        color: '#E0AAFF',
+        fontSize: 15,
+        lineHeight: 22,
+        fontWeight: '500',
+    },
     shareablePoster: {
         width: POSTER_WIDTH,
         height: POSTER_HEIGHT,

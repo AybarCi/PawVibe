@@ -59,7 +59,7 @@ export default function AstroModal({ visible, onClose, scanId, isPremiumUser }: 
 
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('No active session');
+            if (!session) throw new Error(t('app.no_session', 'No active session'));
 
             // Invoke edge function
             const { data, error: functionError } = await supabase.functions.invoke('generate-pet-astrology', {
@@ -69,13 +69,26 @@ export default function AstroModal({ visible, onClose, scanId, isPremiumUser }: 
                 },
             });
 
-            if (functionError) throw functionError;
+            if (functionError) {
+                let errMsg = functionError.message;
+                if ((functionError as any).context && typeof (functionError as any).context.json === 'function') {
+                    try {
+                        const errJson = await (functionError as any).context.json();
+                        errMsg = errJson.error || errJson.message || errMsg;
+                    } catch (_) {}
+                }
+                throw new Error(errMsg);
+            }
+
+            if (data?.error) {
+                throw new Error(data.error);
+            }
 
             // the edge function returns { data: { sun_sign: "...", ... } }
             setAstroData(data?.data);
         } catch (err: any) {
             console.error('Error generating astro chart:', err);
-            setError(err.message || 'Failed to generate astrology chart');
+            setError(err.message || t('app.error_generating_astro', 'Failed to generate astrology chart'));
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,13 +8,22 @@ import * as Haptics from 'expo-haptics';
 interface PawMatchGateProps {
     isPremium: boolean;
     isAnonymous: boolean;
+    loading?: boolean; // Add loading prop
     onUpgrade: () => void;
     onLinkAccount: () => void;
     children: React.ReactNode;
 }
 
-export default function PawMatchGate({ isPremium, isAnonymous, onUpgrade, onLinkAccount, children }: PawMatchGateProps) {
+export default function PawMatchGate({ isPremium, isAnonymous, loading, onUpgrade, onLinkAccount, children }: PawMatchGateProps) {
     const { t } = useTranslation();
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#FF007F" />
+            </View>
+        );
+    }
 
     if (isAnonymous) {
         return (
@@ -142,5 +151,11 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontWeight: '900',
-    }
+    },
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: '#0A001A',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });

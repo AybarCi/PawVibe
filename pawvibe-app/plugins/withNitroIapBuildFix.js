@@ -36,6 +36,15 @@ module.exports = function withNitroIapBuildFix(config) {
         ""
       );
 
+      // Inject modular headers for GoogleUtilities and RecaptchaInterop (needed for AppCheckCore + static frameworks)
+      if (!podfileContent.includes("pod 'GoogleUtilities'")) {
+        const modularHeaders = `\n  pod 'GoogleUtilities', :modular_headers => true\n  pod 'RecaptchaInterop', :modular_headers => true\n`;
+        podfileContent = podfileContent.replace(
+          /use_expo_modules!/,
+          `use_expo_modules!${modularHeaders}`
+        );
+      }
+
       // Inject the snippet at the start of post_install
       podfileContent = podfileContent.replace(
         /post_install do \|installer\|/,

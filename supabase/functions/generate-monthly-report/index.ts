@@ -86,7 +86,7 @@ serve(async (req) => {
             .from('scans')
             .select('*')
             .eq('user_id', user.id)
-            .eq('is_pet', true) // Only include actual pets in the monthly report
+            .neq('is_pet', false) // Include actual pets and legacy scans where is_pet might be null
             .gte('created_at', startOfMonth)
             .lt('created_at', endOfMonth)
 
@@ -95,9 +95,13 @@ serve(async (req) => {
         }
 
         if (!scans || scans.length === 0) {
-            return new Response(JSON.stringify({ error: 'No scans found for this month to generate a report' }), {
+            return new Response(JSON.stringify({ 
+                empty: true,
+                error: 'NO_SCANS_THIS_MONTH',
+                message: 'No pet scans found for this month to generate a report'
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 400,
+                status: 200,
             })
         }
 
@@ -168,9 +172,9 @@ FINAL CHECK: Is every single word in ${targetLang}? If not, translate it now. In
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
+                model: 'gpt-4o',
                 temperature: 0.7,
-                max_tokens: 600,
+                max_tokens: 1800,
                 response_format: { type: 'json_object' },
                 messages: [
                     { 

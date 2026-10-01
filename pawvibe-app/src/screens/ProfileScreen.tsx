@@ -379,17 +379,26 @@ export default function ProfileScreen({ navigation }: any) {
                                             </Text>
                                         </View>
                                     ) : (
-                                        <TouchableOpacity style={[styles.gradientContainer, { marginTop: 10 }, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PREMIUM_UNLIMITED)}>
-                                            <LinearGradient
-                                                colors={['#FFD700', '#FF8C00']}
-                                                start={{ x: 0, y: 0 }}
-                                                end={{ x: 1, y: 1 }}
-                                                style={styles.gradientBtn}
-                                            >
-                                                <Text style={styles.premiumBtnText}>👑 {t('app.subscribe_now', 'Subscribe Now')}</Text>
-                                                <Text style={styles.premiumPrice}>{(subscriptions.find((p: any) => p.productId === IAP_PRODUCTS.PREMIUM_UNLIMITED) as any)?.localizedPrice || ''}</Text>
-                                            </LinearGradient>
-                                        </TouchableOpacity>
+                                        <View>
+                                            <TouchableOpacity style={[styles.gradientContainer, { marginTop: 10 }, isPurchasing && { opacity: 0.5 }]} disabled={isPurchasing} onPress={() => handlePurchase(IAP_PRODUCTS.PREMIUM_UNLIMITED)}>
+                                                <LinearGradient
+                                                    colors={['#FFD700', '#FF8C00']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    style={styles.gradientBtn}
+                                                >
+                                                    <Text style={styles.premiumBtnText}>👑 {t('app.subscribe_now', 'Subscribe Now')}</Text>
+                                                    <Text style={styles.premiumPrice}>{(subscriptions.find((p: any) => p.productId === IAP_PRODUCTS.PREMIUM_UNLIMITED) as any)?.localizedPrice || ''}</Text>
+                                                </LinearGradient>
+                                            </TouchableOpacity>
+                                            
+                                            {/* 🛡️ Legal Subscription Disclaimer for Google/Apple Reviewers */}
+                                            <View style={styles.subscriptionDisclaimer}>
+                                                <Text style={styles.disclaimerText}>
+                                                    {t('app.subscription_disclaimer', 'Payment will be charged to your Store Account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period. Account will be charged for renewal within 24-hours prior to the end of the current period. You can manage and cancel your subscriptions in your Store Account settings.')}
+                                                </Text>
+                                            </View>
+                                        </View>
                                     )}
                                 </View>
                             )}
@@ -547,4 +556,16 @@ const styles = StyleSheet.create({
     legalContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 25, marginBottom: 10, gap: 8 },
     legalLink: { color: '#6A4C93', fontSize: 13, textDecorationLine: 'underline' },
     legalSeparator: { color: '#6A4C93', fontSize: 13 },
+    subscriptionDisclaimer: {
+        marginTop: 15,
+        padding: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 8,
+    },
+    disclaimerText: {
+        color: '#888',
+        fontSize: 11,
+        textAlign: 'center',
+        lineHeight: 16,
+    },
 });

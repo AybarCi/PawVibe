@@ -20,6 +20,7 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
     const [loading, setLoading] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+    const [noScans, setNoScans] = useState(false);
     const viewShotRef = useRef<any>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [shareImageUri, setShareImageUri] = useState<string | null>(null);
@@ -39,11 +40,13 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
 
     React.useEffect(() => {
         if (visible) {
+            setNoScans(false);
             generateMonthlyReport();
         } else {
             // Reset state when closed
             setReportData(null);
             setError(null);
+            setNoScans(false);
         }
     }, [visible]);
 
@@ -55,10 +58,11 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
 
         setLoading(true);
         setError(null);
+        setNoScans(false);
 
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('No active session');
+            if (!session) throw new Error(t('app.no_session', 'No active session'));
 
             // Invoke edge function
             const currentMonthYear = new Date().toISOString().slice(0, 7); // e.g., '2026-02'
@@ -69,7 +73,25 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                 },
             });
 
-            if (functionError) throw functionError;
+            if (functionError) {
+                let errMsg = functionError.message;
+                if ((functionError as any).context && typeof (functionError as any).context.json === 'function') {
+                    try {
+                        const errJson = await (functionError as any).context.json();
+                        if (errJson?.error === 'NO_SCANS_THIS_MONTH' || errJson?.empty || errJson?.error?.includes('No scans found')) {
+                            setNoScans(true);
+                            return;
+                        }
+                        errMsg = errJson.error || errJson.message || errMsg;
+                    } catch (_) {}
+                }
+                throw new Error(errMsg);
+            }
+
+            if (data?.empty || data?.error === 'NO_SCANS_THIS_MONTH') {
+                setNoScans(true);
+                return;
+            }
 
             // the edge function returns { data: { title: "...", ... } }
             if (data?.error) {
@@ -79,7 +101,7 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
             setReportData(data?.data);
         } catch (err: any) {
             console.error('Error generating monthly report:', err);
-            setError(err.message || 'Failed to generate monthly report');
+            setError(err.message || t('app.error_generating_report', 'Failed to generate monthly report'));
         } finally {
             setLoading(false);
         }
@@ -109,6 +131,16 @@ export default function MonthlyReportModal({ visible, onClose, isPremiumUser }: 
                         <View style={styles.contentContainer}>
                             <ActivityIndicator size="large" color="#FF007F" />
                             <Text style={styles.loadingText}>{t('app.preparing_report', 'Analyzing 30 days of behavior...')}</Text>
+                        </View>
+                    ) : noScans ? (
+                        <View style={styles.contentContainer}>
+                            <Ionicons name="calendar-outline" size={54} color="#FFD700" style={{ marginBottom: 12 }} />
+                            <Text style={[styles.errorText, { color: '#FFD700', fontWeight: 'bold', fontSize: 18, marginBottom: 8 }]}>
+                                {t('app.no_scans_this_month_title', 'No Pet Scans This Month')}
+                            </Text>
+                            <Text style={[styles.cardText, { textAlign: 'center', opacity: 0.85, fontSize: 14 }]}>
+                                {t('app.no_scans_this_month_desc', 'Scan your pet at least once this month to generate an in-depth behavioral report!')}
+                            </Text>
                         </View>
                     ) : error ? (
                         <View style={styles.contentContainer}>

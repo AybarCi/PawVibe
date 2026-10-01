@@ -16,6 +16,7 @@ export default function PawMatchScreen() {
     const [isPremium, setIsPremium] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(true);
 
+    const [unreadCount, setUnreadCount] = useState(0);
     const [pets, setPets] = useState<any[]>([]);
 
     const checkStatus = useCallback(async () => {
@@ -42,7 +43,42 @@ export default function PawMatchScreen() {
                 .select('id')
                 .eq('owner_id', user.id);
             
+            const myPetIds = myPets?.map(p => p.id) || [];
             setPets(myPets || []);
+
+            // NEW: Fetch unread messages and matches count
+            if (myPetIds.length > 0) {
+                // Get my match IDs first
+                const { data: myMatches } = await supabase
+                    .from('matches')
+                    .select('id')
+                    .in('pet_from', myPetIds)
+                    .eq('status', 'match');
+                
+                const myMatchIds = myMatches?.map(m => m.id) || [];
+
+                // Get unread messages (sent by others to me)
+                let unreadMsgs = 0;
+                if (myMatchIds.length > 0) {
+                    const { count } = await supabase
+                        .from('messages')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('is_read', false)
+                        .neq('sender_id', user.id)
+                        .in('match_id', myMatchIds);
+                    unreadMsgs = count || 0;
+                }
+
+                // Get unread matches
+                const { count: unreadMatches } = await supabase
+                    .from('matches')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_read', false)
+                    .eq('status', 'match')
+                    .in('pet_from', myPetIds);
+
+                setUnreadCount(unreadMsgs + (unreadMatches || 0));
+            }
 
         } catch (error) {
             console.error('[PawMatch] Status check error:', error);
@@ -58,34 +94,33 @@ export default function PawMatchScreen() {
     );
 
     return (
-        <PawMatchGate
-            isPremium={isPremium}
-            isAnonymous={isAnonymous}
-            onUpgrade={() => navigation.navigate('Profile')}
-            onLinkAccount={() => navigation.navigate('Profile', { screen: 'Account' })}
-        >
-            <SafeAreaView style={styles.container}>
-                {/* Header - Always Static */}
+        <SafeAreaView style={styles.container}>
+                {/* Header - Always Static and Visible */}
                 <View style={styles.header}>
                     <Text style={styles.headerText}>PawMatch</Text>
-                    {pets.length > 0 && (
-                        <TouchableOpacity 
-                            style={styles.matchesIcon}
-                            onPress={() => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                navigation.navigate('MatchesList');
-                            }}
-                        >
-                            <Ionicons name="chatbubbles" size={26} color="#FF007F" />
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity 
+                        style={styles.matchesIcon}
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            navigation.navigate('MatchesList');
+                        }}
+                    >
+                        <Ionicons name="chatbubbles" size={26} color="#FF007F" />
+                        {unreadCount > 0 && (
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
                 </View>
 
-                {loading && pets.length === 0 ? (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#FF007F" />
-                    </View>
-                ) : (
+                <PawMatchGate
+                    isPremium={isPremium}
+                    isAnonymous={isAnonymous}
+                    loading={loading}
+                    onUpgrade={() => navigation.navigate('Profile')}
+                    onLinkAccount={() => navigation.navigate('Profile', { screen: 'Account' })}
+                >
                     <View style={styles.content}>
                         <Ionicons name="heart-circle" size={100} color="#FF007F" style={{ marginBottom: 20 }} />
                         <Text style={styles.placeholderText}>
@@ -123,9 +158,8 @@ export default function PawMatchScreen() {
                             </TouchableOpacity>
                         )}
                     </View>
-                )}
+                </PawMatchGate>
             </SafeAreaView>
-        </PawMatchGate>
     );
 }
 
@@ -216,5 +250,24 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '900',
         fontSize: 18,
+    },
+    badge: {
+        position: 'absolute',
+        top: -5,
+        right: -8,
+        backgroundColor: '#FF007F',
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#0A001A',
+        paddingHorizontal: 4,
+    },
+    badgeText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: '900',
     }
 });

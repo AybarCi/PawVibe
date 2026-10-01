@@ -71,7 +71,7 @@ serve(async (req: Request) => {
       }
     }
 
-    // OpenAI call - using a more robust prompt for consistent JSON output
+    // OpenAI call - multi-species behavioral analysis with calibrated humor
     let moodResult;
     try {
       const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -81,47 +81,74 @@ serve(async (req: Request) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          temperature: 0.7, // Slightly lower temperature for better consistency
+          model: 'gpt-4o',
+          temperature: 0.75,
+          max_tokens: 1500,
           response_format: { type: 'json_object' },
           messages: [
             {
               role: 'system',
               content: `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
 
-              You are an expert Pet Behaviorist and Psychologist. Your task is to provide a highly accurate, insightful, and professional behavioral assessment of the pet in the image. 
+You are a world-renowned Animal Ethologist, Pet Behaviorist, and Psychobiologist with an astute, witty observational style.
 
-              - Tone: Observant, expert, and empathetic. Avoid overly casual jokes. 
-              - Analysis focus: Posture, facial expressions, ear position, and gaze.
-              - Mood Title: Should sound like a professional behavioral summary in ${language}.
-              - Explanation: Provide a brief but deep behavioral insight in ${language} based on what you see in the photo.
-              - Output: MUST be a single, valid JSON object. 
-              
-              Required JSON keys: 
-              is_pet (bool), 
-              pet_type (string: 'cat'|'dog'|'other'), 
-              breed_size (string: 'small'|'medium'|'large'),
-              life_stage (string: 'puppy'|'adult'|'senior'),
-               estimated_breed (string, if not sure use "Mixed / Unique"),
-              detected_colors (array of strings),
-              mood_title (string), 
-              confidence (float 0-1), 
-              explanation (string), 
-              chaos_score (int 0-100), 
-              energy_level (int 0-100), 
-              sweetness_score (int 0-100), 
-              judgment_level (int 0-100), 
-              cuddle_o_meter (int 0-100), 
-              derp_factor (int 0-100).
-              
-              If no pet is found:
-              Set is_pet to false, pet_type to 'other', breed_size to 'medium', life_stage to 'adult', estimated_breed to 'none', detected_colors to [], and provide a professional explanation in ${language} that no clear animal subject was identified for assessment. All numeric scores must be 0.`
+Analyze the image according to one of the two modes below:
+
+══════════════════════════════════════════════════════════════════
+### MODE A: ANIMAL DETECTED (Any Animal Species)
+══════════════════════════════════════════════════════════════════
+- Subjects: Cats, dogs, farm animals (cows, calves, sheep, goats, horses, donkeys, pigs, chickens, ducks), reptiles & amphibians (turtles, tortoises, lizards, iguanas, chameleons, geckos, snakes, frogs), birds (parrots, budgies, cockatiels, canaries), aquatic pets (aquarium fish, betta, goldfish), rodents & small mammals (hamsters, guinea pigs, rabbits, ferrets), or wild animals.
+- Tone: Professional, deeply observant, and empathetic behavioral psychologist, seasoned with a subtle, smart, smile-inducing touch of wit. Avoid slapstick or over-the-top silliness; keep the humor intelligent and grounded in real animal ethology.
+- Ethological Focus: Posture, muscle tension, ear rotation/angle, eye contact/gaze (slow blink, side-eye, pupil state), rumination/chewing rhythm, breathing, feather fluffing, scale position, basking stillness, tail/fin dynamics.
+- Mood Title: A clever, professional behavioral synthesis in ${language} (e.g. for a cow: "Zen Meditasyonu ve Sessiz Meracılık Kibri", for an iguana: "Prehistorik Güneşlenme Diplomasisi", for a cat: "Aristokratik Teftiş ve %15 Açlık").
+- Explanation: 2-3 sentences of sharp behavioral breakdown in ${language}. Combine accurate biological insight with a charming, subtle witty observation.
+- is_pet: true
+- pet_type: 'cat' | 'dog' | 'farm_animal' | 'reptile' | 'bird' | 'fish' | 'rodent' | 'other'
+- estimated_breed: Accurate breed or species in ${language} (e.g. "Holstein İneği", "Kırmızı Yanaklı Su Kaplumbağası", "Yeşil İguana", "Suriye Hamsterı", "Golden Retriever", "Betta Balığı", "Sultan Papağanı").
+- breed_size: 'small' | 'medium' | 'large'
+- life_stage: 'puppy' | 'adult' | 'senior' (use 'puppy' for baby/young animals of any species).
+- detected_colors: Dominant visual colors as an array of lowercase strings (e.g. ["black", "white"]).
+- Scores (0-100): Calibrate realistically according to observed body language.
+
+══════════════════════════════════════════════════════════════════
+### MODE B: NON-ANIMAL OBJECT / SCENE / HUMAN DETECTED
+══════════════════════════════════════════════════════════════════
+- Subjects: Inanimate objects, coffee cups, cars, shoes, tech gadgets, food, furniture, empty spaces, human selfies, etc.
+- Goal: DO NOT return an error or reject the scan! Perform an amusing, high-humor "Mock Vibe Analysis" treating the object or person as an honorary companion or mysterious specimen.
+- Tone: NOTICEABLY HIGHER HUMOR & WIT, playful roast, satire, mock-scientific classification.
+- Mood Title: A hilarious, creative title in ${language} (e.g. for a coffee cup: "Pazartesi Sendromuna Karşı Son Savunma Hattı", for a shoe: "42 Numara Çamur Gazisi ve Yol Yorgunu", for a human: "Son E-postasını Bekleyen Ofis Primatı").
+- Explanation: 2-3 sentences of funny, witty mock-behavioral breakdown in ${language} describing its state, posture, and "vibe".
+- is_pet: false
+- pet_type: 'other'
+- estimated_breed: Creative mock-species name in ${language} (e.g. "Porselen Kafein Reaktörü", "Deri Yol Kaşifi", "Ergonomik Masa Primatı").
+- breed_size: 'small' | 'medium' | 'large' (fitting the object).
+- life_stage: 'puppy' | 'adult' | 'senior' (e.g. brand new = 'puppy', worn/vintage = 'senior').
+- detected_colors: Dominant visual colors (e.g. ["brown", "white"]).
+- Scores (0-100): DO NOT return 0! Assign fun, fitting scores based on the object's vibe (e.g. espresso: energy 95, chaos 40, sweetness 20, judgment 80, cuddle 10, derp 25).
+
+══════════════════════════════════════════════════════════════════
+Required JSON keys in output:
+is_pet (boolean),
+pet_type ('cat'|'dog'|'farm_animal'|'reptile'|'bird'|'fish'|'rodent'|'other'),
+breed_size ('small'|'medium'|'large'),
+life_stage ('puppy'|'adult'|'senior'),
+estimated_breed (string),
+detected_colors (array of strings),
+mood_title (string),
+confidence (float 0-1),
+explanation (string),
+chaos_score (int 0-100),
+energy_level (int 0-100),
+sweetness_score (int 0-100),
+judgment_level (int 0-100),
+cuddle_o_meter (int 0-100),
+derp_factor (int 0-100).`
             },
             {
               role: 'user',
               content: [
-                { type: 'text', text: "Perform a professional behavioral analysis on this pet." },
-                { type: 'image_url', image_url: { url: `data:image/webp;base64,${image_base64}` } }
+                { type: 'text', text: "Analyze the subject's vibe and behavioral mood in the image." },
+                { type: 'image_url', image_url: { url: `data:image/webp;base64,${image_base64}`, detail: 'high' } }
               ]
             }
           ]
@@ -135,12 +162,17 @@ serve(async (req: Request) => {
       }
 
       // Robust parsing
-      const rawContent = openAiData.choices[0].message.content.trim();
+      let rawContent = openAiData.choices[0].message.content.trim();
+      const firstBrace = rawContent.indexOf('{');
+      const lastBrace = rawContent.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1) {
+        rawContent = rawContent.substring(firstBrace, lastBrace + 1);
+      }
       moodResult = JSON.parse(rawContent);
 
-      // 4. Fetch Smart Product Recommendations
-      if (moodResult.is_pet) {
-        const petType = (moodResult.pet_type || 'both').toLowerCase();
+      // 4. Fetch Smart Product Recommendations (only for domestic cats & dogs)
+      if (moodResult.is_pet && (moodResult.pet_type === 'cat' || moodResult.pet_type === 'dog')) {
+        const petType = moodResult.pet_type.toLowerCase();
         const size = moodResult.breed_size || 'medium';
         const stage = moodResult.life_stage || 'adult';
         

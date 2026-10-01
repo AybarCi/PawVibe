@@ -115,9 +115,9 @@ CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-4o-mini',
+                model: 'gpt-4o',
                 temperature: 0.8,
-                max_tokens: 300,
+                max_tokens: 1200,
                 response_format: { type: 'json_object' },
                 messages: [{ role: 'user', content: prompt }]
             })
@@ -135,7 +135,14 @@ CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
             throw new Error('No content returned from OpenAI')
         }
 
-        const astrologyJSON = JSON.parse(content)
+        let rawContent = content.trim();
+        const firstBrace = rawContent.indexOf('{');
+        const lastBrace = rawContent.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            rawContent = rawContent.substring(firstBrace, lastBrace + 1);
+        }
+
+        const astrologyJSON = JSON.parse(rawContent)
 
         // 5. Save to DB using Service Role Key to bypass RLS for updates
         const adminClient = createClient(

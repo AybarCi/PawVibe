@@ -9,6 +9,7 @@ import SubscriptionsPage from './pages/Subscriptions';
 import RecommendationsPage from './pages/Recommendations';
 import ClicksPage from './pages/Clicks';
 import VaccinesPage from './pages/Vaccines';
+import GrowthAssistantPage from './pages/GrowthAssistant';
 import { supabase } from './lib/supabase';
 import { LogIn } from 'lucide-react';
 
@@ -106,6 +107,7 @@ function App() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
+      case 'growth': return <GrowthAssistantPage />;
       case 'users': return <UsersPage />;
       case 'analyses': return <AnalysesPage />;
       case 'purchases': return <PurchasesPage />;

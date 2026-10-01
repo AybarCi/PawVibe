@@ -59,6 +59,16 @@ export default function MatchesListScreen() {
                 .in('pet_from', myPetIds);
 
             if (error) throw error;
+            
+            // 2.5 Mark these matches as read (seen)
+            if (myPetIds.length > 0) {
+                await supabase
+                    .from('matches')
+                    .update({ is_read: true })
+                    .in('pet_from', myPetIds)
+                    .eq('status', 'match')
+                    .eq('is_read', false);
+            }
 
             // 3. Format matches
             const formattedMatches: Match[] = (data || []).map(m => ({

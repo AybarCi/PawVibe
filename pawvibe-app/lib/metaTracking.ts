@@ -98,7 +98,7 @@ const isPurchaseDup = (id?: string) => !!(id && purchaseHistory[id]);
 ========================= */
 
 const flush = async () => {
-  if (flushing || !ready || !queue.length || !trackingAllowed) return;
+  if (flushing || !ready || !queue.length) return;
 
   flushing = true;
 
@@ -116,14 +116,8 @@ const flush = async () => {
 
       if (e.type === 'purchase') {
         if (!isPurchaseDup(e.purchase_id)) {
-          const eventName =
-            Platform.OS === 'ios'
-              ? 'fb_mobile_purchase'
-              : META_EVENTS.PURCHASE;
-
-          AppEventsLogger.logEvent(eventName, {
-            value: e.amount,
-            currency: e.currency,
+          // Native logPurchase triggers Apple SKAdNetwork conversion value updates
+          AppEventsLogger.logPurchase(e.amount, e.currency || 'USD', {
             event_id: e.event_id,
           });
 
@@ -158,15 +152,13 @@ export const initMetaTracking = async (granted: boolean) => {
 
   await loadAll();
 
-  if (granted) {
-    AppEventsLogger.logEvent('fb_mobile_activate_app');
+  // Always log activate app and first install (Meta SKAdNetwork & AEM require aggregated event streams)
+  AppEventsLogger.logEvent('fb_mobile_activate_app');
 
-    // Rule 3: Manual install trigger using first-launch check
-    const hasLoggedInstall = await safeGet('META_INSTALL_LOGGED');
-    if (!hasLoggedInstall) {
-      AppEventsLogger.logEvent('fb_mobile_install');
-      await safeSet('META_INSTALL_LOGGED', 'true');
-    }
+  const hasLoggedInstall = await safeGet('META_INSTALL_LOGGED');
+  if (!hasLoggedInstall) {
+    AppEventsLogger.logEvent('fb_mobile_install');
+    await safeSet('META_INSTALL_LOGGED', 'true');
   }
 
   InteractionManager.runAfterInteractions(() => {
@@ -195,7 +187,7 @@ export const setMetaUserData = (
   if (phone) userData.ph = sha256(phone.replace(/\D/g, ''));
   if (externalId) userData.external_id = `app_${externalId}`;
 
-  if (ready && trackingAllowed) {
+  if (ready) {
     AppEventsLogger.setUserData(userData);
   }
 };
@@ -207,7 +199,7 @@ export const setMetaUserData = (
 const track = async (type: 'event' | 'purchase', payload: any) => {
   const id = payload.event_id || uuidv4();
 
-  if (isDup(id) || !trackingAllowed) return;
+  if (isDup(id)) return;
 
   if (type === 'purchase' && isPurchaseDup(payload.purchase_id)) return;
 

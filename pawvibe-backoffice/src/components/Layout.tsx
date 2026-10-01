@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, Shield, ShoppingBag, Settings, LogOut, Menu, X, Activity, Package, MousePointerClick, Syringe } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, ShoppingBag, Settings, LogOut, Menu, X, Activity, Package, MousePointerClick, Syringe, Sparkles } from 'lucide-react';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -61,12 +61,18 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
                     </button>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2 mt-6">
+                <nav className="flex-1 px-4 space-y-2 mt-6 overflow-y-auto">
                     <NavItem
                         icon={<LayoutDashboard size={20} />}
                         label="Dashboard"
                         active={activeTab === 'dashboard'}
                         onClick={() => handleTabChange('dashboard')}
+                    />
+                    <NavItem
+                        icon={<Sparkles size={20} className="text-[#FF007F]" />}
+                        label="Growth Assistant"
+                        active={activeTab === 'growth'}
+                        onClick={() => handleTabChange('growth')}
                     />
                     <NavItem
                         icon={<Users size={20} />}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View, ActivityIndicator, ScrollView, RefreshControl, TouchableOpacity, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -9,6 +9,25 @@ import { Session } from '@supabase/supabase-js';
 import PawVibeLoader from '../components/PawVibeLoader';
 import AstroModal from '../components/AstroModal';
 import MonthlyReportModal from '../components/MonthlyReportModal';
+
+const getSpeciesIcon = (petType?: string, breed?: string): keyof typeof MaterialCommunityIcons.glyphMap => {
+    const type = (petType || '').toLowerCase();
+    const b = (breed || '').toLowerCase();
+
+    if (type === 'cat' || b.includes('cat') || b.includes('kedi')) return 'cat';
+    if (type === 'dog' || b.includes('dog') || b.includes('köpek')) return 'dog-side';
+    if (type === 'farm_animal' || b.includes('cow') || b.includes('inek') || b.includes('sığır') || b.includes('öküz') || b.includes('dana') || b.includes('bov') || b.includes('boğa')) return 'cow';
+    if (b.includes('sheep') || b.includes('koyun') || b.includes('koç') || b.includes('keçi') || b.includes('goat')) return 'sheep';
+    if (b.includes('horse') || b.includes('at') || b.includes('eşek') || b.includes('donkey')) return 'horse';
+    if (b.includes('duck') || b.includes('ördek') || b.includes('kaz')) return 'duck';
+    if (type === 'bird' || b.includes('bird') || b.includes('kuş') || b.includes('papağan') || b.includes('parrot') || b.includes('kanarya') || b.includes('canary') || b.includes('tavuk') || b.includes('chicken')) return 'bird';
+    if (type === 'fish' || b.includes('fish') || b.includes('balık') || b.includes('betta')) return 'fish';
+    if (b.includes('turtle') || b.includes('kaplumbağa') || b.includes('tortoise')) return 'tortoise';
+    if (type === 'reptile' || b.includes('snake') || b.includes('yılan') || b.includes('lizard') || b.includes('iguana') || b.includes('kertenkele') || b.includes('bukalemun') || b.includes('gecko')) return 'snake';
+    if (type === 'rodent' || b.includes('hamster') || b.includes('rabbit') || b.includes('tavşan') || b.includes('mouse') || b.includes('fare') || b.includes('guinea')) return 'rabbit';
+    if (type === 'other' || type === 'object') return 'creation';
+    return 'paw';
+};
 
 export default function MyScansScreen() {
     const { t } = useTranslation();
@@ -138,20 +157,24 @@ export default function MyScansScreen() {
                                     )}
                                 </View>
 
-                                {isRealPet && (
-                                    <View style={styles.scanBioRow}>
-                                        <Ionicons name="paw" size={12} color="#00FFFF" />
-                                        <Text style={styles.scanBioText}>
-                                            {(!scan.estimated_breed || 
-                                              scan.estimated_breed.toLowerCase() === 'none' || 
-                                              scan.estimated_breed.toLowerCase().includes('mixed')
-                                                ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') 
-                                                : scan.estimated_breed.toUpperCase())} • {t(`app.size_${scan.breed_size}`, scan.breed_size?.toUpperCase())} • {t(`app.stage_${scan.life_stage}`, scan.life_stage?.toUpperCase())}
-                                        </Text>
-                                    </View>
-                                )}
+                                <View style={styles.scanBioRow}>
+                                    <MaterialCommunityIcons 
+                                        name={getSpeciesIcon(scan.pet_type, scan.estimated_breed)} 
+                                        size={14} 
+                                        color="#00FFFF" 
+                                    />
+                                    <Text style={styles.scanBioText}>
+                                        {(!scan.estimated_breed || 
+                                          scan.estimated_breed.toLowerCase() === 'none' || 
+                                          scan.estimated_breed.toLowerCase().includes('mixed')
+                                            ? (isRealPet ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') : t('app.honorary_species', 'SPECIAL SCAN'))
+                                            : scan.estimated_breed.toUpperCase())}
+                                        {scan.breed_size ? ` • ${t(`app.size_${scan.breed_size}`, scan.breed_size?.toUpperCase())}` : ''}
+                                        {scan.life_stage ? ` • ${isRealPet ? t(`app.stage_${scan.life_stage}`, scan.life_stage?.toUpperCase()) : t('app.honorary_friend', 'SPECIAL VIBE')}` : ''}
+                                    </Text>
+                                </View>
 
-                                {isRealPet && (
+                                {(scan.chaos_score != null || scan.energy_level != null) && (
                                     <View style={styles.scanStats}>
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.chaos')}: {scan.chaos_score ?? 0} 🌪️</Text>
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.energy')}: {scan.energy_level ?? 0} ⚡</Text>
@@ -161,6 +184,12 @@ export default function MyScansScreen() {
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.derp')}: {scan.derp_factor ?? 0} 🤪</Text>
                                     </View>
                                 )}
+
+                                {scan.explanation ? (
+                                    <Text style={styles.scanExplanation} numberOfLines={2}>
+                                        "{scan.explanation}"
+                                    </Text>
+                                ) : null}
                             </View>
                         );
                     })
@@ -207,5 +236,6 @@ const styles = StyleSheet.create({
     scanStats: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 10, borderTopWidth: 1, borderTopColor: '#2a3b5e', paddingTop: 10 },
     scanStatText: { color: '#FF007F', fontSize: 13, fontWeight: '600', width: '48%', marginBottom: 5 },
     scanBioRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0, 255, 255, 0.05)', padding: 8, borderRadius: 8, gap: 6, marginBottom: 5 },
-    scanBioText: { color: '#00FFFF', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 }
+    scanBioText: { color: '#00FFFF', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+    scanExplanation: { color: '#E0AAFF', fontSize: 12, fontStyle: 'italic', marginTop: 8, lineHeight: 17 }
 });

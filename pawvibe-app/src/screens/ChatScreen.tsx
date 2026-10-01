@@ -47,7 +47,18 @@ export default function ChatScreen() {
             if (!error) setMessages(data || []);
             setLoading(false);
 
+            // 1.5 Mark incoming messages as read
+            if (user) {
+                await supabase
+                    .from('messages')
+                    .update({ is_read: true })
+                    .eq('match_id', matchId)
+                    .neq('sender_id', user.id)
+                    .eq('is_read', false);
+            }
+
             // 2. Set up Realtime subscription
+            const currentUserId = user.id;
             channel = supabase
                 .channel(`match_${matchId}`)
                 .on('postgres_changes', { 
@@ -57,7 +68,17 @@ export default function ChatScreen() {
                     filter: `match_id=eq.${matchId}` 
                 }, (payload) => {
                     const newMessage = payload.new as Message;
-                    // Only add if it's not our own optimistic message (or just rely on unique IDs)
+                    
+                    // Mark as read in DB if it's from the other person and we are active
+                    if (newMessage.sender_id !== currentUserId) {
+                        supabase
+                            .from('messages')
+                            .update({ is_read: true })
+                            .eq('id', newMessage.id)
+                            .then();
+                    }
+
+                    // Only add if it's not our own optimistic message
                     setMessages(prev => {
                         if (prev.find(m => m.id === newMessage.id)) return prev;
                         return [...prev, newMessage];
