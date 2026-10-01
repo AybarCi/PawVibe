@@ -117,11 +117,11 @@ serve(async (req) => {
             ? moodTitles.sort((a, b) => moodTitles.filter(v => v === a).length - moodTitles.filter(v => v === b).length).pop() 
             : 'Unknown';
 
-        // 4. Setup OpenAI Fetch Request
-        const apiKey = Deno.env.get('OPENAI_API_KEY');
-        if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
+        // 4. Setup Gemini Fetch Request
+        const apiKey = Deno.env.get('GEMINI_API_KEY');
+        if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
 
-        // Normalize language for OpenAI safely
+        // Normalize language for Gemini safely
         const langMap: Record<string, string> = {
             'tr': 'Turkish',
             'en': 'English',
@@ -165,40 +165,33 @@ Return ONLY a valid JSON object with this structure:
 }
 FINAL CHECK: Is every single word in ${targetLang}? If not, translate it now. Include the "lang" field with value "${reqLangCode}".`
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const response = await fetch(geminiEndpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
-                temperature: 0.7,
-                max_tokens: 1800,
-                response_format: { type: 'json_object' },
-                messages: [
-                    { 
-                        role: 'system', 
-                        content: `You are a Chief Veterinary Behaviorist. You must respond ONLY with a valid JSON object in ${targetLang}. No other text.` 
-                    },
-                    { 
-                        role: 'user', 
-                        content: prompt 
-                    }
-                ]
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    response_mime_type: 'application/json',
+                    temperature: 0.7
+                }
             })
         });
 
         if (!response.ok) {
              const errData = await response.text();
-             throw new Error(`OpenAI error: ${errData}`);
+             throw new Error(`Gemini error: ${errData}`);
         }
         
-        const openAiData = await response.json();
-        let content = openAiData.choices[0].message?.content;
+        const geminiData = await response.json();
+        let content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!content) {
-            throw new Error('No content returned from OpenAI')
+            throw new Error('No content returned from Gemini');
         }
 
         // Extremely robust JSON extraction: find the first { and the last }

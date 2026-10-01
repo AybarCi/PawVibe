@@ -71,26 +71,23 @@ serve(async (req: Request) => {
       }
     }
 
-    // OpenAI call - multi-species behavioral analysis with calibrated humor
+    // AI Analysis call - Exclusively powered by Google Gemini (Gemini Flash Multimodal)
     let moodResult;
-    try {
-      const openAiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          temperature: 0.75,
-          max_tokens: 1500,
-          response_format: { type: 'json_object' },
-          messages: [
-            {
-              role: 'system',
-              content: `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY environment secret is not configured in Supabase.');
+    }
 
-You are a world-renowned Animal Ethologist, Pet Behaviorist, and Psychobiologist with an astute, witty observational style.
+    const currentDayName = new Date().toLocaleDateString('tr-TR', { weekday: 'long' });
+    const currentDateStr = new Date().toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const systemPrompt = `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
+
+CURRENT TEMPORAL CONTEXT:
+Today is: ${currentDayName}, ${currentDateStr}.
+CRITICAL RULE: DO NOT use cheap, lazy day-of-the-week internet clichés (such as "Pazartesi Sendromu" or "Cuma Yorgunluğu") unless today is literally that day and the visual evidence unmistakably justifies it. Focus 100% on the genuine, unique physical and behavioral evidence visible in the image!
+
+You are a world-renowned Animal Ethologist, Pet Behaviorist, and Psychobiologist with an astute, sharp observational style.
 
 Analyze the image according to one of the two modes below:
 
@@ -115,9 +112,9 @@ Analyze the image according to one of the two modes below:
 ══════════════════════════════════════════════════════════════════
 - Subjects: Inanimate objects, coffee cups, cars, shoes, tech gadgets, food, furniture, empty spaces, human selfies, etc.
 - Goal: DO NOT return an error or reject the scan! Perform an amusing, high-humor "Mock Vibe Analysis" treating the object or person as an honorary companion or mysterious specimen.
-- Tone: NOTICEABLY HIGHER HUMOR & WIT, playful roast, satire, mock-scientific classification.
-- Mood Title: A hilarious, creative title in ${language} (e.g. for a coffee cup: "Pazartesi Sendromuna Karşı Son Savunma Hattı", for a shoe: "42 Numara Çamur Gazisi ve Yol Yorgunu", for a human: "Son E-postasını Bekleyen Ofis Primatı").
-- Explanation: 2-3 sentences of funny, witty mock-behavioral breakdown in ${language} describing its state, posture, and "vibe".
+- Tone: NOTICEABLY HIGHER HUMOR & WIT, playful roast, satire, mock-scientific classification. Look at the ACTUAL texture, remaining level, foam, cracks, posture.
+- Mood Title: A hilarious, creative title in ${language} grounded in what is physically seen (e.g. for a half-drunk espresso: "Kritik Seviyede Azalmış Kafein Rezervi ve Masadaki Sessiz Direniş", for a shoe: "42 Numara Çamur Gazisi ve Yol Yorgunu", for a human: "Son E-postasını Bekleyen Ofis Primatı").
+- Explanation: 2-3 sentences of funny, witty mock-behavioral breakdown in ${language} describing its physical state, posture, and "vibe".
 - is_pet: false
 - pet_type: 'other'
 - estimated_breed: Creative mock-species name in ${language} (e.g. "Porselen Kafein Reaktörü", "Deri Yol Kaşifi", "Ergonomik Masa Primatı").
@@ -142,27 +139,46 @@ energy_level (int 0-100),
 sweetness_score (int 0-100),
 judgment_level (int 0-100),
 cuddle_o_meter (int 0-100),
-derp_factor (int 0-100).`
-            },
+derp_factor (int 0-100).`;
+
+    try {
+      console.log('[analyze-pet-vibe] Using Google Gemini Multimodal Engine');
+      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+      
+      const geminiRes = await fetch(geminiEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
             {
               role: 'user',
-              content: [
-                { type: 'text', text: "Analyze the subject's vibe and behavioral mood in the image." },
-                { type: 'image_url', image_url: { url: `data:image/webp;base64,${image_base64}`, detail: 'high' } }
+              parts: [
+                { text: systemPrompt },
+                { text: "Analyze the subject's vibe and behavioral mood in the provided image." },
+                {
+                  inline_data: {
+                    mime_type: 'image/webp',
+                    data: image_base64
+                  }
+                }
               ]
             }
-          ]
+          ],
+          generationConfig: {
+            response_mime_type: 'application/json',
+            temperature: 0.7
+          }
         })
       });
 
-      const openAiData = await openAiResponse.json();
-      
-      if (!openAiResponse.ok) {
-        throw new Error(`OpenAI Error: ${JSON.stringify(openAiData)}`);
+      if (!geminiRes.ok) {
+        const errText = await geminiRes.text();
+        console.error('[analyze-pet-vibe] Gemini API error:', errText);
+        throw new Error(`Gemini Error: ${errText}`);
       }
 
-      // Robust parsing
-      let rawContent = openAiData.choices[0].message.content.trim();
+      const geminiData = await geminiRes.json();
+      let rawContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const firstBrace = rawContent.indexOf('{');
       const lastBrace = rawContent.lastIndexOf('}');
       if (firstBrace !== -1 && lastBrace !== -1) {

@@ -76,9 +76,9 @@ serve(async (req) => {
             })
         }
 
-        // 3. Setup OpenAI Request
-        const apiKey = Deno.env.get('OPENAI_API_KEY');
-        if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
+        // 3. Setup Gemini Request
+        const apiKey = Deno.env.get('GEMINI_API_KEY');
+        if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
 
         // 4. Prompt for Astrology
         const prompt = `IMPORTANT: YOU MUST RESPOND EXCLUSIVELY IN THIS LANGUAGE: ${language}.
@@ -108,31 +108,33 @@ Return ONLY a valid JSON object with the following structure:
 }
 CRITICAL: ALL string values inside the JSON MUST be in ${language}.`
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const response = await fetch(geminiEndpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
-                temperature: 0.8,
-                max_tokens: 1200,
-                response_format: { type: 'json_object' },
-                messages: [{ role: 'user', content: prompt }]
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    response_mime_type: 'application/json',
+                    temperature: 0.8
+                }
             })
         });
 
         if (!response.ok) {
             const errData = await response.text();
-            throw new Error(`OpenAI error: ${errData}`);
+            throw new Error(`Gemini error: ${errData}`);
         }
 
-        const openAiData = await response.json();
-        const content = openAiData.choices[0].message?.content;
+        const geminiData = await response.json();
+        const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (!content) {
-            throw new Error('No content returned from OpenAI')
+            throw new Error('No content returned from Gemini');
         }
 
         let rawContent = content.trim();
