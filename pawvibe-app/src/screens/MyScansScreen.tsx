@@ -14,6 +14,7 @@ const getSpeciesIcon = (petType?: string, breed?: string): keyof typeof Material
     const type = (petType || '').toLowerCase();
     const b = (breed || '').toLowerCase();
 
+    if (type === 'human' || b.includes('human') || b.includes('insan') || b.includes('homo sapiens') || b.includes('kişi') || b.includes('adam') || b.includes('kadın')) return 'account-heart';
     if (type === 'cat' || b.includes('cat') || b.includes('kedi')) return 'cat';
     if (type === 'dog' || b.includes('dog') || b.includes('köpek')) return 'dog-side';
     if (type === 'farm_animal' || b.includes('cow') || b.includes('inek') || b.includes('sığır') || b.includes('öküz') || b.includes('dana') || b.includes('bov') || b.includes('boğa')) return 'cow';
@@ -25,7 +26,8 @@ const getSpeciesIcon = (petType?: string, breed?: string): keyof typeof Material
     if (b.includes('turtle') || b.includes('kaplumbağa') || b.includes('tortoise')) return 'tortoise';
     if (type === 'reptile' || b.includes('snake') || b.includes('yılan') || b.includes('lizard') || b.includes('iguana') || b.includes('kertenkele') || b.includes('bukalemun') || b.includes('gecko')) return 'snake';
     if (type === 'rodent' || b.includes('hamster') || b.includes('rabbit') || b.includes('tavşan') || b.includes('mouse') || b.includes('fare') || b.includes('guinea')) return 'rabbit';
-    if (type === 'other' || type === 'object') return 'creation';
+    if (type === 'object' || b.includes('kahve') || b.includes('coffee') || b.includes('espresso') || b.includes('fincan') || b.includes('kupa') || b.includes('ayakkabı') || b.includes('shoe')) return 'shape-outline';
+    if (type === 'other') return 'creation';
     return 'paw';
 };
 
@@ -135,7 +137,9 @@ export default function MyScansScreen() {
                     <Text style={styles.emptyText}>{t('app.no_scans')}</Text>
                 ) : (
                     scans.map((scan) => {
+                        const isHuman = scan.pet_type === 'human';
                         const isRealPet = scan.is_pet !== false;
+                        const hasLivingStats = scan.chaos_score != null || scan.energy_level != null;
 
                         return (
                             <View key={scan.id} style={styles.scanCard}>
@@ -144,7 +148,7 @@ export default function MyScansScreen() {
                                         <Text style={styles.scanMood}>{scan.mood_title}</Text>
                                         <Text style={styles.scanDate}>{new Date(scan.created_at).toLocaleDateString()}</Text>
                                     </View>
-                                    {isRealPet && (
+                                    {(isRealPet || isHuman) && (
                                         <TouchableOpacity
                                             style={styles.astroBtn}
                                             onPress={() => {
@@ -167,14 +171,14 @@ export default function MyScansScreen() {
                                         {(!scan.estimated_breed || 
                                           scan.estimated_breed.toLowerCase() === 'none' || 
                                           scan.estimated_breed.toLowerCase().includes('mixed')
-                                            ? (isRealPet ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') : t('app.honorary_species', 'SPECIAL SCAN'))
+                                            ? (isRealPet ? t('app.mysterious_friend', 'MYSTERIOUS FRIEND') : (isHuman ? 'HOMO SAPIENS' : t('app.honorary_species', 'SPECIAL SCAN')))
                                             : scan.estimated_breed.toUpperCase())}
                                         {scan.breed_size ? ` • ${t(`app.size_${scan.breed_size}`, scan.breed_size?.toUpperCase())}` : ''}
-                                        {scan.life_stage ? ` • ${isRealPet ? t(`app.stage_${scan.life_stage}`, scan.life_stage?.toUpperCase()) : t('app.honorary_friend', 'SPECIAL VIBE')}` : ''}
+                                        {scan.life_stage ? ` • ${isRealPet || isHuman ? t(`app.stage_${scan.life_stage}`, scan.life_stage?.toUpperCase()) : t('app.honorary_friend', 'SPECIAL VIBE')}` : ''}
                                     </Text>
                                 </View>
 
-                                {(scan.chaos_score != null || scan.energy_level != null) && (
+                                {hasLivingStats && (
                                     <View style={styles.scanStats}>
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.chaos')}: {scan.chaos_score ?? 0} 🌪️</Text>
                                         <Text style={styles.scanStatText} numberOfLines={1}>{t('app.energy')}: {scan.energy_level ?? 0} ⚡</Text>

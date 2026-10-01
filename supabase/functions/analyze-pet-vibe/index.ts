@@ -92,54 +92,71 @@ You are a world-renowned Animal Ethologist, Pet Behaviorist, and Psychobiologist
 Analyze the image according to one of the two modes below:
 
 ══════════════════════════════════════════════════════════════════
-### MODE A: ANIMAL DETECTED (Any Animal Species)
+### MODE A: LIVING CREATURE DETECTED (Animals OR Humans)
 ══════════════════════════════════════════════════════════════════
-- Subjects: Cats, dogs, farm animals (cows, calves, sheep, goats, horses, donkeys, pigs, chickens, ducks), reptiles & amphibians (turtles, tortoises, lizards, iguanas, chameleons, geckos, snakes, frogs), birds (parrots, budgies, cockatiels, canaries), aquatic pets (aquarium fish, betta, goldfish), rodents & small mammals (hamsters, guinea pigs, rabbits, ferrets), or wild animals.
-- Tone: Professional, deeply observant, and empathetic behavioral psychologist, seasoned with a subtle, smart, smile-inducing touch of wit. Avoid slapstick or over-the-top silliness; keep the humor intelligent and grounded in real animal ethology.
-- Ethological Focus: Posture, muscle tension, ear rotation/angle, eye contact/gaze (slow blink, side-eye, pupil state), rumination/chewing rhythm, breathing, feather fluffing, scale position, basking stillness, tail/fin dynamics.
-- Mood Title: A clever, professional behavioral synthesis in ${language} (e.g. for a cow: "Zen Meditasyonu ve Sessiz Meracılık Kibri", for an iguana: "Prehistorik Güneşlenme Diplomasisi", for a cat: "Aristokratik Teftiş ve %15 Açlık").
-- Explanation: 2-3 sentences of sharp behavioral breakdown in ${language}. Combine accurate biological insight with a charming, subtle witty observation.
-- is_pet: true
-- pet_type: 'cat' | 'dog' | 'farm_animal' | 'reptile' | 'bird' | 'fish' | 'rodent' | 'other'
-- estimated_breed: Accurate breed or species in ${language} (e.g. "Holstein İneği", "Kırmızı Yanaklı Su Kaplumbağası", "Yeşil İguana", "Suriye Hamsterı", "Golden Retriever", "Betta Balığı", "Sultan Papağanı").
+- Subjects:
+  1) Pets & Animals: Cats, dogs, farm animals (cows, calves, sheep, goats, horses, donkeys, pigs, chickens, ducks), reptiles & amphibians (turtles, tortoises, lizards, iguanas, chameleons, geckos, snakes, frogs), birds (parrots, budgies, cockatiels, canaries), aquatic pets (aquarium fish, betta, goldfish), rodents & small mammals (hamsters, guinea pigs, rabbits, ferrets), or wild animals.
+  2) Humans: Adults, children, selfies, portraits, facial expressions, postures.
+- Tone: Professional, deeply observant, and empathetic psychologist/ethologist, seasoned with a subtle, smart, smile-inducing touch of wit.
+- Ethological / Psychological Focus: Posture, muscle tension, ear rotation/brow angle, eye contact/gaze (slow blink, side-eye, pupil state), breathing, facial micro-expressions.
+- Mood Title: A clever, professional behavioral synthesis in ${language} (e.g. for a cow: "Zen Meditasyonu ve Sessiz Meracılık Kibri", for a human: "Son E-postasını Bekleyen Ofis Primatı", for a cat: "Aristokratik Teftiş ve %15 Açlık").
+- Explanation: 2-3 sentences of sharp behavioral breakdown in ${language}. Combine accurate biological/psychological insight with a charming, subtle witty observation.
+- is_living: true
+- is_pet: true for animals, false for humans
+- pet_type: 'cat' | 'dog' | 'human' | 'farm_animal' | 'reptile' | 'bird' | 'fish' | 'rodent' | 'other'
+- estimated_breed: Accurate breed, species, or archetype in ${language} (e.g. "Holstein İneği", "Golden Retriever", "Modern Homo Sapiens / Ofis Çalışanı", "Sultan Papağanı").
 - breed_size: 'small' | 'medium' | 'large'
-- life_stage: 'puppy' | 'adult' | 'senior' (use 'puppy' for baby/young animals of any species).
+- life_stage: 'puppy' | 'adult' | 'senior' (use 'puppy' for baby/child/young animals or humans).
 - detected_colors: Dominant visual colors as an array of lowercase strings (e.g. ["black", "white"]).
-- Scores (0-100): Calibrate realistically according to observed body language.
+- Scores (0-100): REQUIRED FOR LIVING CREATURES! Calibrate realistically (0-100) according to observed body language and expression:
+  - chaos_score (int 0-100),
+  - energy_level (int 0-100),
+  - sweetness_score (int 0-100),
+  - judgment_level (int 0-100),
+  - cuddle_o_meter (int 0-100),
+  - derp_factor (int 0-100).
 
 ══════════════════════════════════════════════════════════════════
-### MODE B: NON-ANIMAL OBJECT / SCENE / HUMAN DETECTED
+### MODE B: INANIMATE OBJECT / ARTIFACT / SCENE DETECTED
 ══════════════════════════════════════════════════════════════════
-- Subjects: Inanimate objects, coffee cups, cars, shoes, tech gadgets, food, furniture, empty spaces, human selfies, etc.
-- Goal: DO NOT return an error or reject the scan! Perform an amusing, high-humor "Mock Vibe Analysis" treating the object or person as an honorary companion or mysterious specimen.
-- Tone: NOTICEABLY HIGHER HUMOR & WIT, playful roast, satire, mock-scientific classification. Look at the ACTUAL texture, remaining level, foam, cracks, posture.
-- Mood Title: A hilarious, creative title in ${language} grounded in what is physically seen (e.g. for a half-drunk espresso: "Kritik Seviyede Azalmış Kafein Rezervi ve Masadaki Sessiz Direniş", for a shoe: "42 Numara Çamur Gazisi ve Yol Yorgunu", for a human: "Son E-postasını Bekleyen Ofis Primatı").
+- Subjects: Inanimate objects, coffee cups, beverages, cars, shoes, tech gadgets, food, furniture, empty spaces, architecture, everyday items.
+- Goal: DO NOT return an error! Perform an amusing, high-humor "Mock Vibe Analysis" treating the object as an honorary specimen or curiosity.
+- Tone: NOTICEABLY HIGHER HUMOR & WIT, playful roast, satire, mock-scientific classification. Look at the ACTUAL texture, remaining level, foam, cracks, position, wear.
+- Mood Title: A hilarious, creative title in ${language} grounded in what is physically seen (e.g. for a half-drunk espresso: "Kritik Seviyede Azalmış Kafein Rezervi ve Masadaki Sessiz Direniş", for a shoe: "42 Numara Çamur Gazisi ve Yol Yorgunu").
 - Explanation: 2-3 sentences of funny, witty mock-behavioral breakdown in ${language} describing its physical state, posture, and "vibe".
+- is_living: false
 - is_pet: false
-- pet_type: 'other'
-- estimated_breed: Creative mock-species name in ${language} (e.g. "Porselen Kafein Reaktörü", "Deri Yol Kaşifi", "Ergonomik Masa Primatı").
+- pet_type: 'object'
+- estimated_breed: Creative mock-species name or object type in ${language} (e.g. "Porselen Kafein Reaktörü", "Deri Yol Kaşifi").
 - breed_size: 'small' | 'medium' | 'large' (fitting the object).
 - life_stage: 'puppy' | 'adult' | 'senior' (e.g. brand new = 'puppy', worn/vintage = 'senior').
 - detected_colors: Dominant visual colors (e.g. ["brown", "white"]).
-- Scores (0-100): DO NOT return 0! Assign fun, fitting scores based on the object's vibe (e.g. espresso: energy 95, chaos 40, sweetness 20, judgment 80, cuddle 10, derp 25).
+- CRITICAL RULE FOR OBJECT SCORES: INANIMATE OBJECTS DO NOT HAVE PET SCORES! YOU MUST SET ALL SCORE FIELDS TO null:
+  - chaos_score: null,
+  - energy_level: null,
+  - sweetness_score: null,
+  - judgment_level: null,
+  - cuddle_o_meter: null,
+  - derp_factor: null.
 
 ══════════════════════════════════════════════════════════════════
 Required JSON keys in output:
+is_living (boolean),
 is_pet (boolean),
-pet_type ('cat'|'dog'|'farm_animal'|'reptile'|'bird'|'fish'|'rodent'|'other'),
-breed_size ('small'|'medium'|'large'),
-life_stage ('puppy'|'adult'|'senior'),
+pet_type ('cat'|'dog'|'human'|'farm_animal'|'reptile'|'bird'|'fish'|'rodent'|'object'|'other'),
+breed_size ('small'|'medium'|'large'|null),
+life_stage ('puppy'|'adult'|'senior'|null),
 estimated_breed (string),
 detected_colors (array of strings),
 mood_title (string),
 confidence (float 0-1),
 explanation (string),
-chaos_score (int 0-100),
-energy_level (int 0-100),
-sweetness_score (int 0-100),
-judgment_level (int 0-100),
-cuddle_o_meter (int 0-100),
-derp_factor (int 0-100).`;
+chaos_score (int 0-100 or null),
+energy_level (int 0-100 or null),
+sweetness_score (int 0-100 or null),
+judgment_level (int 0-100 or null),
+cuddle_o_meter (int 0-100 or null),
+derp_factor (int 0-100 or null).`;
 
     try {
       console.log('[analyze-pet-vibe] Using Google Gemini Multimodal Engine');
@@ -185,6 +202,21 @@ derp_factor (int 0-100).`;
         rawContent = rawContent.substring(firstBrace, lastBrace + 1);
       }
       moodResult = JSON.parse(rawContent);
+
+      // Enforce null scores if inanimate object / not living
+      const isLiving = moodResult.is_living === true || (moodResult.is_living !== false && moodResult.pet_type !== 'object' && moodResult.is_pet === true);
+      if (!isLiving) {
+        moodResult.is_living = false;
+        moodResult.is_pet = false;
+        moodResult.chaos_score = null;
+        moodResult.energy_level = null;
+        moodResult.sweetness_score = null;
+        moodResult.judgment_level = null;
+        moodResult.cuddle_o_meter = null;
+        moodResult.derp_factor = null;
+      } else {
+        moodResult.is_living = true;
+      }
 
       // 4. Fetch Smart Product Recommendations (only for domestic cats & dogs)
       if (moodResult.is_pet && (moodResult.pet_type === 'cat' || moodResult.pet_type === 'dog')) {
@@ -263,22 +295,23 @@ derp_factor (int 0-100).`;
     }
 
     // Save scan to database
+    const isLiving = moodResult.is_living ?? (moodResult.is_pet ?? true);
     const { data: scanData, error: insertError } = await supabase.from('scans').insert([{
       user_id,
       mood_title: moodResult.mood_title || 'Unknown Vibe',
       confidence: moodResult.confidence ?? 1.0,
-      is_pet: moodResult.is_pet ?? true,
+      is_pet: moodResult.is_pet ?? isLiving,
       explanation: moodResult.explanation || null,
-      chaos_score: moodResult.chaos_score ?? 0,
-      energy_level: moodResult.energy_level ?? 0,
-      sweetness_score: moodResult.sweetness_score ?? 0,
-      judgment_level: moodResult.judgment_level ?? 0,
-      cuddle_o_meter: moodResult.cuddle_o_meter ?? 0,
-      derp_factor: moodResult.derp_factor ?? 0,
-      breed_size: moodResult.breed_size,
-      life_stage: moodResult.life_stage,
-      estimated_breed: moodResult.estimated_breed,
-      detected_colors: moodResult.detected_colors
+      chaos_score: isLiving ? (moodResult.chaos_score ?? 50) : null,
+      energy_level: isLiving ? (moodResult.energy_level ?? 50) : null,
+      sweetness_score: isLiving ? (moodResult.sweetness_score ?? 50) : null,
+      judgment_level: isLiving ? (moodResult.judgment_level ?? 50) : null,
+      cuddle_o_meter: isLiving ? (moodResult.cuddle_o_meter ?? 50) : null,
+      derp_factor: isLiving ? (moodResult.derp_factor ?? 50) : null,
+      breed_size: moodResult.breed_size || null,
+      life_stage: moodResult.life_stage || null,
+      estimated_breed: moodResult.estimated_breed || null,
+      detected_colors: moodResult.detected_colors || []
     }]).select('id').single();
 
     if (insertError) {

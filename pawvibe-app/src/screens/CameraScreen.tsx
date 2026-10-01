@@ -44,14 +44,15 @@ const AnimatedCameraView = Animated.createAnimatedComponent(CameraView);
 interface AnalysisResult {
     id?: string;
     is_pet: boolean;
+    is_living?: boolean;
     pet_type?: string;
     mood_title?: string;
-    chaos_score?: number;
-    energy_level?: number;
-    sweetness_score?: number;
-    judgment_level?: number;
-    cuddle_o_meter?: number;
-    derp_factor?: number;
+    chaos_score?: number | null;
+    energy_level?: number | null;
+    sweetness_score?: number | null;
+    judgment_level?: number | null;
+    cuddle_o_meter?: number | null;
+    derp_factor?: number | null;
     breed_size?: string;
     life_stage?: string;
     estimated_breed?: string;
@@ -70,6 +71,7 @@ const getSpeciesIcon = (petType?: string, breed?: string): keyof typeof Material
     const type = (petType || '').toLowerCase();
     const b = (breed || '').toLowerCase();
 
+    if (type === 'human' || b.includes('human') || b.includes('insan') || b.includes('homo sapiens') || b.includes('kişi') || b.includes('adam') || b.includes('kadın')) return 'account-heart';
     if (type === 'cat' || b.includes('cat') || b.includes('kedi')) return 'cat';
     if (type === 'dog' || b.includes('dog') || b.includes('köpek')) return 'dog-side';
     if (type === 'farm_animal' || b.includes('cow') || b.includes('inek') || b.includes('sığır') || b.includes('öküz') || b.includes('dana') || b.includes('bov') || b.includes('boğa')) return 'cow';
@@ -81,7 +83,8 @@ const getSpeciesIcon = (petType?: string, breed?: string): keyof typeof Material
     if (b.includes('turtle') || b.includes('kaplumbağa') || b.includes('tortoise')) return 'tortoise';
     if (type === 'reptile' || b.includes('snake') || b.includes('yılan') || b.includes('lizard') || b.includes('iguana') || b.includes('kertenkele') || b.includes('bukalemun') || b.includes('gecko')) return 'snake';
     if (type === 'rodent' || b.includes('hamster') || b.includes('rabbit') || b.includes('tavşan') || b.includes('mouse') || b.includes('fare') || b.includes('guinea')) return 'rabbit';
-    if (type === 'other' || type === 'object') return 'creation';
+    if (type === 'object' || b.includes('kahve') || b.includes('coffee') || b.includes('espresso') || b.includes('fincan') || b.includes('kupa') || b.includes('ayakkabı') || b.includes('shoe')) return 'shape-outline';
+    if (type === 'other') return 'creation';
     return 'paw';
 };
 
@@ -502,18 +505,32 @@ export default function CameraScreen({ navigation }: any) {
                                 <View style={styles.posterContent}>
                                     <Text style={styles.posterMoodTitle} numberOfLines={2} adjustsFontSizeToFit>{result.mood_title}</Text>
 
-                                    <View style={styles.posterStatsGrid}>
-                                        <View style={styles.statColumn}>
-                                            <StatPill label={t('app.chaos')} score={result.chaos_score ?? 0} emoji="🌪️" color="#FF007F" delay={300} isPoster />
-                                            <StatPill label={t('app.energy')} score={result.energy_level ?? 0} emoji="⚡" color="#FFD700" delay={500} isPoster />
-                                            <StatPill label={t('app.sweetness')} score={result.sweetness_score ?? 0} emoji="🍬" color="#00FFFF" delay={700} isPoster />
+                                    {result.chaos_score != null ? (
+                                        <View style={styles.posterStatsGrid}>
+                                            <View style={styles.statColumn}>
+                                                <StatPill label={t('app.chaos')} score={result.chaos_score ?? 0} emoji="🌪️" color="#FF007F" delay={300} isPoster />
+                                                <StatPill label={t('app.energy')} score={result.energy_level ?? 0} emoji="⚡" color="#FFD700" delay={500} isPoster />
+                                                <StatPill label={t('app.sweetness')} score={result.sweetness_score ?? 0} emoji="🍬" color="#00FFFF" delay={700} isPoster />
+                                            </View>
+                                            <View style={styles.statColumn}>
+                                                <StatPill label={t('app.judgment')} score={result.judgment_level ?? 0} emoji="😒" color="#FF4500" delay={400} isPoster />
+                                                <StatPill label={t('app.cuddle')} score={result.cuddle_o_meter ?? 0} emoji="🤗" color="#FF1493" delay={600} isPoster />
+                                                <StatPill label={t('app.derp')} score={result.derp_factor ?? 0} emoji="🤪" color="#32CD32" delay={800} isPoster />
+                                            </View>
                                         </View>
-                                        <View style={styles.statColumn}>
-                                            <StatPill label={t('app.judgment')} score={result.judgment_level ?? 0} emoji="😒" color="#FF4500" delay={400} isPoster />
-                                            <StatPill label={t('app.cuddle')} score={result.cuddle_o_meter ?? 0} emoji="🤗" color="#FF1493" delay={600} isPoster />
-                                            <StatPill label={t('app.derp')} score={result.derp_factor ?? 0} emoji="🤪" color="#32CD32" delay={800} isPoster />
+                                    ) : (
+                                        <View style={styles.posterObjectInsightBox}>
+                                            <View style={styles.posterObjectHeaderRow}>
+                                                <MaterialCommunityIcons name="shape-outline" size={15} color="#00FFFF" />
+                                                <Text style={styles.posterObjectBadgeText}>{t('app.special_vibe_report', 'HONORARY VIBE ANALYSIS')}</Text>
+                                            </View>
+                                            {result.explanation ? (
+                                                <Text style={styles.posterObjectExplanationText} numberOfLines={4}>
+                                                    "{result.explanation}"
+                                                </Text>
+                                            ) : null}
                                         </View>
-                                    </View>
+                                    )}
 
                                     <View style={styles.bioTagsContainer}>
                                         <View style={styles.bioTag}>
@@ -526,7 +543,7 @@ export default function CameraScreen({ navigation }: any) {
                                                 {!result.estimated_breed || 
                                                  result.estimated_breed.toLowerCase() === 'none' || 
                                                  result.estimated_breed.toLowerCase().includes('mixed') 
-                                                    ? (result.is_pet === false ? t('app.honorary_species', 'SPECIAL SCAN') : t('app.mysterious_friend', 'MYSTERIOUS FRIEND')) 
+                                                    ? (result.is_pet === false ? (result.pet_type === 'human' ? 'HOMO SAPIENS' : t('app.honorary_species', 'SPECIAL SCAN')) : t('app.mysterious_friend', 'MYSTERIOUS FRIEND')) 
                                                     : result.estimated_breed.toUpperCase()}
                                             </Text>
                                         </View>
@@ -540,7 +557,7 @@ export default function CameraScreen({ navigation }: any) {
                                             <View style={styles.bioTag}>
                                                 <MaterialCommunityIcons name="clock-outline" size={14} color="#00FFFF" />
                                                 <Text style={styles.bioTagText}>
-                                                    {result.is_pet === false 
+                                                    {result.is_pet === false && result.pet_type !== 'human'
                                                         ? t('app.honorary_friend', 'SPECIAL VIBE') 
                                                         : t(`app.stage_${result.life_stage}`, result.life_stage?.toUpperCase())}
                                                 </Text>
@@ -581,13 +598,13 @@ export default function CameraScreen({ navigation }: any) {
                             <View style={styles.insightCard}>
                                 <View style={styles.insightHeader}>
                                     <MaterialCommunityIcons 
-                                        name={result.is_pet !== false ? "brain" : "creation"} 
+                                        name={result.is_pet !== false || result.pet_type === 'human' ? "brain" : "creation"} 
                                         size={20} 
                                         color="#00FFFF" 
                                         style={{ marginRight: 8 }} 
                                     />
                                     <Text style={styles.insightHeaderTitle}>
-                                        {result.is_pet !== false 
+                                        {result.is_pet !== false || result.pet_type === 'human'
                                             ? t('app.behavioral_insight', 'BEHAVIORAL PSYCHOLOGY REPORT') 
                                             : t('app.special_vibe_report', 'HONORARY VIBE ANALYSIS')}
                                     </Text>
@@ -954,6 +971,41 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         paddingBottom: 20,
+    },
+    posterObjectInsightBox: {
+        width: '100%',
+        backgroundColor: 'rgba(26, 11, 46, 0.85)',
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: '#00FFFF',
+        padding: 14,
+        marginBottom: 16,
+        shadowColor: '#00FFFF',
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+    },
+    posterObjectHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0, 255, 255, 0.2)',
+        paddingBottom: 6,
+    },
+    posterObjectBadgeText: {
+        color: '#00FFFF',
+        fontSize: 11,
+        fontWeight: '900',
+        letterSpacing: 1.5,
+        marginLeft: 6,
+        textTransform: 'uppercase',
+    },
+    posterObjectExplanationText: {
+        color: '#F0E6FF',
+        fontSize: 13,
+        lineHeight: 19,
+        fontWeight: '500',
+        fontStyle: 'italic',
     },
     posterFooter: {
         marginTop: 'auto',
